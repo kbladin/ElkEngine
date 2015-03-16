@@ -1,7 +1,14 @@
 #include <iostream>
+#include <vector>
+
+#include <gl/glew.h>
+#include <gl/glfw3.h>
+
+#include "SimpleGraphicsEngine.h"
 
 int main(int argc, char const *argv[])
 {
-  std::cout << "Hello world!" << std::endl;
+  MyGraphicsEngine e;
+  e.run();
   return 0;
 }
