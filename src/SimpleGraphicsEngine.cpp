@@ -15,6 +15,31 @@
 #include "ModelLoader.h"
 #include "ShaderLoader.h"
 
+Material::Material(GLuint program_ID)
+{
+  diffuse_color_ = glm::vec3(1.0, 1.0, 1.0);
+  specular_color_ = glm::vec3(1.0, 1.0, 1.0);
+  specularity_ = 0.5;
+  shinyness_ = 16;
+  
+  program_ID_ = program_ID;
+  
+  glUseProgram(program_ID_);
+  diffuseColor_ID_ = glGetUniformLocation(program_ID_, "material_diffiseColor");
+  specularColor_ID_ = glGetUniformLocation(program_ID_, "material_specularColor");
+  specularity_ID_ = glGetUniformLocation(program_ID_, "material_specularity");
+  shinyness_ID_ = glGetUniformLocation(program_ID_, "material_shinyness");
+}
+
+void Material::render()
+{
+  // Use our shader
+  glUseProgram(program_ID_);
+  glUniform3f(diffuseColor_ID_,diffuse_color_.r,diffuse_color_.g, diffuse_color_.b);
+  glUniform3f(specularColor_ID_,specular_color_.r,specular_color_.g, specular_color_.b);
+  glUniform1f(specularity_ID_, specularity_);
+  glUniform1i(shinyness_ID_, shinyness_);
+}
 
 void Object3D::addChild(Object3D *child)
 {
@@ -41,20 +66,16 @@ void Object3D::resetTransform()
   transform_ = glm::mat4();
 }
 
-void Object3D::render()
+void Object3D::render(glm::mat4 M)
 {
   for (std::vector<Object3D*>::const_iterator iter = children.begin(); iter != children.end(); iter++) {
-    (*iter)->render();
+    (*iter)->render(M * transform_);
   }
 }
 
-Mesh::Mesh(const char *file_name, GLuint program_ID)
+Mesh::Mesh(const char *file_name, GLuint program_ID) : material_(program_ID)
 {
   initialize(file_name, program_ID);
-  
-  glUseProgram(program_ID_);
-  // Get a handle for our matrix uniform
-  model_matrix_ID_ = glGetUniformLocation(program_ID_, "M");
 }
 
 Mesh::~Mesh()
@@ -92,14 +113,24 @@ bool Mesh::initialize(const char *file_name, GLuint program_ID)
   glGenBuffers(1, &element_buffer_);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements_.size() * sizeof(unsigned short), &elements_[0] , GL_STATIC_DRAW);
+  
+  
+  glUseProgram(program_ID_);
+  // Get a handle for our matrix uniform
+  model_matrix_ID_ = glGetUniformLocation(program_ID_, "M");
   return true;
 }
 
-void Mesh::render()
+void Mesh::render(glm::mat4 M)
 {
+  Object3D::render(M);
+  material_.render();
+  
+  glm::mat4 total_transform = M * transform_;
+  
   // Use our shader
   glUseProgram(program_ID_);
-  glUniformMatrix4fv(model_matrix_ID_, 1, GL_FALSE, &transform_[0][0]);
+  glUniformMatrix4fv(model_matrix_ID_, 1, GL_FALSE, &total_transform[0][0]);
   
   glBindVertexArray(vertex_array_ID_);
   
@@ -150,16 +181,44 @@ Camera::Camera(GLuint program_ID)
   view_matrix_ID_ = glGetUniformLocation(program_ID_, "V");
   projection_matrix_ID_ = glGetUniformLocation(program_ID_, "P");
   
-  view_transform_ = glm::lookAt(glm::vec3(0,0,1), glm::vec3(0,0,0), glm::vec3(0,1,0));
+  view_transform_ = glm::lookAt(glm::vec3(0,0.5,1), glm::vec3(0,0,0), glm::vec3(0,1,0));
   projection_transform_ = glm::perspective(45.0f, 3.0f/2.0f, 0.1f, 100.0f);
 }
 
-void Camera::render()
+void Camera::render(glm::mat4 M)
 {
-  glUseProgram(program_ID_);
+  Object3D::render(M * transform_);
+  
   glUniformMatrix4fv(view_matrix_ID_, 1, GL_FALSE, &view_transform_[0][0]);
   glUniformMatrix4fv(projection_matrix_ID_, 1, GL_FALSE, &projection_transform_[0][0]);
+  
   glUseProgram(0);
+}
+
+LightSource::LightSource(GLuint program_ID)
+{
+  intensity_ = 5.0f;
+  color_ = glm::vec3(1.0, 1.0, 1.0);
+  
+  program_ID_ = program_ID;
+  
+  glUseProgram(program_ID_);
+  light_position_ID_ = glGetUniformLocation(program_ID_, "lightPosition");
+  light_intensity_ID_ = glGetUniformLocation(program_ID_, "lightIntensity");
+  light_color_ID_ = glGetUniformLocation(program_ID_, "lightColor");
+}
+
+void LightSource::render(glm::mat4 M)
+{
+  Object3D::render(M * transform_);
+  
+  glm::vec4 position = M * transform_ * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+  glm::vec4 direction = M * transform_ * glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+  
+  glUseProgram(program_ID_);
+  glUniform3f(light_position_ID_,position.x,position.y, position.z);
+  glUniform1f(light_intensity_ID_, intensity_);
+  glUniform3f(light_color_ID_, color_.r, color_.g, color_.b);
 }
 
 SimpleGraphicsEngine::SimpleGraphicsEngine()
@@ -172,11 +231,12 @@ SimpleGraphicsEngine::~SimpleGraphicsEngine()
   glDeleteProgram(program_ID_basic_render);
   glfwTerminate();
   delete scene_;
+  delete cam_;
 }
 
 bool SimpleGraphicsEngine::initialize()
 {
-  start_ = std::clock();
+  time_ = glfwGetTime();
   // Initialize the library
   if (!glfwInit())
     return -1;
@@ -230,8 +290,8 @@ void SimpleGraphicsEngine::run()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.5, 0.5, 0.5, 1);
     
-    cam_->render();
-    scene_->render();
+    cam_->render(glm::mat4());
+    scene_->render(glm::mat4());
     
     /* Swap front and back buffers */
     glfwSwapBuffers(window_);
@@ -243,19 +303,52 @@ void SimpleGraphicsEngine::run()
 
 void SimpleGraphicsEngine::update()
 {
-  dt_ = ( std::clock() - start_ ) / (double) CLOCKS_PER_SEC;
-  start_ = std::clock();
+  dt_ = glfwGetTime() - time_;
+  time_ = glfwGetTime();
 }
 
 MyGraphicsEngine::MyGraphicsEngine() : SimpleGraphicsEngine()
 {
-  Mesh* bunny = new Mesh("../../data/testmodels/bunny.m", program_ID_basic_render);
-  scene_->addChild(bunny);
+  /*
+   bunny_ = new Mesh("../../data/testmodels/bunny.m", program_ID_basic_render);
+   light_ = new LightSource(program_ID_basic_render);
   
+   scene_->addChild(bunny_);
+   scene_->addChild(light_);
+   
+   light_->translate(1, 1, 3);
+   bunny_->scale(3, 3, 3);
+   bunny_->translate(0, 0, 0);
+  */
+  LightSource* light = new LightSource(program_ID_basic_render);
+  light->translate(1, 3, 0);
+  Mesh* bunny_mesh = new Mesh("../../data/testmodels/bunny.m", program_ID_basic_render);
+  
+  Object3D* bunny_child = new Object3D();
+  bunny_child->addChild(bunny_mesh);
+  bunny_child->translate(-0.5,0,0);
+  bunny_child->scale(0.5, 0.5, 0.5);
+  
+  bunny_ = new Object3D();
+  bunny_->addChild(bunny_mesh);
+  bunny_->addChild(bunny_child);
+  bunny_->scale(2, 2, 2);
+  bunny_->rotate(180, 0, 1, 0);
+  
+  scene_->addChild(bunny_);
+  scene_->addChild(light);
+}
 
-  bunny->scale(3, 3, 3);
-  bunny->translate(-0.2, -0.2, 0);
-  //hej->rotate(45, 0, 0, 1);
+MyGraphicsEngine::~MyGraphicsEngine()
+{
+  //delete bunny_;
+  //delete light_;
+}
+
+void MyGraphicsEngine::update()
+{
+  SimpleGraphicsEngine::update();
+  bunny_->rotate(10 * dt_, 0, 1, 0);
 }
 
 #endif

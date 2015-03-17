@@ -7,12 +7,31 @@
 #include <gl/glew.h>
 #include <gl/glfw3.h>
 
+class Material {
+public:
+  Material(GLuint program_ID);
+  void render();
+  
+  glm::vec3 diffuse_color_;
+  glm::vec3 specular_color_;
+  float specularity_;
+  int shinyness_;
+  
+private:
+  GLuint program_ID_;
+  
+  GLuint diffuseColor_ID_;
+  GLuint specularColor_ID_;
+  GLuint specularity_ID_;
+  GLuint shinyness_ID_;
+};
+
 class Object3D {
 public:
   Object3D() {};
   virtual ~Object3D() {};
   void addChild(Object3D* child);
-  virtual void render();
+  virtual void render(glm::mat4 M);
   // Todo update function here
   // Todo Object3D should inherit transfromation from parent
   
@@ -30,7 +49,9 @@ class Mesh : public Object3D{
 public:
   Mesh(const char *file_name, GLuint program_ID);
   ~Mesh();
-  virtual void render();
+  virtual void render(glm::mat4 M);
+  
+  Material material_;
 private:
   bool initialize(const char *file_name, GLuint program_ID);
 
@@ -51,7 +72,7 @@ private:
 class Camera : public Object3D {
 public:
   Camera(GLuint program_ID);
-  void render();
+  void render(glm::mat4 M);
   
   glm::mat4 getViewProjectionMatrix();
 private:
@@ -64,13 +85,28 @@ private:
   glm::mat4 projection_transform_;
 };
 
+class LightSource : public Object3D {
+public:
+  LightSource(GLuint program_ID);
+  virtual void render(glm::mat4 M);
+  
+  float intensity_;
+  glm::vec3 color_;
+private:
+  GLuint program_ID_;
+  
+  GLuint light_position_ID_;
+  GLuint light_intensity_ID_;
+  GLuint light_color_ID_;
+};
+
 class SimpleGraphicsEngine {
 public:
   SimpleGraphicsEngine();
-  ~SimpleGraphicsEngine();
+  virtual ~SimpleGraphicsEngine();
   void run();
 protected:
-  virtual void update();
+  virtual void update() = 0;
   double dt_;
   Object3D* scene_;
   Camera* cam_;
@@ -80,10 +116,16 @@ private:
 
   GLFWwindow* window_;
   
-  clock_t start_;
+  double time_;
 };
 
 class MyGraphicsEngine : public SimpleGraphicsEngine {
 public:
   MyGraphicsEngine();
+  ~MyGraphicsEngine();
+  virtual void update();
+  
+private:
+  Object3D* bunny_;
+  LightSource* light_;
 };
