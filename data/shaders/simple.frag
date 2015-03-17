@@ -4,7 +4,7 @@ in vec3 Normal_viewspace;
 in vec3 vertexPosition_viewspace;
 in vec3 lightPosition_viewspace;
 
-out vec3 color;
+out vec4 color;
 
 uniform float lightIntensity;
 uniform vec3 lightColor;
@@ -42,5 +42,6 @@ void main(){
 		lightColor *
 		material_specularColor;
 
-    color = ambient + diffuse + specular;
+    color.rgb = ambient + diffuse + specular;
+    color.a = 1;
 }

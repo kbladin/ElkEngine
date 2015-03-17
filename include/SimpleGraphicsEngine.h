@@ -26,6 +26,7 @@ private:
   GLuint shinyness_ID_;
 };
 
+
 class Object3D {
 public:
   Object3D() {};
@@ -33,13 +34,12 @@ public:
   void addChild(Object3D* child);
   virtual void render(glm::mat4 M);
   // Todo update function here
-  // Todo Object3D should inherit transfromation from parent
   
   void translate(float x, float y, float z);
   void scale(float x, float y, float z);
   void rotate(float angle, float x, float y, float z);
   void resetTransform();
-protected:
+
   glm::mat4 transform_;
 private:
   std::vector<Object3D*> children;
@@ -48,12 +48,16 @@ private:
 class Mesh : public Object3D{
 public:
   Mesh(const char *file_name, GLuint program_ID);
+  Mesh(GLuint program_ID);
   ~Mesh();
+  
+  void initPlane(glm::vec3 position, glm::vec3 normal, glm::vec3 scale);
+  
   virtual void render(glm::mat4 M);
   
   Material material_;
 private:
-  bool initialize(const char *file_name, GLuint program_ID);
+  void initialize();
 
   GLuint program_ID_;
 
@@ -63,15 +67,40 @@ private:
   GLuint element_buffer_;
   
   GLuint model_matrix_ID_;
-  
+
   std::vector<glm::vec3> vertices_;
   std::vector<glm::vec3> normals_;
   std::vector<unsigned short> elements_;
 };
 
+class LineMesh : public Object3D {
+public:
+  LineMesh(GLuint program_ID);
+  ~LineMesh();
+  
+  virtual void render(glm::mat4 M);
+  
+  Material material_;
+private:
+  void initialize();
+  
+  GLuint program_ID_;
+  
+  GLuint vertex_array_ID_;
+  GLuint vertex_buffer_;
+  GLuint color_buffer_;
+  GLuint element_buffer_;
+  
+  GLuint model_matrix_ID_;
+  
+  std::vector<glm::vec3> vertices_;
+  std::vector<glm::vec3> colors_;
+  std::vector<unsigned short> elements_;
+};
+
 class Camera : public Object3D {
 public:
-  Camera(GLuint program_ID);
+  Camera(GLuint program_ID, GLFWwindow* window_);
   void render(glm::mat4 M);
   
   glm::mat4 getViewProjectionMatrix();
@@ -83,6 +112,8 @@ private:
   
   glm::mat4 view_transform_;
   glm::mat4 projection_transform_;
+  
+  GLFWwindow* window_;
 };
 
 class LightSource : public Object3D {
@@ -109,12 +140,24 @@ protected:
   virtual void update() = 0;
   double dt_;
   Object3D* scene_;
-  Camera* cam_;
-  GLuint program_ID_basic_render;
+  LineMesh* axes_;
+  Mesh* grid_plane_;
+  
+  Object3D* master_cam_;
+
+  GLuint program_ID_basic_render_;
+  GLuint program_ID_axis_shader_;
+  GLuint program_ID_grid_plane_shader_;
+
 private:
   bool initialize();
 
   GLFWwindow* window_;
+
+  // One camera for each shader
+  Camera* basic_cam_;
+  Camera* axis_cam_;
+  Camera* grid_plane_cam_;
   
   double time_;
 };
@@ -127,5 +170,6 @@ public:
   
 private:
   Object3D* bunny_;
+  Mesh* bunny_mesh_;
   LightSource* light_;
 };
