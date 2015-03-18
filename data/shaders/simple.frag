@@ -26,6 +26,8 @@ void main(){
 	float distance = length(vertexPosition_viewspace - lightPosition_viewspace);
 	float invDistanceSquare = 1 / pow(distance, 2);
 
+	vec3 underLight = clamp(dot(-vec3(0,1,0),n),0,1) * material_diffiseColor * 0.2;
+
 	vec3 ambient = vec3(0.2,0.2,0.2) * material_diffiseColor;
 	vec3 diffuse =
 		lightIntensity * 
@@ -42,6 +44,6 @@ void main(){
 		lightColor *
 		material_specularColor;
 
-    color.rgb = ambient + diffuse + specular;
+    color.rgb = ambient + diffuse + specular + underLight;
     color.a = 1;
 }

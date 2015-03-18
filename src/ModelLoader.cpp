@@ -1,6 +1,3 @@
-#ifndef MODEL_LOADER_H
-#define MODEL_LOADER_H
-
 #include "ModelLoader.h"
 
 #include "glm/glm.hpp"
@@ -75,5 +72,3 @@ bool ModelLoader::load(
   }
   return true;
 }
-
-#endif

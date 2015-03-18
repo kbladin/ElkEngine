@@ -1,3 +1,6 @@
+#ifndef SHADER_WINDOW_H
+#define SHADER_WINDOW_H
+
 #include <vector>
 #include <string>
 
@@ -12,3 +15,5 @@ public:
 private:
   
 };
+
+#endif

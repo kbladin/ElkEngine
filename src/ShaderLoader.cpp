@@ -1,6 +1,3 @@
-#ifndef GL_WINDOW_H
-#define GL_WINDOW_H
-
 #include "ShaderLoader.h"
 #include <fstream>
 
@@ -81,5 +78,3 @@ GLuint ShaderLoader::loadShaders(
   
   return ProgramID;
 }
-
-#endif

@@ -1,9 +1,10 @@
+#ifndef SIMPLE_GRAPHICS_ENGINE_H
+#define SIMPLE_GRAPHICS_ENGINE_H
+
 #include <vector>
-#include <time.h>       /* time_t, struct tm, difftime, time, mktime */
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <gl/glew.h>
 #include <gl/glfw3.h>
 
@@ -26,6 +27,24 @@ private:
   GLuint shinyness_ID_;
 };
 
+class Transform {
+public:
+  Transform();
+  
+  glm::vec3 getPosition(){return position_;};
+  glm::vec3 getScale(){return scale_;};
+  glm::mat4 getMatrix(){return matrix_;};
+  
+  void translate(glm::vec3 position);
+  void scale(glm::vec3 scale);
+  void rotate(float angle, glm::vec3 rotation_axis);
+  void reset();
+private:
+  // Todo: Have a representation for rotation (quaternion or Euler angles)
+  glm::vec3 position_;
+  glm::vec3 scale_;
+  glm::mat4 matrix_;
+};
 
 class Object3D {
 public:
@@ -34,16 +53,13 @@ public:
   void addChild(Object3D* child);
   virtual void render(glm::mat4 M);
   // Todo update function here
-  
-  void translate(float x, float y, float z);
-  void scale(float x, float y, float z);
-  void rotate(float angle, float x, float y, float z);
-  void resetTransform();
 
-  glm::mat4 transform_;
+  Transform transform_;
 private:
   std::vector<Object3D*> children;
 };
+
+class BoundingBox;
 
 class Mesh : public Object3D{
 public:
@@ -52,11 +68,15 @@ public:
   ~Mesh();
   
   void initPlane(glm::vec3 position, glm::vec3 normal, glm::vec3 scale);
+  void initBox(glm::vec3 max, glm::vec3 min, glm::vec3 position);
+  
+  void normalizeScale();
   
   virtual void render(glm::mat4 M);
-  
   Material material_;
 private:
+  friend BoundingBox;
+
   void initialize();
 
   GLuint program_ID_;
@@ -67,7 +87,6 @@ private:
   GLuint element_buffer_;
   
   GLuint model_matrix_ID_;
-
   std::vector<glm::vec3> vertices_;
   std::vector<glm::vec3> normals_;
   std::vector<unsigned short> elements_;
@@ -78,9 +97,10 @@ public:
   LineMesh(GLuint program_ID);
   ~LineMesh();
   
+  void initAxes();
+  
   virtual void render(glm::mat4 M);
   
-  Material material_;
 private:
   void initialize();
   
@@ -96,6 +116,18 @@ private:
   std::vector<glm::vec3> vertices_;
   std::vector<glm::vec3> colors_;
   std::vector<unsigned short> elements_;
+};
+
+class BoundingBox{
+public:
+  BoundingBox(const Mesh* template_mesh);
+  
+  glm::vec3 getMin(){return min;}
+  glm::vec3 getMax(){return max;}
+  
+private:
+  glm::vec3 max;
+  glm::vec3 min;
 };
 
 class Camera : public Object3D {
@@ -143,7 +175,7 @@ protected:
   LineMesh* axes_;
   Mesh* grid_plane_;
   
-  Object3D* master_cam_;
+  Object3D* camera_;
 
   GLuint program_ID_basic_render_;
   GLuint program_ID_axis_shader_;
@@ -162,14 +194,4 @@ private:
   double time_;
 };
 
-class MyGraphicsEngine : public SimpleGraphicsEngine {
-public:
-  MyGraphicsEngine();
-  ~MyGraphicsEngine();
-  virtual void update();
-  
-private:
-  Object3D* bunny_;
-  Mesh* bunny_mesh_;
-  LightSource* light_;
-};
+#endif

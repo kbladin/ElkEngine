@@ -1,3 +1,6 @@
+#ifndef MODEL_LOADER_H
+#define MODEL_LOADER_H
+
 #include <vector>
 #include <string>
 
@@ -11,3 +14,5 @@ public:
                    std::vector<glm::vec3>* normals,
                    std::vector<unsigned short>* elements);
 };
+
+#endif

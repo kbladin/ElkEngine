@@ -16,7 +16,8 @@ uniform mat4 P;
 void main(){
 	gl_Position = P * V * M * vec4(vertexPosition_modelspace,1);
 
-	Normal_viewspace = ( V * M * vec4(vertexNormal_modelspace,0)).xyz; // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
-	vertexPosition_viewspace = ( V * M * vec4(vertexPosition_modelspace,1)).xyz; // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
+	// Using inverse transpose for normal in case model is resized.
+	Normal_viewspace = ( inverse(transpose(V * M)) * vec4(vertexNormal_modelspace,0)).xyz;
+	vertexPosition_viewspace = ( V * M * vec4(vertexPosition_modelspace,1)).xyz;
 	lightPosition_viewspace = ( V * vec4(lightPosition,1)).xyz;
 }

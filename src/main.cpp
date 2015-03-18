@@ -4,11 +4,11 @@
 #include <gl/glew.h>
 #include <gl/glfw3.h>
 
-#include "SimpleGraphicsEngine.h"
+#include "ModelViewer.h"
 
 int main(int argc, char const *argv[])
 {
-  MyGraphicsEngine e;
+  ModelViewer e;
   e.run();
   return 0;
 }
