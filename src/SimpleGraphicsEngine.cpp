@@ -55,12 +55,34 @@ void Transform::scale(glm::vec3 scale)
   matrix_ = scale_matrix * matrix_;
 }
 
+void Transform::rotateX(float angle)
+{
+  rotation_.x += angle;
+  glm::mat4 rotation_matrix = glm::rotate(glm::mat4(), angle, glm::vec3(1,0,0));
+  matrix_ = rotation_matrix * matrix_;
+}
+
+void Transform::rotateY(float angle)
+{
+  rotation_.y += angle;
+  glm::mat4 rotation_matrix = glm::rotate(glm::mat4(), angle, glm::vec3(0,1,0));
+  matrix_ = rotation_matrix * matrix_;
+}
+
+void Transform::rotateZ(float angle)
+{
+  rotation_.z += angle;
+  glm::mat4 rotation_matrix = glm::rotate(glm::mat4(), angle, glm::vec3(0,0,1));
+  matrix_ = rotation_matrix * matrix_;
+}
+
+/*
 void Transform::rotate(float angle, glm::vec3 rotation_axis)
 {
   glm::mat4 rotation_matrix = glm::rotate(glm::mat4(), angle, rotation_axis);
   matrix_ = rotation_matrix * matrix_;
 }
-
+*/
 void Transform::reset()
 {
   position_ = glm::vec3(0.0f,0.0f,0.0f);
@@ -80,28 +102,77 @@ void Object3D::render(glm::mat4 M)
   }
 }
 
-Mesh::Mesh(const char *file_name, GLuint program_ID) : material_(program_ID)
+AbstractMesh::AbstractMesh()
+{
+  
+}
+
+AbstractMesh::~AbstractMesh()
+{
+  
+}
+
+void AbstractMesh::normalizeScale()
+{
+  BoundingBox bb(this);
+  float scale_max = glm::max(bb.getMax().x, glm::max(bb.getMax().y, bb.getMax().z));
+  float scale_min = glm::max(-bb.getMin().x, glm::max(-bb.getMin().y, -bb.getMin().z));
+  float scale = glm::max(scale_max, scale_min);
+  
+  transform_.scale(glm::vec3(1/scale, 1/scale, 1/scale));
+}
+
+void AbstractMesh::initialize()
+{
+  glUseProgram(program_ID_);
+  
+  glGenVertexArrays(1, &vertex_array_ID_);
+  glBindVertexArray(vertex_array_ID_);
+  
+  glGenBuffers(1, &vertex_buffer_);
+  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
+  glBufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(glm::vec3), &vertices_[0], GL_STATIC_DRAW);
+  
+  glGenBuffers(1, &element_buffer_);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements_.size() * sizeof(unsigned short), &elements_[0] , GL_STATIC_DRAW);
+  
+  // Get a handle for our matrix uniform
+  model_matrix_ID_ = glGetUniformLocation(program_ID_, "M");
+}
+
+TriangleMesh::TriangleMesh(const char *file_name, GLuint program_ID) : material_(program_ID)
 {
   program_ID_ = program_ID;
   ModelLoader::load(file_name, &vertices_, &normals_, &elements_);
   initialize();
 }
 
-Mesh::Mesh(GLuint program_ID) : material_(program_ID)
+TriangleMesh::TriangleMesh(std::vector<glm::vec3> vertices,
+           std::vector<glm::vec3> normals,
+           std::vector<unsigned short> elements,
+           GLuint program_ID) : material_(program_ID)
+{
+  program_ID_ = program_ID;
+  vertices_ = vertices;
+  normals_ = normals;
+  elements_ = elements;
+  
+  initialize();
+}
+
+TriangleMesh::TriangleMesh(GLuint program_ID) : material_(program_ID)
 {
   program_ID_ = program_ID;
 }
 
-Mesh::~Mesh()
+TriangleMesh::~TriangleMesh()
 {
   // Cleanup VBO
-  glDeleteBuffers(1, &vertex_buffer_);
   glDeleteBuffers(1, &normal_buffer_);
-  glDeleteBuffers(1, &element_buffer_);
-  glDeleteVertexArrays(1, &vertex_array_ID_);
 }
 
-void Mesh::initPlane(glm::vec3 position, glm::vec3 normal, glm::vec3 scale)
+void TriangleMesh::initPlane(glm::vec3 position, glm::vec3 normal, glm::vec3 scale)
 {
   vertices_.resize(4);
   normals_.resize(4);
@@ -139,7 +210,7 @@ void Mesh::initPlane(glm::vec3 position, glm::vec3 normal, glm::vec3 scale)
   initialize();
 }
 
-void Mesh::initBox(glm::vec3 max,
+void TriangleMesh::initBox(glm::vec3 max,
                    glm::vec3 min,
                    glm::vec3 position)
 {
@@ -263,40 +334,18 @@ void Mesh::initBox(glm::vec3 max,
   initialize();
 }
 
-void Mesh::initialize()
+void TriangleMesh::initialize()
 {
+  AbstractMesh::initialize();
+  
   glUseProgram(program_ID_);
 
-  glGenVertexArrays(1, &vertex_array_ID_);
-  glBindVertexArray(vertex_array_ID_);
-  
-  glGenBuffers(1, &vertex_buffer_);
-  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
-  glBufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(glm::vec3), &vertices_[0], GL_STATIC_DRAW);
-  
   glGenBuffers(1, &normal_buffer_);
   glBindBuffer(GL_ARRAY_BUFFER, normal_buffer_);
   glBufferData(GL_ARRAY_BUFFER, normals_.size() * sizeof(glm::vec3), &normals_[0], GL_STATIC_DRAW);
-  
-  glGenBuffers(1, &element_buffer_);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements_.size() * sizeof(unsigned short), &elements_[0] , GL_STATIC_DRAW);
-  
-    // Get a handle for our matrix uniform
-  model_matrix_ID_ = glGetUniformLocation(program_ID_, "M");
 }
 
-void Mesh::normalizeScale()
-{
-  BoundingBox bb(this);
-  float scale_max = glm::max(bb.getMax().x, glm::max(bb.getMax().y, bb.getMax().z));
-  float scale_min = glm::max(-bb.getMin().x, glm::max(-bb.getMin().y, -bb.getMin().z));
-  float scale = glm::max(scale_max, scale_min);
-  
-  transform_.scale(glm::vec3(1/scale, 1/scale, 1/scale));
-}
-
-void Mesh::render(glm::mat4 M)
+void TriangleMesh::render(glm::mat4 M)
 {
   Object3D::render(M);
   material_.render();
@@ -358,7 +407,6 @@ LineMesh::~LineMesh()
 {
   // Cleanup VBO
   glDeleteBuffers(1, &vertex_buffer_);
-  glDeleteBuffers(1, &color_buffer_);
   glDeleteBuffers(1, &element_buffer_);
   glDeleteVertexArrays(1, &vertex_array_ID_);
 }
@@ -369,18 +417,61 @@ void LineMesh::initAxes()
   vertices_.push_back(glm::vec3(1.0f,0.0f,0.0f));
   vertices_.push_back(glm::vec3(0.0f,1.0f,0.0f));
   vertices_.push_back(glm::vec3(0.0f,0.0f,1.0f));
-  
-  colors_.push_back(glm::vec3(1.0f,1.0f,1.0f));
-  colors_.push_back(glm::vec3(1.0f,0.0f,0.0f));
-  colors_.push_back(glm::vec3(0.0f,1.0f,0.0f));
-  colors_.push_back(glm::vec3(0.0f,0.0f,1.0f));
-  
+ 
   elements_.push_back(0);
   elements_.push_back(1);
   elements_.push_back(0);
   elements_.push_back(2);
   elements_.push_back(0);
   elements_.push_back(3);
+  
+  initialize();
+}
+
+void LineMesh::initGridPlane(glm::vec3 position,
+                             glm::vec3 normal,
+                             glm::vec3 scale,
+                             unsigned int divisions)
+{
+  vertices_.resize((divisions + 1) * 4);
+  elements_.resize((divisions + 1) * 4);
+  int i = 0;
+  for (int j=0; i < divisions + 1; i++, j++) {
+    vertices_[i] = glm::vec3(j,0.0f,0.0f);
+  }
+  for (int j=0; i < (divisions + 1) * 2; i++, j++) {
+    vertices_[i] = glm::vec3(0.0f,j,0.0f);
+  }
+  for (int j=0; i < (divisions + 1) * 3; i++, j++) {
+    vertices_[i] = glm::vec3(j,divisions,0.0f);
+  }
+  for (int j=0; i < (divisions + 1) * 4; i++, j++) {
+    vertices_[i] = glm::vec3(divisions,j,0.0f);
+  }
+  
+  for (int i = 0; i < elements_.size(); i = i+2) {
+    elements_[i] = i/2;
+  }
+  for (int i = 1; i < elements_.size(); i = i+2) {
+    elements_[i] = i/2 + (divisions + 1) * 2;
+  }
+  
+  glm::mat4 M;
+  glm::vec3 up =
+  normal != glm::vec3(0.0f, 0.0f, 1.0f) ?
+  glm::vec3(0.0f, 0.0f, 1.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+  M = glm::lookAt(
+                  glm::vec3(0.0f, 0.0f, 0.0f),
+                  normal,
+                  up);
+  
+  for (int i = 0; i < vertices_.size(); i++) {
+    vertices_[i] /= divisions;
+    vertices_[i] = glm::vec3(glm::vec4(vertices_[i], 1) * M);
+  }
+  
+  transform_.translate(position - glm::vec3(0.5f,0.0f,0.5f));
+  transform_.scale(scale);
   
   initialize();
 }
@@ -443,7 +534,7 @@ void LineMesh::render(glm::mat4 M)
   glDisableVertexAttribArray(1);
 }
 
-BoundingBox::BoundingBox(const Mesh* template_mesh)
+BoundingBox::BoundingBox(const AbstractMesh* template_mesh)
 {
   float max_x = template_mesh->vertices_[0].x;
   float max_y = template_mesh->vertices_[0].y;
@@ -529,6 +620,8 @@ void LightSource::render(glm::mat4 M)
   glUniform3f(light_color_ID_, color_.r, color_.g, color_.b);
 }
 
+Object3D* SimpleGraphicsEngine::camera_;
+
 SimpleGraphicsEngine::SimpleGraphicsEngine()
 {
   initialize();
@@ -598,10 +691,10 @@ bool SimpleGraphicsEngine::initialize()
                                                      "../../data/shaders/grid_plane.vert",
                                                      "../../data/shaders/grid_plane.frag" );
   scene_ = new Object3D();
-  camera_ = new Object3D();// Camera(program_ID_basic_render_, window_);
+  camera_ = new Object3D();
   basic_cam_ = new Camera(program_ID_basic_render_, window_);
   axis_cam_ = new Camera(program_ID_axis_shader_, window_);
-  grid_plane_cam_ = new Camera(program_ID_grid_plane_shader_, window_);
+  grid_plane_cam_ = new Camera(program_ID_basic_render_, window_);
   
   camera_->addChild(basic_cam_);
   camera_->addChild(axis_cam_);
@@ -609,11 +702,11 @@ bool SimpleGraphicsEngine::initialize()
   
   axes_ = new LineMesh(program_ID_axis_shader_);
   axes_->initAxes();
-  grid_plane_ = new Mesh(program_ID_grid_plane_shader_);
-  grid_plane_->initPlane(
-                         glm::vec3(0.0f,0.0f,0.0f),
-                         glm::vec3(0.0f,1.0f,0.0f),
-                         glm::vec3(1.0f,1.0f,1.0f));
+  grid_plane_ = new LineMesh(program_ID_basic_render_);
+  grid_plane_->initGridPlane(glm::vec3(0.0f,0.0f,0.0f),
+                             glm::vec3(0.0f,1.0f,0.0f),
+                             glm::vec3(2.0f,2.0f,2.0f),
+                             10);
   
   scene_->addChild(camera_);
   scene_->addChild(axes_);
