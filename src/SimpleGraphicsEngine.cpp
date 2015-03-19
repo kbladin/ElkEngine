@@ -168,7 +168,6 @@ TriangleMesh::TriangleMesh(GLuint program_ID) : material_(program_ID)
 
 TriangleMesh::~TriangleMesh()
 {
-  // Cleanup VBO
   glDeleteBuffers(1, &normal_buffer_);
 }
 

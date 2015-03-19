@@ -6,14 +6,15 @@
 
 #include <gl/glfw3.h>
 
-// Function from opengl-tutorials.org
+//! Load and compile a shader program.
+/*!
+ Function referenced from www.opengl-tutorials.org.
+*/
 class ShaderLoader {
 public:
   static GLuint loadShaders(
                      const char * vertex_file_path,
                      const char * fragment_file_path);
-private:
-  
 };
 
 #endif

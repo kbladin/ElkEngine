@@ -1,6 +1,7 @@
 #include "ModelViewer.h"
 #include "ModelLoader.h"
 #include <iostream>
+#include "Leap.h"
 
 ModelViewer::ModelViewer() : SimpleGraphicsEngine()
 {
