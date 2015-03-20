@@ -3,6 +3,33 @@
 
 #include "SimpleGraphicsEngine.h"
 
+#include "Leap.h"
+
+using namespace Leap;
+
+class ModelViewer;
+
+class SampleListener : public Listener {
+public:
+  //SampleListener();
+  SampleListener(ModelViewer* model_viewer);
+  virtual void onConnect(const Controller&);
+  virtual void onFrame(const Controller&);
+private:
+  ModelViewer* model_viewer_;
+};
+
+class HandObject3D : public Object3D {
+public:
+  HandObject3D(GLuint program_ID);
+  ~HandObject3D();
+
+private:
+  friend SampleListener;
+  TriangleMesh* palm_mesh_;
+  std::vector<TriangleMesh*> finger_meshes_;
+};
+
 //! The actual program extending SimpleGraphicsEngine
 /*!
  Here, all objects can be added to the scene_ and input is handled outside of
@@ -15,11 +42,16 @@ public:
   virtual void update();
   static void mouseScrollCallback(GLFWwindow * window, double dx, double dy);
 private:
+  friend SampleListener;
+  // Leap motion objects
+  Controller controller_;
+  SampleListener listener_;
   // Objects to put in the scene
   Object3D* bunny_;
   TriangleMesh* bunny_mesh_;
   LightSource* light_;
   BoundingBox* bb_;
+  HandObject3D* hand_;
 };
 
 #endif

@@ -125,7 +125,7 @@ class BoundingBox;
 //! This class serves as a base for the mesh classes.
 class AbstractMesh : public Object3D{
 public:
-  AbstractMesh();
+  AbstractMesh(GLuint shader_ID);
   ~AbstractMesh();
   //! Normalizes the scale of the mesh.
   /*!
@@ -138,6 +138,7 @@ public:
    \param M is the transformation matrix of the parent.
   */
   virtual void render(glm::mat4 M) = 0;
+  Material material_;
 protected:
   virtual void initialize() = 0;
   
@@ -201,12 +202,23 @@ public:
    \param position is a point in the center of the box.
   */
   void initBox(glm::vec3 max, glm::vec3 min, glm::vec3 position);
+  //! Initializes a cone shape.
+  /*!
+   Currently, the normals are all soft (not realistic).
+   \param position is the position of the center of the circle
+   \param direction is direction of the cone.
+   \param scale defines scaling in x-, y-, and z- direction.
+   \param divisions is the subdivision level.
+   */
+  void initCone(glm::vec3 position,
+                glm::vec3 direction,
+                glm::vec3 scale,
+                int divisions);
   //! Render the mesh.
   /*!
    \param M is the transformation matrix of the parent.
   */
   virtual void render(glm::mat4 M);
-  Material material_;
 private:
   void initialize();
   GLuint normal_buffer_;
@@ -228,9 +240,12 @@ public:
   */
   LineMesh(GLuint program_ID);
   ~LineMesh();
-  
-  //! Initializes three lines from origo in direction of each axis (x, y, z).
-  void initAxes();
+  //! Initializes line from start position to end position.
+  /*!
+   \param start is the start position of the line.
+   \param end is the end position of the line.
+  */
+  void initLine(glm::vec3 start, glm::vec3 end);
   //! Initializes a grid-plane used as reference in the scene.
   /*!
    \param position is a point in the center of the plane.
@@ -321,6 +336,22 @@ private:
   GLuint light_color_ID_;
 };
 
+class AxesObject3D : public Object3D {
+public:
+  AxesObject3D(GLuint program_ID);
+  ~AxesObject3D();
+  
+  void render(glm::mat4 M);
+private:
+  LineMesh* line_x_;
+  LineMesh* line_y_;
+  LineMesh* line_z_;
+  
+  TriangleMesh* arrow_x_;
+  TriangleMesh* arrow_y_;
+  TriangleMesh* arrow_z_;
+};
+
 //! This class manages all objects in the engine.
 /*!
  This class has the scene_ which can be used to add more objects by adding
@@ -349,20 +380,24 @@ protected:
   static Object3D* camera_;
   
   GLuint program_ID_basic_render_;
-  GLuint program_ID_axis_shader_;
-  GLuint program_ID_grid_plane_shader_;
+  GLuint program_ID_one_color_shader_;
   
 private:
   bool initialize();
 
   double time_;
 
-  LineMesh* axes_;
-  LineMesh* grid_plane_;
+  Object3D* grid_plane_;
+  Object3D* grid_plane_child1_;
+  Object3D* grid_plane_child2_;
+  Object3D* grid_plane_child3_;
+  LineMesh* grid_plane_mesh_;
+  
+  AxesObject3D* axis_object_;
+  
   // One camera for each shader
   Camera* basic_cam_;
-  Camera* axis_cam_;
-  Camera* grid_plane_cam_;
+  Camera* one_color_cam_;
 };
 
 #endif

@@ -6,7 +6,6 @@
 #include <iostream>
 #include <fstream>
 
-
 bool ModelLoader::load(
                        const char* file_name,
                        std::vector<glm::vec3>* vertices,
@@ -26,7 +25,7 @@ bool ModelLoader::load(
     while ( getline (model_file,line) && line.substr(0,6) == "Vertex" )
     {
       line = line.substr(7); // Ignore "Vertex "
-      std::string::size_type sz;   // Alias of size_t
+      std::string::size_type sz; // Alias of size_t
       std::stoi (line,&sz); // To ignore the vertex number
       
       line = line.substr(sz);
@@ -49,7 +48,7 @@ bool ModelLoader::load(
     while ( getline (model_file,line) && line.substr(0,4) == "Face" )
     {
       line = line.substr(5); // Ignore "Face "
-      std::string::size_type sz;   // Alias of size_t
+      std::string::size_type sz; // Alias of size_t
       std::stoi (line,&sz); // To ignore the vertex number
       
       line = line.substr(sz);

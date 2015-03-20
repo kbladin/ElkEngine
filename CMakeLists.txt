@@ -25,7 +25,7 @@ endif(APPLE)
 # Add include directories 
 include_directories(${GLEW_INCLUDE_DIR})
 include_directories(${GLFW_INCLUDE_DIRS})
-include_directories(${LEAP_INCLUDE_DIRs})
+include_directories(${LEAP_INCLUDE_DIRS})
 #include_directories(${ANT_TWEAK_BAR_INCLUDE_PATH})
 include_directories("cinder_0.8.6_mac/include")
 
@@ -54,7 +54,7 @@ add_executable(ModelViewer src/main.cpp)
 set_target_properties(ModelViewer PROPERTIES COMPILE_FLAGS "-std=c++11")
 
 # Link all the libraries (including our own)
-target_link_libraries(ModelViewer Model_Viewer_lib ${LEAP_LIBRARIES} ${OPENGL_LIBRARIES} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARY} ${GLFW_LIBRARIES})
+target_link_libraries(ModelViewer Model_Viewer_lib ${LEAP_LIBRARY} ${OPENGL_LIBRARIES} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARY} ${GLFW_LIBRARIES})
 
 ######### OPENGL LIBRARY (ONLY FOR OSX) #############
 if(APPLE)

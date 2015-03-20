@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -76,13 +77,6 @@ void Transform::rotateZ(float angle)
   matrix_ = rotation_matrix * matrix_;
 }
 
-/*
-void Transform::rotate(float angle, glm::vec3 rotation_axis)
-{
-  glm::mat4 rotation_matrix = glm::rotate(glm::mat4(), angle, rotation_axis);
-  matrix_ = rotation_matrix * matrix_;
-}
-*/
 void Transform::reset()
 {
   position_ = glm::vec3(0.0f,0.0f,0.0f);
@@ -102,9 +96,9 @@ void Object3D::render(glm::mat4 M)
   }
 }
 
-AbstractMesh::AbstractMesh()
+AbstractMesh::AbstractMesh(GLuint program_ID) : material_(program_ID)
 {
-  
+  program_ID_ = program_ID;
 }
 
 AbstractMesh::~AbstractMesh()
@@ -141,7 +135,7 @@ void AbstractMesh::initialize()
   model_matrix_ID_ = glGetUniformLocation(program_ID_, "M");
 }
 
-TriangleMesh::TriangleMesh(const char *file_name, GLuint program_ID) : material_(program_ID)
+TriangleMesh::TriangleMesh(const char *file_name, GLuint program_ID) : AbstractMesh(program_ID)
 {
   program_ID_ = program_ID;
   ModelLoader::load(file_name, &vertices_, &normals_, &elements_);
@@ -151,7 +145,7 @@ TriangleMesh::TriangleMesh(const char *file_name, GLuint program_ID) : material_
 TriangleMesh::TriangleMesh(std::vector<glm::vec3> vertices,
            std::vector<glm::vec3> normals,
            std::vector<unsigned short> elements,
-           GLuint program_ID) : material_(program_ID)
+           GLuint program_ID) : AbstractMesh(program_ID)
 {
   program_ID_ = program_ID;
   vertices_ = vertices;
@@ -161,7 +155,7 @@ TriangleMesh::TriangleMesh(std::vector<glm::vec3> vertices,
   initialize();
 }
 
-TriangleMesh::TriangleMesh(GLuint program_ID) : material_(program_ID)
+TriangleMesh::TriangleMesh(GLuint program_ID) : AbstractMesh(program_ID)
 {
   program_ID_ = program_ID;
 }
@@ -333,6 +327,63 @@ void TriangleMesh::initBox(glm::vec3 max,
   initialize();
 }
 
+void TriangleMesh::initCone(glm::vec3 position,
+              glm::vec3 direction,
+              glm::vec3 scale,
+              int divisions)
+{
+  vertices_.resize(divisions + 2);
+  normals_.resize(divisions + 2);
+  elements_.resize(divisions * 6);
+  float delta_theta = M_PI * 2 / float(divisions);
+  for (int i=0; i<divisions; i++) {
+    float x = cos(delta_theta * i);
+    float y = sin(delta_theta * i);
+    vertices_[i] = glm::vec3(x,y,0);
+    normals_[i] = glm::vec3(x,y,0);
+  }
+  vertices_[divisions] = glm::vec3(0,0,-1);
+  normals_[divisions] = glm::vec3(0,0,-1);
+  vertices_[divisions + 1] = glm::vec3(0,0,0);
+  normals_[divisions + 1] = glm::vec3(0,0,1);
+  for (int i = 0; i<divisions-1; i++) {
+    elements_[i*6] = i;
+    elements_[i*6 + 1] = divisions;
+    elements_[i*6 + 2] = i + 1;
+    elements_[i*6 + 3] = i;
+    elements_[i*6 + 4] = i + 1;
+    elements_[i*6 + 5] = divisions + 1;
+  }
+  elements_[divisions*6 - 1 - 5] = divisions - 1;
+  elements_[divisions*6 - 1 - 4] = divisions;
+  elements_[divisions*6 - 1 - 3] = 0;
+  elements_[divisions*6 - 1 - 2] = divisions - 1;
+  elements_[divisions*6 - 1 - 1] = 0;
+  elements_[divisions*6 - 1 - 0] = divisions + 1;
+  
+  glm::mat4 M;
+  glm::vec3 up =
+  !(direction.x == 0 && direction.y == 0) ?
+  glm::vec3(0.0f, 0.0f, 1.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+  M = glm::lookAt(
+                  glm::vec3(0.0f, 0.0f, 0.0f),
+                  direction,
+                  up);
+  
+  for (int i = 0; i < vertices_.size(); i++) {
+    vertices_[i].x *= scale.x;
+    vertices_[i].y *= scale.y;
+    vertices_[i].z *= scale.z; // Doing only this will make normals wrong
+    normals_[i] = glm::vec3(glm::vec4(glm::vec3(0.0f, 0.0f, -1.0f), 0) * M);
+    vertices_[i] = glm::vec3(glm::vec4(vertices_[i], 1) * M);
+  }
+  
+  transform_.translate(position);
+  //transform_.scale(scale);
+
+  initialize();
+}
+
 void TriangleMesh::initialize()
 {
   AbstractMesh::initialize();
@@ -396,7 +447,7 @@ void TriangleMesh::render(glm::mat4 M)
   glDisableVertexAttribArray(1);
 }
 
-LineMesh::LineMesh(GLuint program_ID)
+LineMesh::LineMesh(GLuint program_ID) : AbstractMesh(program_ID)
 {
   program_ID_ = program_ID;
   initialize();
@@ -410,19 +461,13 @@ LineMesh::~LineMesh()
   glDeleteVertexArrays(1, &vertex_array_ID_);
 }
 
-void LineMesh::initAxes()
+void LineMesh::initLine(glm::vec3 start, glm::vec3 end)
 {
-  vertices_.push_back(glm::vec3(0.0f,0.0f,0.0f));
-  vertices_.push_back(glm::vec3(1.0f,0.0f,0.0f));
-  vertices_.push_back(glm::vec3(0.0f,1.0f,0.0f));
-  vertices_.push_back(glm::vec3(0.0f,0.0f,1.0f));
- 
+  vertices_.push_back(start);
+  vertices_.push_back(end);
+  
   elements_.push_back(0);
   elements_.push_back(1);
-  elements_.push_back(0);
-  elements_.push_back(2);
-  elements_.push_back(0);
-  elements_.push_back(3);
   
   initialize();
 }
@@ -457,7 +502,7 @@ void LineMesh::initGridPlane(glm::vec3 position,
   
   glm::mat4 M;
   glm::vec3 up =
-  normal != glm::vec3(0.0f, 0.0f, 1.0f) ?
+  !(normal.x == 0 && normal.y == 0) ?
   glm::vec3(0.0f, 0.0f, 1.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
   M = glm::lookAt(
                   glm::vec3(0.0f, 0.0f, 0.0f),
@@ -496,6 +541,7 @@ void LineMesh::initialize()
 
 void LineMesh::render(glm::mat4 M)
 {
+  material_.render();
   Object3D::render(M);
   
   glm::mat4 total_transform = M * transform_.getMatrix();
@@ -619,6 +665,83 @@ void LightSource::render(glm::mat4 M)
   glUniform3f(light_color_ID_, color_.r, color_.g, color_.b);
 }
 
+AxesObject3D::AxesObject3D(GLuint program_ID)
+{
+  line_x_ = new LineMesh(program_ID);
+  line_y_ = new LineMesh(program_ID);
+  line_z_ = new LineMesh(program_ID);
+  
+  arrow_x_ = new TriangleMesh(program_ID);
+  arrow_y_ = new TriangleMesh(program_ID);
+  arrow_z_ = new TriangleMesh(program_ID);
+
+  line_x_->initLine(glm::vec3(0,0,0), glm::vec3(1,0,0));
+  line_y_->initLine(glm::vec3(0,0,0), glm::vec3(0,1,0));
+  line_z_->initLine(glm::vec3(0,0,0), glm::vec3(0,0,1));
+  
+  line_x_->material_.diffuse_color_ = glm::vec3(1,0,0);
+  line_y_->material_.diffuse_color_ = glm::vec3(0,1,0);
+  line_z_->material_.diffuse_color_ = glm::vec3(0,0,1);
+  
+  glm::vec3 size = glm::vec3(0.03,0.03,0.1);
+  int divisions = 10;
+  
+  arrow_x_->initCone(glm::vec3(1 - size.z,0,0),
+                 glm::vec3(1,0,0),
+                 size,
+                 divisions);
+
+  arrow_y_->initCone(glm::vec3(0,1 - size.z,0),
+                    glm::vec3(0,1,0),
+                    size,
+                    divisions);
+  
+  arrow_z_->initCone(glm::vec3(0,0,1 - size.z),
+                    glm::vec3(0,0,1),
+                    size,
+                    divisions);
+  
+  arrow_x_->material_.diffuse_color_ = glm::vec3(1,0,0);
+  arrow_y_->material_.diffuse_color_ = glm::vec3(0,1,0);
+  arrow_z_->material_.diffuse_color_ = glm::vec3(0,0,1);
+
+  // No need to have childs since rendering is handled explicitly
+  
+  this->addChild(line_x_);
+  this->addChild(line_y_);
+  this->addChild(line_z_);
+  
+  this->addChild(arrow_x_);
+  this->addChild(arrow_y_);
+  this->addChild(arrow_z_);
+  
+}
+
+void AxesObject3D::render(glm::mat4 M)
+{
+  // Render explicitly to handle depth testing.
+  //glDisable(GL_DEPTH_TEST);
+  //glClear(GL_DEPTH_BUFFER_BIT);
+  line_x_->render(M * transform_.getMatrix());
+  line_y_->render(M * transform_.getMatrix());
+  line_z_->render(M * transform_.getMatrix());
+  //glEnable(GL_DEPTH_TEST);
+  arrow_x_->render(M * transform_.getMatrix());
+  arrow_y_->render(M * transform_.getMatrix());
+  arrow_z_->render(M * transform_.getMatrix());
+}
+
+AxesObject3D::~AxesObject3D()
+{
+  delete line_x_;
+  delete line_y_;
+  delete line_z_;
+  
+  delete arrow_x_;
+  delete arrow_y_;
+  delete arrow_z_;
+}
+
 Object3D* SimpleGraphicsEngine::camera_;
 
 SimpleGraphicsEngine::SimpleGraphicsEngine()
@@ -629,14 +752,13 @@ SimpleGraphicsEngine::SimpleGraphicsEngine()
 SimpleGraphicsEngine::~SimpleGraphicsEngine()
 {
   glDeleteProgram(program_ID_basic_render_);
+  glDeleteProgram(program_ID_one_color_shader_);
   glfwTerminate();
   delete scene_;
-  delete axes_;
   delete grid_plane_;
   delete camera_;
   delete basic_cam_;
-  delete axis_cam_;
-  delete grid_plane_cam_;
+  delete one_color_cam_;
 }
 
 bool SimpleGraphicsEngine::initialize()
@@ -682,34 +804,42 @@ bool SimpleGraphicsEngine::initialize()
                                                "../../data/shaders/simple.vert",
                                                "../../data/shaders/simple.frag" );
   // Create and compile our GLSL program from the shaders
-  program_ID_axis_shader_ = ShaderLoader::loadShaders(
-                                                      "../../data/shaders/axis.vert",
-                                                      "../../data/shaders/axis.frag" );
-  // Create and compile our GLSL program from the shaders
-  program_ID_grid_plane_shader_ = ShaderLoader::loadShaders(
-                                                     "../../data/shaders/grid_plane.vert",
-                                                     "../../data/shaders/grid_plane.frag" );
+  program_ID_one_color_shader_ = ShaderLoader::loadShaders(
+                                                      "../../data/shaders/one_color.vert",
+                                                      "../../data/shaders/one_color.frag" );
   scene_ = new Object3D();
   camera_ = new Object3D();
   basic_cam_ = new Camera(program_ID_basic_render_, window_);
-  axis_cam_ = new Camera(program_ID_axis_shader_, window_);
-  grid_plane_cam_ = new Camera(program_ID_basic_render_, window_);
+  one_color_cam_ = new Camera(program_ID_one_color_shader_, window_);
   
   camera_->addChild(basic_cam_);
-  camera_->addChild(axis_cam_);
-  camera_->addChild(grid_plane_cam_);
+  camera_->addChild(one_color_cam_);
   
-  axes_ = new LineMesh(program_ID_axis_shader_);
-  axes_->initAxes();
-  grid_plane_ = new LineMesh(program_ID_basic_render_);
-  grid_plane_->initGridPlane(glm::vec3(0.0f,0.0f,0.0f),
+  grid_plane_ = new Object3D();
+  grid_plane_child1_ = new Object3D();
+  grid_plane_child2_ = new Object3D();
+  grid_plane_child3_ = new Object3D();
+  grid_plane_mesh_ = new LineMesh(program_ID_one_color_shader_);
+  grid_plane_mesh_->initGridPlane(glm::vec3(0.0f,0.0f,0.0f),
                              glm::vec3(0.0f,1.0f,0.0f),
                              glm::vec3(2.0f,2.0f,2.0f),
                              10);
+  grid_plane_mesh_->material_.diffuse_color_ = glm::vec3(0,0,0);
+  axis_object_ = new AxesObject3D(program_ID_one_color_shader_);
+  
+  grid_plane_child1_->addChild(grid_plane_mesh_);
+  grid_plane_child2_->addChild(grid_plane_mesh_);
+  grid_plane_child3_->addChild(grid_plane_mesh_);
+  grid_plane_->addChild(grid_plane_child1_);
+  grid_plane_child1_->addChild(grid_plane_child2_);
+  grid_plane_child2_->addChild(grid_plane_child3_);
+  
+  grid_plane_child2_->transform_.scale(glm::vec3(5,5,5));
+  grid_plane_child3_->transform_.scale(glm::vec3(5,5,5));
   
   scene_->addChild(camera_);
-  scene_->addChild(axes_);
   scene_->addChild(grid_plane_);
+  scene_->addChild(axis_object_);
   return true;
 }
 
