@@ -379,7 +379,93 @@ void TriangleMesh::initCone(glm::vec3 position,
   }
   
   transform_.translate(position);
-  //transform_.scale(scale);
+  initialize();
+}
+
+void TriangleMesh::initCylinder(glm::vec3 position,
+                                glm::vec3 direction,
+                                glm::vec3 scale,
+                                int divisions)
+{
+  vertices_.resize(divisions * 2 + (divisions + 1) * 2);
+  normals_.resize(divisions * 2 + (divisions + 1) * 2);
+  elements_.resize(divisions * 12);
+  
+  float delta_theta = M_PI * 2 / float(divisions);
+  for (int i = 0; i<divisions; i++) {
+    float x = cos(delta_theta * i);
+    float y = sin(delta_theta * i);
+    
+    vertices_[i] = glm::vec3(x,y,1) * 0.5f;
+    normals_[i] = glm::vec3(x,y,0);
+    
+    vertices_[i + divisions] = glm::vec3(x,y,-1) * 0.5f;
+    normals_[i + divisions] = glm::vec3(x,y,0);
+    
+    vertices_[i + 2*divisions] = glm::vec3(x,y,1) * 0.5f;
+    normals_[i + 2*divisions] = glm::vec3(0,0,1);
+    
+    vertices_[i + 3*divisions] = glm::vec3(x,y,-1) * 0.5f;
+    normals_[i + 3*divisions] = glm::vec3(0,0,-1);
+  }
+  vertices_[vertices_.size() - 2] = glm::vec3(0,0,1) * 0.5f;
+  normals_[normals_.size() - 2] = glm::vec3(0,0,1);
+  vertices_[vertices_.size() - 1] = glm::vec3(0,0,-1) * 0.5f;
+  normals_[normals_.size() - 1] = glm::vec3(0,0,-1);
+  
+  for (int i = 0; i<divisions-1; i++) {
+    elements_[i*12] = i;
+    elements_[i*12 + 1] = i + divisions;
+    elements_[i*12 + 2] = i + 1;
+    
+    elements_[i*12 + 3] = i + 1;
+    elements_[i*12 + 4] = i + divisions;
+    elements_[i*12 + 5] = i + 1 + divisions;
+
+    elements_[i*12 + 6] = i + divisions*2;
+    elements_[i*12 + 7] = i + divisions*2 + 1;
+    elements_[i*12 + 8] = vertices_.size() - 2;
+    
+    elements_[i*12 + 9] = i + divisions*2 + 1 + divisions;
+    elements_[i*12 + 10] = i + divisions*2 + divisions;
+    elements_[i*12 + 11] = vertices_.size() - 1;
+  }
+  
+  elements_[divisions*12 - 1 - 11] = divisions - 1;
+  elements_[divisions*12 - 1 - 10] = divisions - 1 + divisions;
+  elements_[divisions*12 - 1 - 9] = 0;
+  
+  
+  elements_[divisions*12 - 1 - 8] = 0;
+  elements_[divisions*12 - 1 - 7] = divisions - 1 + divisions;
+  elements_[divisions*12 - 1 - 6] = divisions;
+  
+  elements_[divisions*12 - 1 - 5] = divisions*2 + divisions - 1;
+  elements_[divisions*12 - 1 - 4] = divisions*2 + 0;
+  elements_[divisions*12 - 1 - 3] = vertices_.size() - 2;
+  
+  elements_[divisions*12 - 1 - 2] = divisions*2 + divisions;
+  elements_[divisions*12 - 1 - 1] = divisions*2 + divisions - 1 + divisions;
+  elements_[divisions*12 - 1 - 0] = vertices_.size() - 1;
+  
+  glm::mat4 M;
+  glm::vec3 up =
+  !(direction.x == 0 && direction.y == 0) ?
+  glm::vec3(0.0f, 0.0f, 1.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+  M = glm::lookAt(
+                  glm::vec3(0.0f, 0.0f, 0.0f),
+                  direction,
+                  up);
+  
+  for (int i = 0; i < vertices_.size(); i++) {
+    vertices_[i].x *= scale.x;
+    vertices_[i].y *= scale.y;
+    vertices_[i].z *= scale.z; // Doing only this will make normals wrong
+    normals_[i] = glm::vec3(glm::vec4(normals_[i], 0) * M);
+    vertices_[i] = glm::vec3(glm::vec4(vertices_[i], 1) * M);
+  }
+  
+  transform_.translate(position);
 
   initialize();
 }
@@ -601,7 +687,7 @@ BoundingBox::BoundingBox(const AbstractMesh* template_mesh)
   min = glm::vec3(min_x, min_y, min_z);
 }
 
-Camera::Camera(GLuint program_ID, GLFWwindow* window)
+AbstractCamera::AbstractCamera(GLuint program_ID, GLFWwindow* window)
 {
   window_ = window;
   program_ID_ = program_ID;
@@ -614,23 +700,11 @@ Camera::Camera(GLuint program_ID, GLFWwindow* window)
                                 glm::vec3(0.0f,0.0f,0.0f),
                                 glm::vec3(0.0f,0.0f,-1.0f),
                                 glm::vec3(0.0f,1.0f,0.0f));
-  
-  int width;
-  int height;
-  glfwGetWindowSize(window_, &width, &height);
-  float aspect = float(width)/height;
-  projection_transform_ = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
 }
 
-void Camera::render(glm::mat4 M)
+void AbstractCamera::render(glm::mat4 M)
 {
   Object3D::render(M * transform_.getMatrix());
-  
-  int width;
-  int height;
-  glfwGetWindowSize(window_, &width, &height);
-  float aspect = float(width)/height;
-  projection_transform_ = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
 
   glm::mat4 V = view_transform_ * M * transform_.getMatrix();
   
@@ -638,6 +712,48 @@ void Camera::render(glm::mat4 M)
 
   glUniformMatrix4fv(view_matrix_ID_, 1, GL_FALSE, &V[0][0]);
   glUniformMatrix4fv(projection_matrix_ID_, 1, GL_FALSE, &projection_transform_[0][0]);
+}
+
+PerspectiveCamera::PerspectiveCamera(GLuint program_ID, GLFWwindow* window) :
+AbstractCamera(program_ID, window)
+{
+  int width;
+  int height;
+  glfwGetWindowSize(window_, &width, &height);
+  float aspect = float(width)/height;
+  projection_transform_ = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
+}
+
+void PerspectiveCamera::render(glm::mat4 M)
+{
+  int width;
+  int height;
+  glfwGetWindowSize(window_, &width, &height);
+  float aspect = float(width)/height;
+  projection_transform_ = glm::perspective(45.0f, aspect, 0.1f, 100.0f);
+  
+  AbstractCamera::render(M);
+}
+
+OrthoCamera::OrthoCamera(GLuint program_ID, GLFWwindow* window) :
+  AbstractCamera(program_ID, window)
+{
+  int width;
+  int height;
+  glfwGetWindowSize(window_, &width, &height);
+  float aspect = float(width)/height;
+  projection_transform_ = glm::ortho(-aspect, aspect, -1.0f, 1.0f, -100.0f, 100.0f);
+}
+
+void OrthoCamera::render(glm::mat4 M)
+{
+  int width;
+  int height;
+  glfwGetWindowSize(window_, &width, &height);
+  float aspect = float(width)/height;
+  projection_transform_ = glm::ortho(-aspect, aspect, -1.0f, 1.0f, -100.0f, 100.0f);
+  
+  AbstractCamera::render(M);
 }
 
 LightSource::LightSource(GLuint program_ID)
@@ -665,48 +781,64 @@ void LightSource::render(glm::mat4 M)
   glUniform3f(light_color_ID_, color_.r, color_.g, color_.b);
 }
 
-AxesObject3D::AxesObject3D(GLuint program_ID)
+AxesObject3D::AxesObject3D(GLuint program_ID,
+                           float arrow_size,
+                           float axis_radius)
 {
-  line_x_ = new LineMesh(program_ID);
-  line_y_ = new LineMesh(program_ID);
-  line_z_ = new LineMesh(program_ID);
+  line_x_ = new TriangleMesh(program_ID);
+  line_y_ = new TriangleMesh(program_ID);
+  line_z_ = new TriangleMesh(program_ID);
   
   arrow_x_ = new TriangleMesh(program_ID);
   arrow_y_ = new TriangleMesh(program_ID);
   arrow_z_ = new TriangleMesh(program_ID);
-
-  line_x_->initLine(glm::vec3(0,0,0), glm::vec3(1,0,0));
-  line_y_->initLine(glm::vec3(0,0,0), glm::vec3(0,1,0));
-  line_z_->initLine(glm::vec3(0,0,0), glm::vec3(0,0,1));
   
+  glm::vec3 arrow_size_vec = glm::vec3(0.3,0.3,1) * arrow_size;
+  int divisions = 10;
+  
+  line_x_->initCylinder(glm::vec3(0.5 - arrow_size_vec.z/2,0,0),
+                        glm::vec3(1,0,0),
+                        glm::vec3(axis_radius * 2,
+                                  axis_radius * 2,
+                                  1 - arrow_size_vec.z),
+                        divisions);
+  line_y_->initCylinder(glm::vec3(0,0.5 - arrow_size_vec.z/2,0),
+                        glm::vec3(0,1,0),
+                        glm::vec3(axis_radius * 2,
+                                  axis_radius * 2,
+                                  1 - arrow_size_vec.z),
+                        divisions);
+  line_z_->initCylinder(glm::vec3(0,0,0.5 - arrow_size_vec.z/2),
+                        glm::vec3(0,0,1),
+                        glm::vec3(axis_radius * 2,
+                                  axis_radius * 2,
+                                  1 - arrow_size_vec.z),
+                        divisions);
   line_x_->material_.diffuse_color_ = glm::vec3(1,0,0);
   line_y_->material_.diffuse_color_ = glm::vec3(0,1,0);
   line_z_->material_.diffuse_color_ = glm::vec3(0,0,1);
+
+
   
-  glm::vec3 size = glm::vec3(0.03,0.03,0.1);
-  int divisions = 10;
-  
-  arrow_x_->initCone(glm::vec3(1 - size.z,0,0),
+  arrow_x_->initCone(glm::vec3(1 - arrow_size_vec.z,0,0),
                  glm::vec3(1,0,0),
-                 size,
+                 arrow_size_vec,
                  divisions);
 
-  arrow_y_->initCone(glm::vec3(0,1 - size.z,0),
+  arrow_y_->initCone(glm::vec3(0,1 - arrow_size_vec.z,0),
                     glm::vec3(0,1,0),
-                    size,
+                    arrow_size_vec,
                     divisions);
   
-  arrow_z_->initCone(glm::vec3(0,0,1 - size.z),
+  arrow_z_->initCone(glm::vec3(0,0,1 - arrow_size_vec.z),
                     glm::vec3(0,0,1),
-                    size,
+                    arrow_size_vec,
                     divisions);
   
   arrow_x_->material_.diffuse_color_ = glm::vec3(1,0,0);
   arrow_y_->material_.diffuse_color_ = glm::vec3(0,1,0);
   arrow_z_->material_.diffuse_color_ = glm::vec3(0,0,1);
 
-  // No need to have childs since rendering is handled explicitly
-  
   this->addChild(line_x_);
   this->addChild(line_y_);
   this->addChild(line_z_);
@@ -714,21 +846,6 @@ AxesObject3D::AxesObject3D(GLuint program_ID)
   this->addChild(arrow_x_);
   this->addChild(arrow_y_);
   this->addChild(arrow_z_);
-  
-}
-
-void AxesObject3D::render(glm::mat4 M)
-{
-  // Render explicitly to handle depth testing.
-  //glDisable(GL_DEPTH_TEST);
-  //glClear(GL_DEPTH_BUFFER_BIT);
-  line_x_->render(M * transform_.getMatrix());
-  line_y_->render(M * transform_.getMatrix());
-  line_z_->render(M * transform_.getMatrix());
-  //glEnable(GL_DEPTH_TEST);
-  arrow_x_->render(M * transform_.getMatrix());
-  arrow_y_->render(M * transform_.getMatrix());
-  arrow_z_->render(M * transform_.getMatrix());
 }
 
 AxesObject3D::~AxesObject3D()
@@ -743,6 +860,7 @@ AxesObject3D::~AxesObject3D()
 }
 
 Object3D* SimpleGraphicsEngine::camera_;
+Object3D* SimpleGraphicsEngine::viewspace_ortho_camera_;
 
 SimpleGraphicsEngine::SimpleGraphicsEngine()
 {
@@ -755,10 +873,12 @@ SimpleGraphicsEngine::~SimpleGraphicsEngine()
   glDeleteProgram(program_ID_one_color_shader_);
   glfwTerminate();
   delete scene_;
+  delete view_space_;
   delete grid_plane_;
   delete camera_;
   delete basic_cam_;
   delete one_color_cam_;
+  delete one_color_ortho_cam_;
 }
 
 bool SimpleGraphicsEngine::initialize()
@@ -808,12 +928,17 @@ bool SimpleGraphicsEngine::initialize()
                                                       "../../data/shaders/one_color.vert",
                                                       "../../data/shaders/one_color.frag" );
   scene_ = new Object3D();
+  view_space_ = new Object3D();
   camera_ = new Object3D();
-  basic_cam_ = new Camera(program_ID_basic_render_, window_);
-  one_color_cam_ = new Camera(program_ID_one_color_shader_, window_);
+  viewspace_ortho_camera_ = new Object3D();
+  basic_cam_ = new PerspectiveCamera(program_ID_basic_render_, window_);
+  one_color_cam_ = new PerspectiveCamera(program_ID_one_color_shader_, window_);
+  one_color_cam_ = new PerspectiveCamera(program_ID_one_color_shader_, window_);
+  one_color_ortho_cam_ = new OrthoCamera(program_ID_one_color_shader_, window_);
   
   camera_->addChild(basic_cam_);
   camera_->addChild(one_color_cam_);
+  viewspace_ortho_camera_->addChild(one_color_ortho_cam_);
   
   grid_plane_ = new Object3D();
   grid_plane_child1_ = new Object3D();
@@ -824,8 +949,10 @@ bool SimpleGraphicsEngine::initialize()
                              glm::vec3(0.0f,1.0f,0.0f),
                              glm::vec3(2.0f,2.0f,2.0f),
                              10);
-  grid_plane_mesh_->material_.diffuse_color_ = glm::vec3(0,0,0);
-  axis_object_ = new AxesObject3D(program_ID_one_color_shader_);
+  grid_plane_mesh_->material_.diffuse_color_ = glm::vec3(0.5,0.5,0.5);
+  axis_object_ = new AxesObject3D(program_ID_one_color_shader_, 0.1, 0.005);
+  axis_object_small_ = new AxesObject3D(program_ID_one_color_shader_, 0.2, 0.02);
+  axis_object_small_->transform_.scale(glm::vec3(0.2,0.2,0.2));
   
   grid_plane_child1_->addChild(grid_plane_mesh_);
   grid_plane_child2_->addChild(grid_plane_mesh_);
@@ -840,6 +967,9 @@ bool SimpleGraphicsEngine::initialize()
   scene_->addChild(camera_);
   scene_->addChild(grid_plane_);
   scene_->addChild(axis_object_);
+  
+  view_space_->addChild(viewspace_ortho_camera_);
+  view_space_->addChild(axis_object_small_);
   return true;
 }
 
@@ -854,6 +984,8 @@ void SimpleGraphicsEngine::run()
     
     scene_->render(glm::mat4());
     
+    view_space_->render(glm::mat4());
+
     glfwSwapBuffers(window_);
     glfwPollEvents();
   }
@@ -863,4 +995,15 @@ void SimpleGraphicsEngine::update()
 {
   dt_ = glfwGetTime() - time_;
   time_ = glfwGetTime();
+  
+  glm::vec3 rot = camera_->transform_.getEulerRotationXYZ();
+  Transform t;
+  
+  t.rotateY(rot.y);
+  t.rotateX(rot.x);
+  t.rotateZ(rot.z);
+  t.scale(glm::vec3(0.2,0.2,0.2));
+  t.translate(glm::vec3(-1.3,-0.8,0));
+
+  axis_object_small_->transform_ = t;
 }

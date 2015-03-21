@@ -214,6 +214,17 @@ public:
                 glm::vec3 direction,
                 glm::vec3 scale,
                 int divisions);
+  //! Initializes a cylinder shape.
+  /*!
+   \param position is the position of the center of the circle
+   \param direction is direction of the cone.
+   \param scale defines scaling in x-, y-, and z- direction.
+   \param divisions is the subdivision level.
+   */
+  void initCylinder(glm::vec3 position,
+                glm::vec3 direction,
+                glm::vec3 scale,
+                int divisions);
   //! Render the mesh.
   /*!
    \param M is the transformation matrix of the parent.
@@ -285,22 +296,22 @@ private:
 };
 
 //! A camera defined in 3D space
-class Camera : public Object3D {
+class AbstractCamera : public Object3D {
 public:
   //! Creates camera to render objects with the defined shader program attached.
   /*!
    \param program_ID is the shader program that this Camera will render.
    \param window is the GLFWwindow* which to render to.
   */
-  Camera(GLuint program_ID, GLFWwindow* window);
+  AbstractCamera(GLuint program_ID, GLFWwindow* window);
   //! Render the Camera.
   /*!
    \param M is the transformation matrix of the parent.
   */
-  void render(glm::mat4 M);
+  virtual void render(glm::mat4 M) = 0;
   //! Returns the VP matrix for the Camera.
-  glm::mat4 getViewProjectionMatrix();
-private:
+  //glm::mat4 getViewProjectionMatrix(){};
+protected:
   GLuint program_ID_;
   GLuint view_matrix_ID_;
   GLuint projection_matrix_ID_;
@@ -309,6 +320,18 @@ private:
   glm::mat4 projection_transform_;
   
   GLFWwindow* window_;
+};
+
+class PerspectiveCamera : public AbstractCamera {
+public:
+  PerspectiveCamera(GLuint program_ID, GLFWwindow* window);
+  virtual void render(glm::mat4 M);
+};
+
+class OrthoCamera : public AbstractCamera {
+public:
+  OrthoCamera(GLuint program_ID, GLFWwindow* window);
+  virtual void render(glm::mat4 M);
 };
 
 //! A light source defined in 3D space
@@ -338,14 +361,13 @@ private:
 
 class AxesObject3D : public Object3D {
 public:
-  AxesObject3D(GLuint program_ID);
+  AxesObject3D(GLuint program_ID, float arrow_size, float axis_radius);
   ~AxesObject3D();
-  
-  void render(glm::mat4 M);
+
 private:
-  LineMesh* line_x_;
-  LineMesh* line_y_;
-  LineMesh* line_z_;
+  TriangleMesh* line_x_;
+  TriangleMesh* line_y_;
+  TriangleMesh* line_z_;
   
   TriangleMesh* arrow_x_;
   TriangleMesh* arrow_y_;
@@ -377,7 +399,9 @@ protected:
   double dt_;
   
   Object3D* scene_;
+  Object3D* view_space_;
   static Object3D* camera_;
+  static Object3D* viewspace_ortho_camera_;
   
   GLuint program_ID_basic_render_;
   GLuint program_ID_one_color_shader_;
@@ -394,10 +418,13 @@ private:
   LineMesh* grid_plane_mesh_;
   
   AxesObject3D* axis_object_;
+  AxesObject3D* axis_object_small_;
   
   // One camera for each shader
-  Camera* basic_cam_;
-  Camera* one_color_cam_;
+  PerspectiveCamera* basic_cam_;
+  PerspectiveCamera* one_color_cam_;
+  
+  OrthoCamera* one_color_ortho_cam_;
 };
 
 #endif

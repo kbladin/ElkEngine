@@ -47,7 +47,7 @@ ModelViewer::ModelViewer() : SimpleGraphicsEngine(), listener_(this)
   do{
     // Load file
     std::cout << "Load file: ";
-    std::string file_name = "../../data/testmodels/gargoyle.m";
+    std::string file_name = "../../data/testmodels/bunny.m";
     //std::cin >> file_name;
     loaded = ModelLoader::load(file_name.c_str(), &vertices, &normals, &elements);
   } while (!loaded);
