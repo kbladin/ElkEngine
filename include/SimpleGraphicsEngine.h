@@ -85,11 +85,13 @@ public:
   void rotateZ(float angle);
   //! Resets the matrix transform to an identity matrix.
   void reset();
+
+  glm::mat4 matrix_;
+
 private:
   glm::vec3 position_;
   glm::vec3 scale_;
   glm::vec3 rotation_; // angleX, angleY, angleZ
-  glm::mat4 matrix_;
 };
 
 //! An object positioned in 3D space.
@@ -309,28 +311,46 @@ public:
    \param M is the transformation matrix of the parent.
   */
   virtual void render(glm::mat4 M) = 0;
-  //! Returns the VP matrix for the Camera.
-  //glm::mat4 getViewProjectionMatrix(){};
 protected:
   GLuint program_ID_;
   GLuint view_matrix_ID_;
   GLuint projection_matrix_ID_;
   
-  glm::mat4 view_transform_;
+  //glm::mat4 view_transform_;
   glm::mat4 projection_transform_;
   
   GLFWwindow* window_;
 };
 
+//! A perspective camera defined in 3D space
 class PerspectiveCamera : public AbstractCamera {
 public:
+  //! Creates camera to render objects with the defined shader program attached.
+  /*!
+   \param program_ID is the shader program that this Camera will render.
+   \param window is the GLFWwindow* which to render to.
+   */
   PerspectiveCamera(GLuint program_ID, GLFWwindow* window);
+  //! Render the Camera.
+  /*!
+   \param M is the transformation matrix of the parent.
+   */
   virtual void render(glm::mat4 M);
 };
 
+//! An orthographic camera defined in 3D space
 class OrthoCamera : public AbstractCamera {
 public:
+  //! Creates camera to render objects with the defined shader program attached.
+  /*!
+   \param program_ID is the shader program that this Camera will render.
+   \param window is the GLFWwindow* which to render to.
+   */
   OrthoCamera(GLuint program_ID, GLFWwindow* window);
+  //! Render the Camera.
+  /*!
+   \param M is the transformation matrix of the parent.
+   */
   virtual void render(glm::mat4 M);
 };
 
@@ -359,6 +379,7 @@ private:
   GLuint light_color_ID_;
 };
 
+//! An object to create the x, y and z axes.
 class AxesObject3D : public Object3D {
 public:
   AxesObject3D(GLuint program_ID, float arrow_size, float axis_radius);

@@ -19,6 +19,18 @@ private:
   ModelViewer* model_viewer_;
 };
 
+class HandObject3D;
+
+class FingerObject3D : public Object3D {
+public:
+  FingerObject3D(GLuint program_ID);
+  ~FingerObject3D();
+private:
+  friend SampleListener;
+  friend HandObject3D;
+  std::vector<TriangleMesh*> bones_;
+};
+
 class HandObject3D : public Object3D {
 public:
   HandObject3D(GLuint program_ID);
@@ -27,7 +39,7 @@ public:
 private:
   friend SampleListener;
   TriangleMesh* palm_mesh_;
-  std::vector<TriangleMesh*> finger_meshes_;
+  std::vector<FingerObject3D*> fingers_;
 };
 
 //! The actual program extending SimpleGraphicsEngine
@@ -52,6 +64,8 @@ private:
   LightSource* light_;
   BoundingBox* bb_;
   HandObject3D* hand_;
+  
+  Object3D* camera_pivot_;
 };
 
 #endif

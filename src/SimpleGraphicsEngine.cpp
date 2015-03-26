@@ -696,17 +696,17 @@ AbstractCamera::AbstractCamera(GLuint program_ID, GLFWwindow* window)
   view_matrix_ID_ = glGetUniformLocation(program_ID_, "V");
   projection_matrix_ID_ = glGetUniformLocation(program_ID_, "P");
   
-  view_transform_ = glm::lookAt(
+  /*view_transform_ = glm::mat4(); glm::lookAt(
                                 glm::vec3(0.0f,0.0f,0.0f),
                                 glm::vec3(0.0f,0.0f,-1.0f),
-                                glm::vec3(0.0f,1.0f,0.0f));
+                                glm::vec3(0.0f,1.0f,0.0f));*/
 }
 
 void AbstractCamera::render(glm::mat4 M)
 {
   Object3D::render(M * transform_.getMatrix());
 
-  glm::mat4 V = view_transform_ * M * transform_.getMatrix();
+  glm::mat4 V = M * transform_.getMatrix();
   
   glUseProgram(program_ID_);
 
@@ -893,7 +893,7 @@ bool SimpleGraphicsEngine::initialize()
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   // Create a windowed mode window and its OpenGL context
-  window_ = glfwCreateWindow(640, 480, "Model Viewer", NULL, NULL);
+  window_ = glfwCreateWindow(720, 480, "Model Viewer", NULL, NULL);
   if (!window_)
   {
     glfwTerminate();
@@ -983,7 +983,6 @@ void SimpleGraphicsEngine::run()
     glClearColor(0.7, 0.7, 0.7, 1);
     
     scene_->render(glm::mat4());
-    
     view_space_->render(glm::mat4());
 
     glfwSwapBuffers(window_);
