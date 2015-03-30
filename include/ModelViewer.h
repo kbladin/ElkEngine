@@ -40,6 +40,7 @@ private:
   friend SampleListener;
   TriangleMesh* palm_mesh_;
   std::vector<FingerObject3D*> fingers_;
+  LightSource* light_source_;
 };
 
 //! The actual program extending SimpleGraphicsEngine
@@ -65,7 +66,9 @@ private:
   BoundingBox* bb_;
   HandObject3D* hand_;
   
-  Object3D* camera_pivot_;
+  glm::vec3 rotation_point;
+  
+  Object3D* selected_object_;
 };
 
 #endif

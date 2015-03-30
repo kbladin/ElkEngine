@@ -114,8 +114,11 @@ public:
    \param child is an Object3D pointer that will be added as child.
   */
   void addChild(Object3D* child);
+  void removeChild(Object3D* child);
   //! Calling the render function for all of the children
   virtual void render(glm::mat4 M);
+  
+  std::vector<Object3D*> getCollidingChildren(glm::vec3 point);
   
   Transform transform_;
 private:
@@ -281,17 +284,23 @@ private:
 };
 
 //! An axis aligned bounding box.
-class BoundingBox{
+class BoundingBox : public Object3D{
 public:
   //! The BoundingBox can be created from a template mesh.
   /*!
    \param template_mesh is the mesh that will be bound by this BoundingBox.
   */
   BoundingBox(const AbstractMesh* template_mesh);
+  BoundingBox(const Object3D);
   //! Returns the max corner of the box.
   glm::vec3 getMin(){return min;}
   //! Returns the min corner of the box.
   glm::vec3 getMax(){return max;}
+  //! Check collision
+  /*!
+   \param point is in local coordinates (relative to parent).
+  */
+  bool collides(glm::vec3 point);
 private:
   glm::vec3 max;
   glm::vec3 min;
@@ -421,11 +430,13 @@ protected:
   
   Object3D* scene_;
   Object3D* view_space_;
+  Object3D* background_space_;
   static Object3D* camera_;
   static Object3D* viewspace_ortho_camera_;
   
   GLuint program_ID_basic_render_;
   GLuint program_ID_one_color_shader_;
+  GLuint program_ID_background_shader_;
   
 private:
   bool initialize();
@@ -441,11 +452,14 @@ private:
   AxesObject3D* axis_object_;
   AxesObject3D* axis_object_small_;
   
+  TriangleMesh* background_plane_;
+  
   // One camera for each shader
   PerspectiveCamera* basic_cam_;
   PerspectiveCamera* one_color_cam_;
   
   OrthoCamera* one_color_ortho_cam_;
+  OrthoCamera* background_ortho_cam_;
 };
 
 #endif

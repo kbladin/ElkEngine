@@ -89,11 +89,35 @@ void Object3D::addChild(Object3D *child)
   children.push_back(child);
 }
 
+void Object3D::removeChild(Object3D *child)
+{
+  children.erase(std::remove(children.begin(), children.end(), child), children.end());
+  for (int i=0; i<children.size(); i++) {
+    children[i]->removeChild(child);
+  }
+}
+
 void Object3D::render(glm::mat4 M)
 {
   for (std::vector<Object3D*>::const_iterator iter = children.begin(); iter != children.end(); iter++) {
     (*iter)->render(M * transform_.getMatrix());
   }
+}
+
+std::vector<Object3D*> Object3D::getCollidingChildren(glm::vec3 point)
+{
+  std::vector<Object3D*> result;
+  for (int i=0; i<children.size(); i++) {
+    if(dynamic_cast<BoundingBox*>(children[i]) && dynamic_cast<BoundingBox*>(children[i])->collides(glm::vec3(glm::inverse(transform_.matrix_) * glm::vec4(point,1)))) {
+      //std::cout << glm::vec3(glm::inverse(transform_.matrix_) * glm::vec4(point,1)).x << std::endl;
+      result.push_back(this);
+    }
+    std::vector<Object3D*> children_result = children[i]->getCollidingChildren(glm::vec3(transform_.matrix_ * glm::vec4(point,1)));
+    for (int j=0; j<children_result.size(); j++) {
+      result.push_back(children_result[j]);
+    }
+  }
+  return result;
 }
 
 AbstractMesh::AbstractMesh(GLuint program_ID) : material_(program_ID)
@@ -687,6 +711,21 @@ BoundingBox::BoundingBox(const AbstractMesh* template_mesh)
   min = glm::vec3(min_x, min_y, min_z);
 }
 
+BoundingBox::BoundingBox(const Object3D)
+{
+  
+}
+
+bool BoundingBox::collides(glm::vec3 point)
+{
+  return (point.x > min.x &&
+          point.y > min.y &&
+          point.z > min.z &&
+          point.x < max.x &&
+          point.y < max.y &&
+          point.z < max.z);
+}
+
 AbstractCamera::AbstractCamera(GLuint program_ID, GLFWwindow* window)
 {
   window_ = window;
@@ -871,9 +910,12 @@ SimpleGraphicsEngine::~SimpleGraphicsEngine()
 {
   glDeleteProgram(program_ID_basic_render_);
   glDeleteProgram(program_ID_one_color_shader_);
+  glDeleteProgram(program_ID_background_shader_);
   glfwTerminate();
   delete scene_;
   delete view_space_;
+  delete background_space_;
+  delete background_plane_;
   delete grid_plane_;
   delete camera_;
   delete basic_cam_;
@@ -927,18 +969,25 @@ bool SimpleGraphicsEngine::initialize()
   program_ID_one_color_shader_ = ShaderLoader::loadShaders(
                                                       "../../data/shaders/one_color.vert",
                                                       "../../data/shaders/one_color.frag" );
+  // Create and compile our GLSL program from the shaders
+  program_ID_background_shader_ = ShaderLoader::loadShaders(
+                                                           "../../data/shaders/background.vert",
+                                                           "../../data/shaders/background.frag" );
   scene_ = new Object3D();
   view_space_ = new Object3D();
+  background_space_ = new Object3D();
   camera_ = new Object3D();
   viewspace_ortho_camera_ = new Object3D();
   basic_cam_ = new PerspectiveCamera(program_ID_basic_render_, window_);
   one_color_cam_ = new PerspectiveCamera(program_ID_one_color_shader_, window_);
   one_color_cam_ = new PerspectiveCamera(program_ID_one_color_shader_, window_);
   one_color_ortho_cam_ = new OrthoCamera(program_ID_one_color_shader_, window_);
+  background_ortho_cam_ = new OrthoCamera(program_ID_background_shader_, window_);
   
   camera_->addChild(basic_cam_);
   camera_->addChild(one_color_cam_);
   viewspace_ortho_camera_->addChild(one_color_ortho_cam_);
+  viewspace_ortho_camera_->addChild(background_ortho_cam_);
   
   grid_plane_ = new Object3D();
   grid_plane_child1_ = new Object3D();
@@ -949,10 +998,13 @@ bool SimpleGraphicsEngine::initialize()
                              glm::vec3(0.0f,1.0f,0.0f),
                              glm::vec3(2.0f,2.0f,2.0f),
                              10);
-  grid_plane_mesh_->material_.diffuse_color_ = glm::vec3(0.5,0.5,0.5);
+  grid_plane_mesh_->material_.diffuse_color_ = glm::vec3(0.8,0.8,0.8);
   axis_object_ = new AxesObject3D(program_ID_one_color_shader_, 0.1, 0.005);
   axis_object_small_ = new AxesObject3D(program_ID_one_color_shader_, 0.2, 0.02);
   axis_object_small_->transform_.scale(glm::vec3(0.2,0.2,0.2));
+  
+  background_plane_ = new TriangleMesh(program_ID_background_shader_);
+  background_plane_->initPlane(glm::vec3(0,0,0), glm::vec3(0,0,1), glm::vec3(10,2,2));
   
   grid_plane_child1_->addChild(grid_plane_mesh_);
   grid_plane_child2_->addChild(grid_plane_mesh_);
@@ -970,6 +1022,8 @@ bool SimpleGraphicsEngine::initialize()
   
   view_space_->addChild(viewspace_ortho_camera_);
   view_space_->addChild(axis_object_small_);
+  
+  background_space_->addChild(background_plane_);
   return true;
 }
 
@@ -982,6 +1036,9 @@ void SimpleGraphicsEngine::run()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.7, 0.7, 0.7, 1);
     
+    glDisable(GL_DEPTH_TEST);
+    background_space_->render(glm::mat4());
+    glEnable(GL_DEPTH_TEST);
     scene_->render(glm::mat4());
     view_space_->render(glm::mat4());
 
