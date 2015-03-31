@@ -36,19 +36,41 @@ namespace SGE {
      \param program_ID can be one of the shaders which starts with "program_ID_"
      defined in SimpleGraphiicsEngine.
      */
-    Material(GLuint program_ID);
+    Material(GLuint program_ID) : program_ID_(program_ID){};
+    virtual ~Material(){};
     //! Updating the shader parameters.
     /*!
      This function is automatically called when a mesh with this material is
      rendered.
      */
-    void render();
+    virtual void render()const = 0;
+    GLuint getProgramID()const{return program_ID_;};
+  protected:
+    const GLuint program_ID_;
+  };
+  
+  //! Every Mesh has a material which specifies parameters for shading.
+  class PhongMaterial : public Material {
+  public:
+    //! Create a material which is bound to a specific shader.
+    /*!
+     \param program_ID can be one of the shaders which starts with "program_ID_"
+     defined in SimpleGraphiicsEngine.
+     */
+    PhongMaterial();
+    ~PhongMaterial(){};
+    //! Updating the shader parameters.
+    /*!
+     This function is automatically called when a mesh with this material is
+     rendered.
+     */
+    void render()const;
     
     glm::vec3 diffuse_color_;
     glm::vec3 specular_color_;
     float specularity_;
     int shinyness_;
-    const GLuint program_ID_;
+    //const GLuint program_ID_;
   private:
     GLuint diffuseColor_ID_;
     GLuint specularColor_ID_;
@@ -152,7 +174,7 @@ namespace SGE {
   //! This class serves as a base for the mesh classes.
   class AbstractMesh : public Object3D{
   public:
-    AbstractMesh(GLuint shader_ID);
+    AbstractMesh(Material* material);
     ~AbstractMesh();
     //! Normalizes the scale of the mesh.
     /*!
@@ -165,7 +187,7 @@ namespace SGE {
      \param M is the transformation matrix of the parent.
      */
     virtual void render(glm::mat4 M) = 0;
-    Material material_;
+    const Material* material_;
   protected:
     virtual void initialize() = 0;
     
@@ -193,7 +215,7 @@ namespace SGE {
      \param program_ID can be one of the shaders which starts with "program_ID_"
      defined in SimpleGraphiicsEngine.
      */
-    TriangleMesh(const char *file_name, GLuint program_ID);
+    TriangleMesh(const char *file_name, Material* material);
     //! Create a TriangleMesh from vertex lists.
     /*!
      \param vertices is a list of vertices.
@@ -205,7 +227,7 @@ namespace SGE {
     TriangleMesh(std::vector<glm::vec3> vertices,
                  std::vector<glm::vec3> normals,
                  std::vector<unsigned short> elements,
-                 GLuint program_ID);
+                 Material* material);
     //! Creates a TriangleMesh without initializing vertex lists.
     /*!
      This constructor is used when creating basic TriangleMeshes such as planes
@@ -213,7 +235,7 @@ namespace SGE {
      First construct the TriangleMesh, then call one of the init-functions
      (eg: initPlane, initBox).
      */
-    TriangleMesh(GLuint program_ID);
+    TriangleMesh(Material* material);
     ~TriangleMesh();
     //! Initializes a plane.
     /*!
@@ -276,7 +298,7 @@ namespace SGE {
      First construct the LineMesh, then call one of the init-functions
      (eg: initAxes, initGridPlane).
      */
-    LineMesh(GLuint program_ID);
+    LineMesh(Material* material);
     ~LineMesh();
     //! Initializes line from start position to end position.
     /*!
@@ -418,10 +440,14 @@ namespace SGE {
   //! An object to create the x, y and z axes.
   class AxesObject3D : public Object3D {
   public:
-    AxesObject3D(GLuint program_ID, float arrow_size, float axis_radius);
+    AxesObject3D(float arrow_size, float axis_radius);
     ~AxesObject3D();
     
   private:
+    PhongMaterial* red_material_;
+    PhongMaterial* green_material_;
+    PhongMaterial* blue_material_;
+    
     TriangleMesh* line_x_;
     TriangleMesh* line_y_;
     TriangleMesh* line_z_;
@@ -433,10 +459,12 @@ namespace SGE {
   
   class LightMesh3D : public Object3D {
   public:
-    LightMesh3D(GLuint program_ID, float size);
+    LightMesh3D(float size);
     ~LightMesh3D();
     
   private:
+    PhongMaterial* white_material_;
+    
     LineMesh* circle_x_;
     LineMesh* circle_y_;
     LineMesh* circle_z_;

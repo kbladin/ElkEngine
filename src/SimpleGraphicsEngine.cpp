@@ -49,7 +49,7 @@ GLuint ShaderManager::getShader(int index)
   return shader_program_IDs[index];
 }
 
-Material::Material(GLuint program_ID) : program_ID_(program_ID)
+PhongMaterial::PhongMaterial() : SGE::Material(ShaderManager::instance()->getShader(SHADER_PHONG))
 {
   diffuse_color_ = glm::vec3(1.0, 1.0, 1.0);
   specular_color_ = glm::vec3(1.0, 1.0, 1.0);
@@ -63,7 +63,7 @@ Material::Material(GLuint program_ID) : program_ID_(program_ID)
   shinyness_ID_ = glGetUniformLocation(program_ID_, "material_shinyness");
 }
 
-void Material::render()
+void PhongMaterial::render() const
 {
   // Use our shader
   glUseProgram(program_ID_);
@@ -160,7 +160,7 @@ std::vector<Object3D*> Object3D::getCollidingChildren(glm::vec3 point)
   return result;
 }
 
-AbstractMesh::AbstractMesh(GLuint program_ID) : material_(program_ID)
+AbstractMesh::AbstractMesh(Material* material) : material_(material)
 {
 }
 
@@ -184,7 +184,7 @@ void AbstractMesh::normalizeScale()
 
 void AbstractMesh::initialize()
 {
-  glUseProgram(material_.program_ID_);
+  glUseProgram(material_->getProgramID());
   
   glGenVertexArrays(1, &vertex_array_ID_);
   glBindVertexArray(vertex_array_ID_);
@@ -198,10 +198,10 @@ void AbstractMesh::initialize()
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements_.size() * sizeof(unsigned short), &elements_[0] , GL_STATIC_DRAW);
   
   // Get a handle for our matrix uniform
-  model_matrix_ID_ = glGetUniformLocation(material_.program_ID_, "M");
+  model_matrix_ID_ = glGetUniformLocation(material_->getProgramID(), "M");
 }
 
-TriangleMesh::TriangleMesh(const char *file_name, GLuint program_ID) : AbstractMesh(program_ID)
+TriangleMesh::TriangleMesh(const char *file_name, Material* material) : AbstractMesh(material)
 {
   ModelLoader::load(file_name, &vertices_, &normals_, &elements_);
   initialize();
@@ -210,7 +210,7 @@ TriangleMesh::TriangleMesh(const char *file_name, GLuint program_ID) : AbstractM
 TriangleMesh::TriangleMesh(std::vector<glm::vec3> vertices,
            std::vector<glm::vec3> normals,
            std::vector<unsigned short> elements,
-           GLuint program_ID) : AbstractMesh(program_ID)
+           Material* material) : AbstractMesh(material)
 {
   vertices_ = vertices;
   normals_ = normals;
@@ -219,7 +219,7 @@ TriangleMesh::TriangleMesh(std::vector<glm::vec3> vertices,
   initialize();
 }
 
-TriangleMesh::TriangleMesh(GLuint program_ID) : AbstractMesh(program_ID)
+TriangleMesh::TriangleMesh(Material* material) : AbstractMesh(material)
 {
 }
 
@@ -537,7 +537,7 @@ void TriangleMesh::initialize()
 {
   AbstractMesh::initialize();
   
-  glUseProgram(material_.program_ID_);
+  glUseProgram(material_->getProgramID());
 
   glGenBuffers(1, &normal_buffer_);
   glBindBuffer(GL_ARRAY_BUFFER, normal_buffer_);
@@ -547,12 +547,12 @@ void TriangleMesh::initialize()
 void TriangleMesh::render(glm::mat4 M)
 {
   Object3D::render(M);
-  material_.render();
+  material_->render();
   
   glm::mat4 total_transform = M * transform_.getMatrix();
   
   // Use our shader
-  glUseProgram(material_.program_ID_);
+  glUseProgram(material_->getProgramID());
   glUniformMatrix4fv(model_matrix_ID_, 1, GL_FALSE, &total_transform[0][0]);
   
   glBindVertexArray(vertex_array_ID_);
@@ -596,7 +596,7 @@ void TriangleMesh::render(glm::mat4 M)
   glDisableVertexAttribArray(1);
 }
 
-LineMesh::LineMesh(GLuint program_ID) : AbstractMesh(program_ID)
+LineMesh::LineMesh(Material* material) : AbstractMesh(material)
 {
   initialize();
 }
@@ -706,7 +706,7 @@ void LineMesh::initCircle(
 
 void LineMesh::initialize()
 {
-  glUseProgram(material_.program_ID_);
+  glUseProgram(material_->getProgramID());
 
   glGenVertexArrays(1, &vertex_array_ID_);
   glBindVertexArray(vertex_array_ID_);
@@ -720,18 +720,18 @@ void LineMesh::initialize()
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements_.size() * sizeof(unsigned short), &elements_[0] , GL_STATIC_DRAW);
   
   // Get a handle for our matrix uniform
-  model_matrix_ID_ = glGetUniformLocation(material_.program_ID_, "M");
+  model_matrix_ID_ = glGetUniformLocation(material_->getProgramID(), "M");
 }
 
 void LineMesh::render(glm::mat4 M)
 {
-  material_.render();
+  material_->render();
   Object3D::render(M);
   
   glm::mat4 total_transform = M * transform_.getMatrix();
   
   // Use our shader
-  glUseProgram(material_.program_ID_);
+  glUseProgram(material_->getProgramID());
   glUniformMatrix4fv(model_matrix_ID_, 1, GL_FALSE, &total_transform[0][0]);
   
   glBindVertexArray(vertex_array_ID_);
@@ -894,17 +894,24 @@ void LightSource::render(glm::mat4 M)
   glUniform3f(light_color_ID_, color_.r, color_.g, color_.b);
 }
 
-AxesObject3D::AxesObject3D(GLuint program_ID,
-                           float arrow_size,
+AxesObject3D::AxesObject3D(float arrow_size,
                            float axis_radius)
 {
-  line_x_ = new TriangleMesh(program_ID);
-  line_y_ = new TriangleMesh(program_ID);
-  line_z_ = new TriangleMesh(program_ID);
+  red_material_ = new PhongMaterial();
+  green_material_ = new PhongMaterial();
+  blue_material_ = new PhongMaterial();
   
-  arrow_x_ = new TriangleMesh(program_ID);
-  arrow_y_ = new TriangleMesh(program_ID);
-  arrow_z_ = new TriangleMesh(program_ID);
+  line_x_ = new TriangleMesh(red_material_);
+  line_y_ = new TriangleMesh(green_material_);
+  line_z_ = new TriangleMesh(blue_material_);
+  
+  arrow_x_ = new TriangleMesh(red_material_);
+  arrow_y_ = new TriangleMesh(green_material_);
+  arrow_z_ = new TriangleMesh(blue_material_);
+  
+  red_material_->diffuse_color_ = glm::vec3(1,0,0);
+  green_material_->diffuse_color_ = glm::vec3(0,1,0);
+  blue_material_->diffuse_color_ = glm::vec3(0,0,1);
   
   glm::vec3 arrow_size_vec = glm::vec3(0.3,0.3,1) * arrow_size;
   int divisions = 10;
@@ -927,11 +934,6 @@ AxesObject3D::AxesObject3D(GLuint program_ID,
                                   axis_radius * 2,
                                   1 - arrow_size_vec.z),
                         divisions);
-  line_x_->material_.diffuse_color_ = glm::vec3(1,0,0);
-  line_y_->material_.diffuse_color_ = glm::vec3(0,1,0);
-  line_z_->material_.diffuse_color_ = glm::vec3(0,0,1);
-
-
   
   arrow_x_->initCone(glm::vec3(1 - arrow_size_vec.z,0,0),
                  glm::vec3(1,0,0),
@@ -947,11 +949,7 @@ AxesObject3D::AxesObject3D(GLuint program_ID,
                     glm::vec3(0,0,1),
                     arrow_size_vec,
                     divisions);
-  
-  arrow_x_->material_.diffuse_color_ = glm::vec3(1,0,0);
-  arrow_y_->material_.diffuse_color_ = glm::vec3(0,1,0);
-  arrow_z_->material_.diffuse_color_ = glm::vec3(0,0,1);
-
+ 
   this->addChild(line_x_);
   this->addChild(line_y_);
   this->addChild(line_z_);
@@ -963,6 +961,10 @@ AxesObject3D::AxesObject3D(GLuint program_ID,
 
 AxesObject3D::~AxesObject3D()
 {
+  delete red_material_;
+  delete green_material_;
+  delete blue_material_;
+  
   delete line_x_;
   delete line_y_;
   delete line_z_;
@@ -972,11 +974,13 @@ AxesObject3D::~AxesObject3D()
   delete arrow_z_;
 }
 
-LightMesh3D::LightMesh3D(GLuint program_ID, float size)
+LightMesh3D::LightMesh3D(float size)
 {
-  circle_x_ = new LineMesh(program_ID);
-  circle_y_ = new LineMesh(program_ID);
-  circle_z_ = new LineMesh(program_ID);
+  white_material_ = new PhongMaterial();
+  
+  circle_x_ = new LineMesh(white_material_);
+  circle_y_ = new LineMesh(white_material_);
+  circle_z_ = new LineMesh(white_material_);
   circle_x_->initCircle(glm::vec3(0,0,0), glm::vec3(1,0,0), size * glm::vec3(1,1,1), 10);
   circle_y_->initCircle(glm::vec3(0,0,0), glm::vec3(0,1,0), size * glm::vec3(1,1,1), 10);
   circle_z_->initCircle(glm::vec3(0,0,0), glm::vec3(0,0,1), size * glm::vec3(1,1,1), 10);
@@ -987,6 +991,7 @@ LightMesh3D::LightMesh3D(GLuint program_ID, float size)
 
 LightMesh3D::~LightMesh3D()
 {
+  delete white_material_;
   delete circle_x_;
   delete circle_y_;
   delete circle_z_;
@@ -1094,6 +1099,7 @@ bool SimpleGraphicsEngine::initialize()
   grid_plane_child1_ = new Object3D();
   grid_plane_child2_ = new Object3D();
   grid_plane_child3_ = new Object3D();
+  /*
   grid_plane_mesh_ = new LineMesh(shader_manager_->instance()->getShader(SHADER_ONE_COLOR));
   grid_plane_mesh_->initGridPlane(glm::vec3(0.0f,0.0f,0.0f),
                              glm::vec3(0.0f,1.0f,0.0f),
@@ -1116,15 +1122,15 @@ bool SimpleGraphicsEngine::initialize()
   
   grid_plane_child2_->transform_.scale(glm::vec3(5,5,5));
   grid_plane_child3_->transform_.scale(glm::vec3(5,5,5));
-  
+  */
   scene_->addChild(camera_);
-  scene_->addChild(grid_plane_);
-  scene_->addChild(axis_object_);
+  //scene_->addChild(grid_plane_);
+  //scene_->addChild(axis_object_);
   
   view_space_->addChild(viewspace_ortho_camera_);
-  view_space_->addChild(axis_object_small_);
+  //view_space_->addChild(axis_object_small_);
   
-  background_space_->addChild(background_plane_);
+  //background_space_->addChild(background_plane_);
   return true;
 }
 

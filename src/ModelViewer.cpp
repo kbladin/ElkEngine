@@ -206,14 +206,14 @@ ModelViewer::ModelViewer() : SimpleGraphicsEngine(), listener_(this)
     loaded = ModelLoader::load(file_name.c_str(), &vertices, &normals, &elements);
   } while (!loaded);
   
-  bunny_mesh_ = new TriangleMesh(vertices, normals, elements, shader_manager_->instance()->getShader(SHADER_PHONG));
+  bunny_mesh_ = new TriangleMesh(vertices, normals, elements, new PhongMaterial);
   
   // "../../data/testmodels/bunny.m"
   // "../../data/testmodels/gargoyle.m"
   
   // Initialize all objects
   light_ = new LightSource(shader_manager_->instance()->getShader(SHADER_PHONG));
-  light_mesh_ = new LightMesh3D(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), 1);
+  //light_mesh_ = new LightMesh3D(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), 1);
   bunny_ = new Object3D();
   bb_ = new BoundingBox(bunny_mesh_);
   hand_ = new HandObject3D(shader_manager_->instance()->getShader(SHADER_PHONG));
@@ -229,7 +229,7 @@ ModelViewer::ModelViewer() : SimpleGraphicsEngine(), listener_(this)
   bunny_->addChild(bunny_mesh_);
   bunny_mesh_->addChild(bb_);
   
-  light_->addChild(light_mesh_);
+  //light_->addChild(light_mesh_);
 
   //Add objects to scene
   scene_->addChild(bunny_);
@@ -280,16 +280,17 @@ void ModelViewer::mouseScrollCallback(GLFWwindow * window, double dx, double dy)
 
 FingerObject3D::FingerObject3D(GLuint program_ID)
 {
-  bones_.push_back(new TriangleMesh(program_ID));
+  
+  bones_.push_back(new TriangleMesh(new PhongMaterial()));
   bones_[0]->initBox(glm::vec3(0.04f,0.04f,0.15f), -glm::vec3(0.04f,0.04f,0.15f), glm::vec3(0,0,0));
   
-  bones_.push_back(new TriangleMesh(program_ID));
+  bones_.push_back(new TriangleMesh(new PhongMaterial()));
   bones_[1]->initBox(glm::vec3(0.04f,0.04f,0.1f), -glm::vec3(0.04f,0.04f,0.1f), glm::vec3(0,0,0));
   
-  bones_.push_back(new TriangleMesh(program_ID));
+  bones_.push_back(new TriangleMesh(new PhongMaterial()));
   bones_[2]->initBox(glm::vec3(0.04f,0.04f,0.075f), -glm::vec3(0.04f,0.04f,0.075f), glm::vec3(0,0,0));
   
-  bones_.push_back(new TriangleMesh(program_ID));
+  bones_.push_back(new TriangleMesh(new PhongMaterial()));
   bones_[3]->initBox(glm::vec3(0.04f,0.04f,0.05f), -glm::vec3(0.04f,0.04f,0.05f), glm::vec3(0,0,0));
 }
 
@@ -305,7 +306,7 @@ HandObject3D::HandObject3D(GLuint program_ID)
   //light_source_ = new LightSource(program_ID);
   //light_source_->intensity_ = 0.01;
   //light_source_->color_ = glm::vec3(0.1,1,0.1);
-  palm_mesh_ = new TriangleMesh(program_ID);
+  palm_mesh_ = new TriangleMesh(new PhongMaterial());
   palm_mesh_->initBox(glm::vec3(0.15,0.05,0.15), -glm::vec3(0.15,0.05,0.15), glm::vec3(0,0,0));
   this->addChild(palm_mesh_);
   for (int i = 0; i < 5; i++) {
