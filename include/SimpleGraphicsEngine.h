@@ -57,7 +57,7 @@ public:
   //! Returns the rotation in terms of EulerXYZ angles.
   glm::vec3 getEulerRotationXYZ(){return rotation_;};
   //! Returns the transformation matrix.
-  glm::mat4 getMatrix(){return matrix_;};
+  glm::mat4 getMatrix(){return matrix_ * basis_;};
   //! Translates the object.
   /*!
    \param position defines translation in each axis.
@@ -83,12 +83,14 @@ public:
    \param angle defines the angle of rotation in degrees.
   */
   void rotateZ(float angle);
+  void setBasis(glm::mat4 basis);
   //! Resets the matrix transform to an identity matrix.
   void reset();
-
   glm::mat4 matrix_;
 
 private:
+  glm::mat4 basis_;
+
   glm::vec3 position_;
   glm::vec3 scale_;
   glm::vec3 rotation_; // angleX, angleY, angleZ
@@ -274,6 +276,11 @@ public:
                      glm::vec3 normal,
                      glm::vec3 scale,
                      unsigned int divisions);
+  void initCircle(
+                  glm::vec3 position,
+                  glm::vec3 normal,
+                  glm::vec3 scale,
+                  unsigned int divisions);
   //! Render the mesh.
   /*!
    \param M is the transformation matrix of the parent.
@@ -402,6 +409,17 @@ private:
   TriangleMesh* arrow_x_;
   TriangleMesh* arrow_y_;
   TriangleMesh* arrow_z_;
+};
+
+class LightMesh3D : public Object3D {
+public:
+  LightMesh3D(GLuint program_ID, float size);
+  ~LightMesh3D();
+  
+private:
+  LineMesh* circle_x_;
+  LineMesh* circle_y_;
+  LineMesh* circle_z_;
 };
 
 //! This class manages all objects in the engine.

@@ -41,6 +41,7 @@ private:
   TriangleMesh* palm_mesh_;
   std::vector<FingerObject3D*> fingers_;
   LightSource* light_source_;
+  glm::vec3 tap_point_camera_space_;
 };
 
 //! The actual program extending SimpleGraphicsEngine
@@ -63,6 +64,7 @@ private:
   Object3D* bunny_;
   TriangleMesh* bunny_mesh_;
   LightSource* light_;
+  LightMesh3D* light_mesh_;
   BoundingBox* bb_;
   HandObject3D* hand_;
   

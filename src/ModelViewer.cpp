@@ -50,8 +50,8 @@ void SampleListener::onFrame(const Controller& controller) {
       // Update hand position
       glm::mat4 M = leapMatrixToGlmMatrix(h.basis());
       M = glm::translate(glm::mat4(), palm_position_camera_space + glm::vec3(0, - 1, 0) + model_viewer_->rotation_point) * M;
-      M = glm::inverse(model_viewer_->camera_->transform_.matrix_) * M;
-      model_viewer_->hand_->palm_mesh_->transform_.matrix_ = M;
+      M = glm::inverse(model_viewer_->camera_->transform_.getMatrix()) * M;
+      model_viewer_->hand_->palm_mesh_->transform_.setBasis(M);
       
       FingerList fingers = h.fingers();
       for(int i = 0; i < fingers.count(); i++){
@@ -70,9 +70,9 @@ void SampleListener::onFrame(const Controller& controller) {
           
 
           glm::mat4 M = trans_M * leapMatrixToGlmMatrix(bone.basis());
-          M = glm::inverse(model_viewer_->camera_->transform_.matrix_) * M;
+          M = glm::inverse(model_viewer_->camera_->transform_.getMatrix()) * M;
 
-          model_viewer_->hand_->fingers_[i]->bones_[b]->transform_.matrix_ = M;
+          model_viewer_->hand_->fingers_[i]->bones_[b]->transform_.setBasis(M);
         }
       }
       
@@ -137,9 +137,9 @@ void SampleListener::onFrame(const Controller& controller) {
         Gesture g = frame.gestures()[i];
         if (g.type() == Gesture::TYPE_KEY_TAP) {
           KeyTapGesture kt = KeyTapGesture(g);
-          glm::vec3 point_camera_space = glm::vec3(kt.position().x,kt.position().y, kt.position().z) / 200.0f;
+          model_viewer_->hand_->tap_point_camera_space_ = glm::vec3(kt.position().x,kt.position().y, kt.position().z) / 200.0f;
           
-          glm::vec3 point = glm::vec3(glm::inverse(model_viewer_->camera_->transform_.matrix_) * (glm::vec4(point_camera_space,1) + glm::vec4(model_viewer_->rotation_point.x,-1 + model_viewer_->rotation_point.y,model_viewer_->rotation_point.z,0)));
+          glm::vec3 point = glm::vec3(glm::inverse(model_viewer_->camera_->transform_.getMatrix()) * (glm::vec4(model_viewer_->hand_->tap_point_camera_space_,1) + glm::vec4(model_viewer_->rotation_point.x,-1 + model_viewer_->rotation_point.y,model_viewer_->rotation_point.z,0)));
           
           std::vector<Object3D*> colliding_children = model_viewer_->scene_->getCollidingChildren(point);
           if (colliding_children.size() > 0) {
@@ -158,17 +158,25 @@ void SampleListener::onFrame(const Controller& controller) {
       
       if (model_viewer_->selected_object_) {
         glm::vec3 scale = model_viewer_->selected_object_->transform_.getScale();
-        glm::vec3 eulerXYZ = model_viewer_->selected_object_->transform_.getEulerRotationXYZ();
+        //glm::vec3 eulerXYZ = model_viewer_->selected_object_->transform_.getEulerRotationXYZ();
+        glm::vec3 position = model_viewer_->selected_object_->transform_.getPosition();
         model_viewer_->selected_object_->transform_.reset();
         model_viewer_->selected_object_->transform_.scale(scale);
         glm::vec3 hand_position = glm::vec3(h.palmPosition().x,h.palmPosition().y,h.palmPosition().z)/200.0f;
+        
+        model_viewer_->selected_object_->transform_.matrix_ = glm::translate(glm::mat4(), -glm::vec3(0.5,0.5,0.5)) * model_viewer_->selected_object_->transform_.matrix_;
+  
+        model_viewer_->selected_object_->transform_.matrix_ = leapMatrixToGlmMatrix(h.basis()) *  model_viewer_->selected_object_->transform_.matrix_;
+        
+        
+        
         model_viewer_->selected_object_->transform_.translate(hand_position + glm::vec3(0, - 1, 0) + model_viewer_->rotation_point);
         
-        model_viewer_->selected_object_->transform_.rotateX(eulerXYZ.x);
-        model_viewer_->selected_object_->transform_.rotateY(eulerXYZ.y);
-        model_viewer_->selected_object_->transform_.rotateZ(eulerXYZ.z);
+        //model_viewer_->selected_object_->transform_.rotateX(eulerXYZ.x);
+        //model_viewer_->selected_object_->transform_.rotateY(eulerXYZ.y);
+        //model_viewer_->selected_object_->transform_.rotateZ(eulerXYZ.z);
         
-        model_viewer_->selected_object_->transform_.matrix_ = glm::inverse(model_viewer_->camera_->transform_.matrix_) * model_viewer_->selected_object_->transform_.matrix_;
+        model_viewer_->selected_object_->transform_.matrix_ = glm::inverse(model_viewer_->camera_->transform_.matrix_) * model_viewer_->selected_object_->transform_.getMatrix();
         
         if (h.palmNormal().y > 0) {
           model_viewer_->selected_object_->transform_.scale(glm::vec3( 1.0f + (h.palmPosition().y / 200.0f - 1.0f) * float(model_viewer_->dt_) * 1.0f));
@@ -206,13 +214,14 @@ ModelViewer::ModelViewer() : SimpleGraphicsEngine(), listener_(this)
   
   // Initialize all objects
   light_ = new LightSource(program_ID_basic_render_);
+  light_mesh_ = new LightMesh3D(program_ID_one_color_shader_, 1);
   bunny_ = new Object3D();
   bb_ = new BoundingBox(bunny_mesh_);
   hand_ = new HandObject3D(program_ID_basic_render_);
 
   // Change properties
-  light_->transform_.translate(glm::vec3(10, 10, 0));
-  light_->intensity_ = 100;
+  light_->transform_.translate(glm::vec3(4, 4, 4));
+  light_->intensity_ = 20;
 
   camera_->transform_.translate(rotation_point);
   
@@ -220,6 +229,8 @@ ModelViewer::ModelViewer() : SimpleGraphicsEngine(), listener_(this)
   bunny_mesh_->normalizeScale();
   bunny_->addChild(bunny_mesh_);
   bunny_mesh_->addChild(bb_);
+  
+  light_->addChild(light_mesh_);
 
   //Add objects to scene
   scene_->addChild(bunny_);
@@ -239,6 +250,7 @@ ModelViewer::~ModelViewer()
   delete light_;
   delete bb_;
   delete hand_;
+  delete light_mesh_;
 }
 
 void ModelViewer::update()

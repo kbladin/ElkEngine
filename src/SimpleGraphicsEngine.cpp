@@ -77,6 +77,11 @@ void Transform::rotateZ(float angle)
   matrix_ = rotation_matrix * matrix_;
 }
 
+void Transform::setBasis(glm::mat4 basis)
+{
+  basis_ = basis;
+}
+
 void Transform::reset()
 {
   position_ = glm::vec3(0.0f,0.0f,0.0f);
@@ -108,11 +113,11 @@ std::vector<Object3D*> Object3D::getCollidingChildren(glm::vec3 point)
 {
   std::vector<Object3D*> result;
   for (int i=0; i<children.size(); i++) {
-    if(dynamic_cast<BoundingBox*>(children[i]) && dynamic_cast<BoundingBox*>(children[i])->collides(glm::vec3(glm::inverse(transform_.matrix_) * glm::vec4(point,1)))) {
+    if(dynamic_cast<BoundingBox*>(children[i]) && dynamic_cast<BoundingBox*>(children[i])->collides(glm::vec3(glm::inverse(transform_.getMatrix()) * glm::vec4(point,1)))) {
       //std::cout << glm::vec3(glm::inverse(transform_.matrix_) * glm::vec4(point,1)).x << std::endl;
       result.push_back(this);
     }
-    std::vector<Object3D*> children_result = children[i]->getCollidingChildren(glm::vec3(transform_.matrix_ * glm::vec4(point,1)));
+    std::vector<Object3D*> children_result = children[i]->getCollidingChildren(glm::vec3(transform_.getMatrix() * glm::vec4(point,1)));
     for (int j=0; j<children_result.size(); j++) {
       result.push_back(children_result[j]);
     }
@@ -127,7 +132,10 @@ AbstractMesh::AbstractMesh(GLuint program_ID) : material_(program_ID)
 
 AbstractMesh::~AbstractMesh()
 {
-  
+  // Cleanup VBO
+  glDeleteBuffers(1, &vertex_buffer_);
+  glDeleteBuffers(1, &element_buffer_);
+  glDeleteVertexArrays(1, &vertex_array_ID_);
 }
 
 void AbstractMesh::normalizeScale()
@@ -565,10 +573,7 @@ LineMesh::LineMesh(GLuint program_ID) : AbstractMesh(program_ID)
 
 LineMesh::~LineMesh()
 {
-  // Cleanup VBO
-  glDeleteBuffers(1, &vertex_buffer_);
-  glDeleteBuffers(1, &element_buffer_);
-  glDeleteVertexArrays(1, &vertex_array_ID_);
+
 }
 
 void LineMesh::initLine(glm::vec3 start, glm::vec3 end)
@@ -626,6 +631,45 @@ void LineMesh::initGridPlane(glm::vec3 position,
   
   transform_.translate(position - glm::vec3(0.5f,0.0f,0.5f));
   transform_.scale(scale);
+  
+  initialize();
+}
+
+void LineMesh::initCircle(
+                glm::vec3 position,
+                glm::vec3 normal,
+                glm::vec3 scale,
+                unsigned int divisions)
+{
+  vertices_.resize(divisions);
+  elements_.resize(divisions*2);
+  
+  float delta_theta = M_PI * 2 / float(divisions);
+  for (int i = 0; i<divisions; i++) {
+    float x = cos(delta_theta * i);
+    float y = sin(delta_theta * i);
+    vertices_[i] = glm::vec3(x,y,0) * 0.5f;
+    elements_[i*2] = i;
+    elements_[i*2 + 1] = i + 1;
+  }
+  elements_[divisions*2 - 1] = 0;
+  
+  glm::mat4 M;
+  glm::vec3 up =
+  !(normal.x == 0 && normal.y == 0) ?
+  glm::vec3(0.0f, 0.0f, 1.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+  M = glm::lookAt(
+                  glm::vec3(0.0f, 0.0f, 0.0f),
+                  normal,
+                  up);
+  
+  for (int i = 0; i < vertices_.size(); i++) {
+    //vertices_[i] /= divisions;
+    vertices_[i] = glm::vec3(glm::vec4(vertices_[i], 1) * M);
+  }
+  
+  transform_.scale(scale);
+  transform_.translate(position);
   
   initialize();
 }
@@ -898,6 +942,26 @@ AxesObject3D::~AxesObject3D()
   delete arrow_z_;
 }
 
+LightMesh3D::LightMesh3D(GLuint program_ID, float size)
+{
+  circle_x_ = new LineMesh(program_ID);
+  circle_y_ = new LineMesh(program_ID);
+  circle_z_ = new LineMesh(program_ID);
+  circle_x_->initCircle(glm::vec3(0,0,0), glm::vec3(1,0,0), size * glm::vec3(1,1,1), 10);
+  circle_y_->initCircle(glm::vec3(0,0,0), glm::vec3(0,1,0), size * glm::vec3(1,1,1), 10);
+  circle_z_->initCircle(glm::vec3(0,0,0), glm::vec3(0,0,1), size * glm::vec3(1,1,1), 10);
+  this->addChild(circle_x_);
+  this->addChild(circle_y_);
+  this->addChild(circle_z_);
+}
+
+LightMesh3D::~LightMesh3D()
+{
+  delete circle_x_;
+  delete circle_y_;
+  delete circle_z_;
+}
+
 Object3D* SimpleGraphicsEngine::camera_;
 Object3D* SimpleGraphicsEngine::viewspace_ortho_camera_;
 
@@ -1058,7 +1122,7 @@ void SimpleGraphicsEngine::update()
   t.rotateY(rot.y);
   t.rotateX(rot.x);
   t.rotateZ(rot.z);
-  t.scale(glm::vec3(0.2,0.2,0.2));
+  t.scale(glm::vec3(0.1,0.1,0.1));
   t.translate(glm::vec3(-1.3,-0.8,0));
 
   axis_object_small_->transform_ = t;
