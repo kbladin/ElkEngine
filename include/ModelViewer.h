@@ -6,6 +6,7 @@
 #include "Leap.h"
 
 using namespace Leap;
+using namespace SGE;
 
 class ModelViewer;
 

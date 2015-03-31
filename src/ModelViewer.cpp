@@ -3,7 +3,6 @@
 #include <iostream>
 #include "Leap.h"
 
-using namespace Leap;
 
 glm::mat4 leapMatrixToGlmMatrix(Matrix leap_M)
 {
@@ -207,17 +206,17 @@ ModelViewer::ModelViewer() : SimpleGraphicsEngine(), listener_(this)
     loaded = ModelLoader::load(file_name.c_str(), &vertices, &normals, &elements);
   } while (!loaded);
   
-  bunny_mesh_ = new TriangleMesh(vertices, normals, elements, program_ID_basic_render_);
+  bunny_mesh_ = new TriangleMesh(vertices, normals, elements, shader_manager_->instance()->getShader(SHADER_PHONG));
   
   // "../../data/testmodels/bunny.m"
   // "../../data/testmodels/gargoyle.m"
   
   // Initialize all objects
-  light_ = new LightSource(program_ID_basic_render_);
-  light_mesh_ = new LightMesh3D(program_ID_one_color_shader_, 1);
+  light_ = new LightSource(shader_manager_->instance()->getShader(SHADER_PHONG));
+  light_mesh_ = new LightMesh3D(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), 1);
   bunny_ = new Object3D();
   bb_ = new BoundingBox(bunny_mesh_);
-  hand_ = new HandObject3D(program_ID_basic_render_);
+  hand_ = new HandObject3D(shader_manager_->instance()->getShader(SHADER_PHONG));
 
   // Change properties
   light_->transform_.translate(glm::vec3(4, 4, 4));

@@ -12,14 +12,49 @@
 #include "ModelLoader.h"
 #include "ShaderLoader.h"
 
-Material::Material(GLuint program_ID)
+using namespace SGE;
+
+ShaderManager* ShaderManager::instance_;
+
+ShaderManager::ShaderManager()
+{
+  shader_program_IDs.push_back(ShaderLoader::loadShaders(
+                                                         "../../data/shaders/simple.vert",
+                                                         "../../data/shaders/simple.frag" ));
+  shader_program_IDs.push_back(ShaderLoader::loadShaders(
+                                                         "../../data/shaders/one_color.vert",
+                                                         "../../data/shaders/one_color.frag" ));
+  shader_program_IDs.push_back(ShaderLoader::loadShaders(
+                                                         "../../data/shaders/background.vert",
+                                                         "../../data/shaders/background.frag" ));
+}
+
+ShaderManager::~ShaderManager()
+{
+  for (int i=0; i<shader_program_IDs.size(); i++) {
+    glDeleteProgram(shader_program_IDs[i]);
+  }
+}
+
+ShaderManager* ShaderManager::instance()
+{
+  if (!instance_) {
+    instance_ = new ShaderManager();
+  }
+  return instance_;
+}
+
+GLuint ShaderManager::getShader(int index)
+{
+  return shader_program_IDs[index];
+}
+
+Material::Material(GLuint program_ID) : program_ID_(program_ID)
 {
   diffuse_color_ = glm::vec3(1.0, 1.0, 1.0);
   specular_color_ = glm::vec3(1.0, 1.0, 1.0);
   specularity_ = 0.5;
   shinyness_ = 16;
-  
-  program_ID_ = program_ID;
   
   glUseProgram(program_ID_);
   diffuseColor_ID_ = glGetUniformLocation(program_ID_, "material_diffiseColor");
@@ -127,7 +162,6 @@ std::vector<Object3D*> Object3D::getCollidingChildren(glm::vec3 point)
 
 AbstractMesh::AbstractMesh(GLuint program_ID) : material_(program_ID)
 {
-  program_ID_ = program_ID;
 }
 
 AbstractMesh::~AbstractMesh()
@@ -150,7 +184,7 @@ void AbstractMesh::normalizeScale()
 
 void AbstractMesh::initialize()
 {
-  glUseProgram(program_ID_);
+  glUseProgram(material_.program_ID_);
   
   glGenVertexArrays(1, &vertex_array_ID_);
   glBindVertexArray(vertex_array_ID_);
@@ -164,12 +198,11 @@ void AbstractMesh::initialize()
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements_.size() * sizeof(unsigned short), &elements_[0] , GL_STATIC_DRAW);
   
   // Get a handle for our matrix uniform
-  model_matrix_ID_ = glGetUniformLocation(program_ID_, "M");
+  model_matrix_ID_ = glGetUniformLocation(material_.program_ID_, "M");
 }
 
 TriangleMesh::TriangleMesh(const char *file_name, GLuint program_ID) : AbstractMesh(program_ID)
 {
-  program_ID_ = program_ID;
   ModelLoader::load(file_name, &vertices_, &normals_, &elements_);
   initialize();
 }
@@ -179,7 +212,6 @@ TriangleMesh::TriangleMesh(std::vector<glm::vec3> vertices,
            std::vector<unsigned short> elements,
            GLuint program_ID) : AbstractMesh(program_ID)
 {
-  program_ID_ = program_ID;
   vertices_ = vertices;
   normals_ = normals;
   elements_ = elements;
@@ -189,7 +221,6 @@ TriangleMesh::TriangleMesh(std::vector<glm::vec3> vertices,
 
 TriangleMesh::TriangleMesh(GLuint program_ID) : AbstractMesh(program_ID)
 {
-  program_ID_ = program_ID;
 }
 
 TriangleMesh::~TriangleMesh()
@@ -506,7 +537,7 @@ void TriangleMesh::initialize()
 {
   AbstractMesh::initialize();
   
-  glUseProgram(program_ID_);
+  glUseProgram(material_.program_ID_);
 
   glGenBuffers(1, &normal_buffer_);
   glBindBuffer(GL_ARRAY_BUFFER, normal_buffer_);
@@ -521,7 +552,7 @@ void TriangleMesh::render(glm::mat4 M)
   glm::mat4 total_transform = M * transform_.getMatrix();
   
   // Use our shader
-  glUseProgram(program_ID_);
+  glUseProgram(material_.program_ID_);
   glUniformMatrix4fv(model_matrix_ID_, 1, GL_FALSE, &total_transform[0][0]);
   
   glBindVertexArray(vertex_array_ID_);
@@ -567,7 +598,6 @@ void TriangleMesh::render(glm::mat4 M)
 
 LineMesh::LineMesh(GLuint program_ID) : AbstractMesh(program_ID)
 {
-  program_ID_ = program_ID;
   initialize();
 }
 
@@ -676,7 +706,7 @@ void LineMesh::initCircle(
 
 void LineMesh::initialize()
 {
-  glUseProgram(program_ID_);
+  glUseProgram(material_.program_ID_);
 
   glGenVertexArrays(1, &vertex_array_ID_);
   glBindVertexArray(vertex_array_ID_);
@@ -690,7 +720,7 @@ void LineMesh::initialize()
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements_.size() * sizeof(unsigned short), &elements_[0] , GL_STATIC_DRAW);
   
   // Get a handle for our matrix uniform
-  model_matrix_ID_ = glGetUniformLocation(program_ID_, "M");
+  model_matrix_ID_ = glGetUniformLocation(material_.program_ID_, "M");
 }
 
 void LineMesh::render(glm::mat4 M)
@@ -701,7 +731,7 @@ void LineMesh::render(glm::mat4 M)
   glm::mat4 total_transform = M * transform_.getMatrix();
   
   // Use our shader
-  glUseProgram(program_ID_);
+  glUseProgram(material_.program_ID_);
   glUniformMatrix4fv(model_matrix_ID_, 1, GL_FALSE, &total_transform[0][0]);
   
   glBindVertexArray(vertex_array_ID_);
@@ -972,9 +1002,11 @@ SimpleGraphicsEngine::SimpleGraphicsEngine()
 
 SimpleGraphicsEngine::~SimpleGraphicsEngine()
 {
+  /*
   glDeleteProgram(program_ID_basic_render_);
   glDeleteProgram(program_ID_one_color_shader_);
   glDeleteProgram(program_ID_background_shader_);
+  */
   glfwTerminate();
   delete scene_;
   delete view_space_;
@@ -1025,6 +1057,10 @@ bool SimpleGraphicsEngine::initialize()
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   
+  // Instantiate (needs to be done after creating OpenGL context)
+  shader_manager_->instance();
+  
+  /*
   // Create and compile our GLSL program from the shaders
   program_ID_basic_render_ = ShaderLoader::loadShaders(
                                                "../../data/shaders/simple.vert",
@@ -1037,16 +1073,17 @@ bool SimpleGraphicsEngine::initialize()
   program_ID_background_shader_ = ShaderLoader::loadShaders(
                                                            "../../data/shaders/background.vert",
                                                            "../../data/shaders/background.frag" );
+   */
   scene_ = new Object3D();
   view_space_ = new Object3D();
   background_space_ = new Object3D();
   camera_ = new Object3D();
   viewspace_ortho_camera_ = new Object3D();
-  basic_cam_ = new PerspectiveCamera(program_ID_basic_render_, window_);
-  one_color_cam_ = new PerspectiveCamera(program_ID_one_color_shader_, window_);
-  one_color_cam_ = new PerspectiveCamera(program_ID_one_color_shader_, window_);
-  one_color_ortho_cam_ = new OrthoCamera(program_ID_one_color_shader_, window_);
-  background_ortho_cam_ = new OrthoCamera(program_ID_background_shader_, window_);
+  basic_cam_ = new PerspectiveCamera(shader_manager_->instance()->getShader(SHADER_PHONG), window_);
+  one_color_cam_ = new PerspectiveCamera(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), window_);
+  one_color_cam_ = new PerspectiveCamera(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), window_);
+  one_color_ortho_cam_ = new OrthoCamera(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), window_);
+  background_ortho_cam_ = new OrthoCamera(shader_manager_->instance()->getShader(SHADER_BACKGROUND), window_);
   
   camera_->addChild(basic_cam_);
   camera_->addChild(one_color_cam_);
@@ -1057,17 +1094,17 @@ bool SimpleGraphicsEngine::initialize()
   grid_plane_child1_ = new Object3D();
   grid_plane_child2_ = new Object3D();
   grid_plane_child3_ = new Object3D();
-  grid_plane_mesh_ = new LineMesh(program_ID_one_color_shader_);
+  grid_plane_mesh_ = new LineMesh(shader_manager_->instance()->getShader(SHADER_ONE_COLOR));
   grid_plane_mesh_->initGridPlane(glm::vec3(0.0f,0.0f,0.0f),
                              glm::vec3(0.0f,1.0f,0.0f),
                              glm::vec3(2.0f,2.0f,2.0f),
                              10);
   grid_plane_mesh_->material_.diffuse_color_ = glm::vec3(0.8,0.8,0.8);
-  axis_object_ = new AxesObject3D(program_ID_one_color_shader_, 0.1, 0.005);
-  axis_object_small_ = new AxesObject3D(program_ID_one_color_shader_, 0.2, 0.02);
+  axis_object_ = new AxesObject3D(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), 0.1, 0.005);
+  axis_object_small_ = new AxesObject3D(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), 0.2, 0.02);
   axis_object_small_->transform_.scale(glm::vec3(0.2,0.2,0.2));
   
-  background_plane_ = new TriangleMesh(program_ID_background_shader_);
+  background_plane_ = new TriangleMesh(shader_manager_->instance()->getShader(SHADER_BACKGROUND));
   background_plane_->initPlane(glm::vec3(0,0,0), glm::vec3(0,0,1), glm::vec3(10,2,2));
   
   grid_plane_child1_->addChild(grid_plane_mesh_);
