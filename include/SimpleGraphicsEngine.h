@@ -78,6 +78,47 @@ namespace SGE {
     GLuint shinyness_ID_;
   };
   
+  //! Every Mesh has a material which specifies parameters for shading.
+  class OneColorMaterial : public Material {
+  public:
+    //! Create a material which is bound to a specific shader.
+    /*!
+     \param program_ID can be one of the shaders which starts with "program_ID_"
+     defined in SimpleGraphiicsEngine.
+     */
+    OneColorMaterial();
+    ~OneColorMaterial(){};
+    //! Updating the shader parameters.
+    /*!
+     This function is automatically called when a mesh with this material is
+     rendered.
+     */
+    void render()const;
+    
+    glm::vec3 diffuse_color_;
+    private:
+    GLuint diffuseColor_ID_;
+  };
+  
+  //! Every Mesh has a material which specifies parameters for shading.
+  class BackgroundMaterial : public Material {
+  public:
+    //! Create a material which is bound to a specific shader.
+    /*!
+     \param program_ID can be one of the shaders which starts with "program_ID_"
+     defined in SimpleGraphiicsEngine.
+     */
+    BackgroundMaterial();
+    ~BackgroundMaterial(){};
+    //! Updating the shader parameters.
+    /*!
+     This function is automatically called when a mesh with this material is
+     rendered.
+     */
+    void render()const;
+  private:
+  };
+  
   //! A transform defining a transformation matrix.
   /*!
    Transformation matrix is defined from different parameters such as position,
@@ -444,9 +485,9 @@ namespace SGE {
     ~AxesObject3D();
     
   private:
-    PhongMaterial* red_material_;
-    PhongMaterial* green_material_;
-    PhongMaterial* blue_material_;
+    OneColorMaterial* red_material_;
+    OneColorMaterial* green_material_;
+    OneColorMaterial* blue_material_;
     
     TriangleMesh* line_x_;
     TriangleMesh* line_y_;
@@ -463,7 +504,7 @@ namespace SGE {
     ~LightMesh3D();
     
   private:
-    PhongMaterial* white_material_;
+    OneColorMaterial* white_material_;
     
     LineMesh* circle_x_;
     LineMesh* circle_y_;
@@ -529,6 +570,10 @@ namespace SGE {
     
     OrthoCamera* one_color_ortho_cam_;
     OrthoCamera* background_ortho_cam_;
+    
+    // Materials
+    BackgroundMaterial* background_material_;
+    OneColorMaterial* grid_mesh_material_;
   };
   
 }

@@ -29,6 +29,7 @@ public:
 private:
   friend SampleListener;
   friend HandObject3D;
+  PhongMaterial* finger_material_;
   std::vector<TriangleMesh*> bones_;
 };
 
@@ -41,7 +42,8 @@ private:
   friend SampleListener;
   TriangleMesh* palm_mesh_;
   std::vector<FingerObject3D*> fingers_;
-  LightSource* light_source_;
+  //LightSource* light_source_;
+  PhongMaterial* hand_material_;
   glm::vec3 tap_point_camera_space_;
 };
 
@@ -64,6 +66,7 @@ private:
   // Objects to put in the scene
   Object3D* bunny_;
   TriangleMesh* bunny_mesh_;
+  PhongMaterial* bunny_material_;
   LightSource* light_;
   LightMesh3D* light_mesh_;
   BoundingBox* bb_;

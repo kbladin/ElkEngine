@@ -158,7 +158,7 @@ void SampleListener::onFrame(const Controller& controller) {
       if (model_viewer_->selected_object_) {
         glm::vec3 scale = model_viewer_->selected_object_->transform_.getScale();
         //glm::vec3 eulerXYZ = model_viewer_->selected_object_->transform_.getEulerRotationXYZ();
-        glm::vec3 position = model_viewer_->selected_object_->transform_.getPosition();
+        //glm::vec3 position = model_viewer_->selected_object_->transform_.getPosition();
         model_viewer_->selected_object_->transform_.reset();
         model_viewer_->selected_object_->transform_.scale(scale);
         glm::vec3 hand_position = glm::vec3(h.palmPosition().x,h.palmPosition().y,h.palmPosition().z)/200.0f;
@@ -206,14 +206,16 @@ ModelViewer::ModelViewer() : SimpleGraphicsEngine(), listener_(this)
     loaded = ModelLoader::load(file_name.c_str(), &vertices, &normals, &elements);
   } while (!loaded);
   
-  bunny_mesh_ = new TriangleMesh(vertices, normals, elements, new PhongMaterial);
-  
+
   // "../../data/testmodels/bunny.m"
   // "../../data/testmodels/gargoyle.m"
   
   // Initialize all objects
+  bunny_material_ = new PhongMaterial();
+  bunny_mesh_ = new TriangleMesh(vertices, normals, elements, bunny_material_);
+  
   light_ = new LightSource(shader_manager_->instance()->getShader(SHADER_PHONG));
-  //light_mesh_ = new LightMesh3D(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), 1);
+  light_mesh_ = new LightMesh3D(1);
   bunny_ = new Object3D();
   bb_ = new BoundingBox(bunny_mesh_);
   hand_ = new HandObject3D(shader_manager_->instance()->getShader(SHADER_PHONG));
@@ -229,7 +231,7 @@ ModelViewer::ModelViewer() : SimpleGraphicsEngine(), listener_(this)
   bunny_->addChild(bunny_mesh_);
   bunny_mesh_->addChild(bb_);
   
-  //light_->addChild(light_mesh_);
+  light_->addChild(light_mesh_);
 
   //Add objects to scene
   scene_->addChild(bunny_);
@@ -244,6 +246,7 @@ ModelViewer::~ModelViewer()
 {
   controller_.removeListener(listener_);
   
+  delete bunny_material_;
   delete bunny_;
   delete bunny_mesh_;
   delete light_;
@@ -280,22 +283,23 @@ void ModelViewer::mouseScrollCallback(GLFWwindow * window, double dx, double dy)
 
 FingerObject3D::FingerObject3D(GLuint program_ID)
 {
-  
-  bones_.push_back(new TriangleMesh(new PhongMaterial()));
+  finger_material_ = new PhongMaterial();
+  bones_.push_back(new TriangleMesh(finger_material_));
   bones_[0]->initBox(glm::vec3(0.04f,0.04f,0.15f), -glm::vec3(0.04f,0.04f,0.15f), glm::vec3(0,0,0));
   
-  bones_.push_back(new TriangleMesh(new PhongMaterial()));
+  bones_.push_back(new TriangleMesh(finger_material_));
   bones_[1]->initBox(glm::vec3(0.04f,0.04f,0.1f), -glm::vec3(0.04f,0.04f,0.1f), glm::vec3(0,0,0));
   
-  bones_.push_back(new TriangleMesh(new PhongMaterial()));
+  bones_.push_back(new TriangleMesh(finger_material_));
   bones_[2]->initBox(glm::vec3(0.04f,0.04f,0.075f), -glm::vec3(0.04f,0.04f,0.075f), glm::vec3(0,0,0));
   
-  bones_.push_back(new TriangleMesh(new PhongMaterial()));
+  bones_.push_back(new TriangleMesh(finger_material_));
   bones_[3]->initBox(glm::vec3(0.04f,0.04f,0.05f), -glm::vec3(0.04f,0.04f,0.05f), glm::vec3(0,0,0));
 }
 
 FingerObject3D::~FingerObject3D()
 {
+  delete finger_material_;
   for (int i=0; i<bones_.size(); i++) {
     delete bones_[i];
   }
@@ -306,7 +310,8 @@ HandObject3D::HandObject3D(GLuint program_ID)
   //light_source_ = new LightSource(program_ID);
   //light_source_->intensity_ = 0.01;
   //light_source_->color_ = glm::vec3(0.1,1,0.1);
-  palm_mesh_ = new TriangleMesh(new PhongMaterial());
+  hand_material_ = new PhongMaterial();
+  palm_mesh_ = new TriangleMesh(hand_material_);
   palm_mesh_->initBox(glm::vec3(0.15,0.05,0.15), -glm::vec3(0.15,0.05,0.15), glm::vec3(0,0,0));
   this->addChild(palm_mesh_);
   for (int i = 0; i < 5; i++) {
@@ -320,6 +325,7 @@ HandObject3D::HandObject3D(GLuint program_ID)
 
 HandObject3D::~HandObject3D()
 {
+  delete hand_material_;
   delete palm_mesh_;
   //delete light_source_;
   for (int i = 0; i < 5; i++) {

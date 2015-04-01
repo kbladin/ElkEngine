@@ -73,6 +73,32 @@ void PhongMaterial::render() const
   glUniform1i(shinyness_ID_, shinyness_);
 }
 
+OneColorMaterial::OneColorMaterial() : SGE::Material(ShaderManager::instance()->getShader(SHADER_ONE_COLOR))
+{
+  diffuse_color_ = glm::vec3(1.0, 1.0, 1.0);
+  
+  glUseProgram(program_ID_);
+  diffuseColor_ID_ = glGetUniformLocation(program_ID_, "material_diffiseColor");
+}
+
+void OneColorMaterial::render() const
+{
+  // Use our shader
+  glUseProgram(program_ID_);
+  glUniform3f(diffuseColor_ID_,diffuse_color_.r,diffuse_color_.g, diffuse_color_.b);
+}
+
+BackgroundMaterial::BackgroundMaterial() : SGE::Material(ShaderManager::instance()->getShader(SHADER_BACKGROUND))
+{
+  glUseProgram(program_ID_);
+}
+
+void BackgroundMaterial::render() const
+{
+  // Use our shader
+  glUseProgram(program_ID_);
+}
+
 Transform::Transform(){
   reset();
 }
@@ -897,9 +923,9 @@ void LightSource::render(glm::mat4 M)
 AxesObject3D::AxesObject3D(float arrow_size,
                            float axis_radius)
 {
-  red_material_ = new PhongMaterial();
-  green_material_ = new PhongMaterial();
-  blue_material_ = new PhongMaterial();
+  red_material_ = new OneColorMaterial();
+  green_material_ = new OneColorMaterial();
+  blue_material_ = new OneColorMaterial();
   
   line_x_ = new TriangleMesh(red_material_);
   line_y_ = new TriangleMesh(green_material_);
@@ -976,7 +1002,7 @@ AxesObject3D::~AxesObject3D()
 
 LightMesh3D::LightMesh3D(float size)
 {
-  white_material_ = new PhongMaterial();
+  white_material_ = new OneColorMaterial();
   
   circle_x_ = new LineMesh(white_material_);
   circle_y_ = new LineMesh(white_material_);
@@ -1016,12 +1042,28 @@ SimpleGraphicsEngine::~SimpleGraphicsEngine()
   delete scene_;
   delete view_space_;
   delete background_space_;
+  
   delete background_plane_;
   delete grid_plane_;
+  
+  delete grid_plane_child1_;
+  delete grid_plane_child2_;
+  delete grid_plane_child3_;
+  
+  delete grid_plane_mesh_;
+  
+  delete axis_object_;
+  delete axis_object_small_;
+  
   delete camera_;
   delete basic_cam_;
   delete one_color_cam_;
   delete one_color_ortho_cam_;
+  delete viewspace_ortho_camera_;
+  delete background_ortho_cam_;
+  
+  delete grid_mesh_material_;
+  delete background_material_;
 }
 
 bool SimpleGraphicsEngine::initialize()
@@ -1065,27 +1107,16 @@ bool SimpleGraphicsEngine::initialize()
   // Instantiate (needs to be done after creating OpenGL context)
   shader_manager_->instance();
   
-  /*
-  // Create and compile our GLSL program from the shaders
-  program_ID_basic_render_ = ShaderLoader::loadShaders(
-                                               "../../data/shaders/simple.vert",
-                                               "../../data/shaders/simple.frag" );
-  // Create and compile our GLSL program from the shaders
-  program_ID_one_color_shader_ = ShaderLoader::loadShaders(
-                                                      "../../data/shaders/one_color.vert",
-                                                      "../../data/shaders/one_color.frag" );
-  // Create and compile our GLSL program from the shaders
-  program_ID_background_shader_ = ShaderLoader::loadShaders(
-                                                           "../../data/shaders/background.vert",
-                                                           "../../data/shaders/background.frag" );
-   */
+  background_material_ = new BackgroundMaterial();
+  grid_mesh_material_ = new OneColorMaterial();
+  
   scene_ = new Object3D();
   view_space_ = new Object3D();
   background_space_ = new Object3D();
+  
   camera_ = new Object3D();
   viewspace_ortho_camera_ = new Object3D();
   basic_cam_ = new PerspectiveCamera(shader_manager_->instance()->getShader(SHADER_PHONG), window_);
-  one_color_cam_ = new PerspectiveCamera(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), window_);
   one_color_cam_ = new PerspectiveCamera(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), window_);
   one_color_ortho_cam_ = new OrthoCamera(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), window_);
   background_ortho_cam_ = new OrthoCamera(shader_manager_->instance()->getShader(SHADER_BACKGROUND), window_);
@@ -1099,18 +1130,18 @@ bool SimpleGraphicsEngine::initialize()
   grid_plane_child1_ = new Object3D();
   grid_plane_child2_ = new Object3D();
   grid_plane_child3_ = new Object3D();
-  /*
-  grid_plane_mesh_ = new LineMesh(shader_manager_->instance()->getShader(SHADER_ONE_COLOR));
+  
+  grid_plane_mesh_ = new LineMesh(grid_mesh_material_);
   grid_plane_mesh_->initGridPlane(glm::vec3(0.0f,0.0f,0.0f),
                              glm::vec3(0.0f,1.0f,0.0f),
                              glm::vec3(2.0f,2.0f,2.0f),
                              10);
-  grid_plane_mesh_->material_.diffuse_color_ = glm::vec3(0.8,0.8,0.8);
-  axis_object_ = new AxesObject3D(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), 0.1, 0.005);
-  axis_object_small_ = new AxesObject3D(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), 0.2, 0.02);
+  grid_mesh_material_->diffuse_color_ = glm::vec3(0.8,0.8,0.8);
+  axis_object_ = new AxesObject3D(0.1, 0.005);
+  axis_object_small_ = new AxesObject3D(0.2, 0.02);
   axis_object_small_->transform_.scale(glm::vec3(0.2,0.2,0.2));
   
-  background_plane_ = new TriangleMesh(shader_manager_->instance()->getShader(SHADER_BACKGROUND));
+  background_plane_ = new TriangleMesh(background_material_);
   background_plane_->initPlane(glm::vec3(0,0,0), glm::vec3(0,0,1), glm::vec3(10,2,2));
   
   grid_plane_child1_->addChild(grid_plane_mesh_);
@@ -1122,15 +1153,15 @@ bool SimpleGraphicsEngine::initialize()
   
   grid_plane_child2_->transform_.scale(glm::vec3(5,5,5));
   grid_plane_child3_->transform_.scale(glm::vec3(5,5,5));
-  */
+  
   scene_->addChild(camera_);
-  //scene_->addChild(grid_plane_);
-  //scene_->addChild(axis_object_);
+  scene_->addChild(grid_plane_);
+  scene_->addChild(axis_object_);
   
   view_space_->addChild(viewspace_ortho_camera_);
-  //view_space_->addChild(axis_object_small_);
+  view_space_->addChild(axis_object_small_);
   
-  //background_space_->addChild(background_plane_);
+  background_space_->addChild(background_plane_);
   return true;
 }
 
