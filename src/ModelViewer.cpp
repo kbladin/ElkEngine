@@ -214,11 +214,11 @@ ModelViewer::ModelViewer() : SimpleGraphicsEngine(), listener_(this)
   bunny_material_ = new PhongMaterial();
   bunny_mesh_ = new TriangleMesh(vertices, normals, elements, bunny_material_);
   
-  light_ = new LightSource(shader_manager_->instance()->getShader(SHADER_PHONG));
+  light_ = new LightSource(ShaderManager::instance()->getShader("SHADER_PHONG"));
   light_mesh_ = new LightMesh3D(1);
   bunny_ = new Object3D();
   bb_ = new BoundingBox(bunny_mesh_);
-  hand_ = new HandObject3D(shader_manager_->instance()->getShader(SHADER_PHONG));
+  hand_ = new HandObject3D(ShaderManager::instance()->getShader("SHADER_PHONG"));
 
   // Change properties
   light_->transform_.translate(glm::vec3(4, 4, 4));

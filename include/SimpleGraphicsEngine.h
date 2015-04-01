@@ -2,6 +2,7 @@
 #define SIMPLE_GRAPHICS_ENGINE_H
 
 #include <vector>
+#include <map>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -9,23 +10,32 @@
 #include <gl/glfw3.h>
 
 namespace SGE {
-  
-  // Not to be confused with the shader ID, these are used for indexing
-  
-  static const int SHADER_PHONG = 0;
-  static const int SHADER_ONE_COLOR = 1;
-  static const int SHADER_BACKGROUND = 2;
-  
-  
+  //! A class containing all shader program IDs in a map.
+  /*!
+   This class uses the singleton design pattern. This means that It is not
+   possible to create instances of the class. There is only one instance that
+   is reached from the static function instance().
+   */
   class ShaderManager {
   public:
+    //! Returning the instance that can be used for calling other functions.
+    /*!
+     This function can not be called before an OpenGL context is created.
+     */
     static ShaderManager* instance();
+    //! Destructor
     ~ShaderManager();
-    GLuint getShader(int index);
+    //! Returns a program ID based on a name.
+    /*!
+     \param name must be one of the compiled shaders names. The options are:
+     "SHADER_PHONG", "SHADER_ONE_COLOR" or "SHADER_BACKGROUND"
+     (more might be added later).
+     */
+    GLuint getShader(std::string name);
   private:
     ShaderManager();
     static ShaderManager* instance_;
-    std::vector<GLuint> shader_program_IDs;
+    std::map<std::string, GLuint> shader_program_IDs;
   };
   
   //! Every Mesh has a material which specifies parameters for shading.
@@ -33,8 +43,7 @@ namespace SGE {
   public:
     //! Create a material which is bound to a specific shader.
     /*!
-     \param program_ID can be one of the shaders which starts with "program_ID_"
-     defined in SimpleGraphiicsEngine.
+     \param program_ID can be one of the shaders in ShaderManager.
      */
     Material(GLuint program_ID) : program_ID_(program_ID){};
     virtual ~Material(){};
@@ -44,6 +53,7 @@ namespace SGE {
      rendered.
      */
     virtual void render()const = 0;
+    //! Returns the program ID of the shader of the Material.
     GLuint getProgramID()const{return program_ID_;};
   protected:
     const GLuint program_ID_;
@@ -52,11 +62,7 @@ namespace SGE {
   //! Every Mesh has a material which specifies parameters for shading.
   class PhongMaterial : public Material {
   public:
-    //! Create a material which is bound to a specific shader.
-    /*!
-     \param program_ID can be one of the shaders which starts with "program_ID_"
-     defined in SimpleGraphiicsEngine.
-     */
+    //! Create a material which is bound to the Phong shader.
     PhongMaterial();
     ~PhongMaterial(){};
     //! Updating the shader parameters.
@@ -70,7 +76,6 @@ namespace SGE {
     glm::vec3 specular_color_;
     float specularity_;
     int shinyness_;
-    //const GLuint program_ID_;
   private:
     GLuint diffuseColor_ID_;
     GLuint specularColor_ID_;
@@ -81,11 +86,7 @@ namespace SGE {
   //! Every Mesh has a material which specifies parameters for shading.
   class OneColorMaterial : public Material {
   public:
-    //! Create a material which is bound to a specific shader.
-    /*!
-     \param program_ID can be one of the shaders which starts with "program_ID_"
-     defined in SimpleGraphiicsEngine.
-     */
+    //! Create a material which is bound to the OneColor shader.
     OneColorMaterial();
     ~OneColorMaterial(){};
     //! Updating the shader parameters.
@@ -103,11 +104,7 @@ namespace SGE {
   //! Every Mesh has a material which specifies parameters for shading.
   class BackgroundMaterial : public Material {
   public:
-    //! Create a material which is bound to a specific shader.
-    /*!
-     \param program_ID can be one of the shaders which starts with "program_ID_"
-     defined in SimpleGraphiicsEngine.
-     */
+    //! Create a material which is bound to the Background shader.
     BackgroundMaterial();
     ~BackgroundMaterial(){};
     //! Updating the shader parameters.
@@ -170,10 +167,8 @@ namespace SGE {
     //! Resets the matrix transform to an identity matrix.
     void reset();
     glm::mat4 matrix_;
-    
   private:
     glm::mat4 basis_;
-    
     glm::vec3 position_;
     glm::vec3 scale_;
     glm::vec3 rotation_; // angleX, angleY, angleZ
@@ -415,9 +410,7 @@ namespace SGE {
     GLuint view_matrix_ID_;
     GLuint projection_matrix_ID_;
     
-    //glm::mat4 view_transform_;
     glm::mat4 projection_transform_;
-    
     GLFWwindow* window_;
   };
   
@@ -472,7 +465,6 @@ namespace SGE {
     glm::vec3 color_;
   private:
     GLuint program_ID_;
-    
     GLuint light_position_ID_;
     GLuint light_intensity_ID_;
     GLuint light_color_ID_;
@@ -498,14 +490,13 @@ namespace SGE {
     TriangleMesh* arrow_z_;
   };
   
+  //! An object that contains a mesh for the light
   class LightMesh3D : public Object3D {
   public:
     LightMesh3D(float size);
     ~LightMesh3D();
-    
   private:
     OneColorMaterial* white_material_;
-    
     LineMesh* circle_x_;
     LineMesh* circle_y_;
     LineMesh* circle_z_;
@@ -541,17 +532,10 @@ namespace SGE {
     static Object3D* camera_;
     static Object3D* viewspace_ortho_camera_;
     
-    //GLuint program_ID_basic_render_;
-    //GLuint program_ID_one_color_shader_;
-    //GLuint program_ID_background_shader_;
-    
-    ShaderManager* shader_manager_;
-
   private:
     bool initialize();
     
     double time_;
-    
     
     Object3D* grid_plane_;
     Object3D* grid_plane_child1_;

@@ -18,21 +18,18 @@ ShaderManager* ShaderManager::instance_;
 
 ShaderManager::ShaderManager()
 {
-  shader_program_IDs.push_back(ShaderLoader::loadShaders(
-                                                         "../../data/shaders/simple.vert",
-                                                         "../../data/shaders/simple.frag" ));
-  shader_program_IDs.push_back(ShaderLoader::loadShaders(
-                                                         "../../data/shaders/one_color.vert",
-                                                         "../../data/shaders/one_color.frag" ));
-  shader_program_IDs.push_back(ShaderLoader::loadShaders(
-                                                         "../../data/shaders/background.vert",
-                                                         "../../data/shaders/background.frag" ));
+  shader_program_IDs.insert(std::pair<std::string,GLuint>("SHADER_PHONG",ShaderLoader::loadShaders("../../data/shaders/simple.vert",
+                              "../../data/shaders/simple.frag" )));
+  shader_program_IDs.insert(std::pair<std::string,GLuint>("SHADER_ONE_COLOR",ShaderLoader::loadShaders("../../data/shaders/one_color.vert",
+                              "../../data/shaders/one_color.frag" )));
+  shader_program_IDs.insert(std::pair<std::string,GLuint>("SHADER_BACKGROUND",ShaderLoader::loadShaders("../../data/shaders/background.vert",
+                              "../../data/shaders/background.frag" )));
 }
 
 ShaderManager::~ShaderManager()
 {
-  for (int i=0; i<shader_program_IDs.size(); i++) {
-    glDeleteProgram(shader_program_IDs[i]);
+  for (std::map<std::string, GLuint>::const_iterator it = shader_program_IDs.begin(); it != shader_program_IDs.end(); it++) {
+    glDeleteProgram(it->second);
   }
 }
 
@@ -44,12 +41,17 @@ ShaderManager* ShaderManager::instance()
   return instance_;
 }
 
-GLuint ShaderManager::getShader(int index)
+GLuint ShaderManager::getShader(std::string name)
 {
-  return shader_program_IDs[index];
+  GLuint program_ID = shader_program_IDs[name];
+  if (!program_ID)
+  {
+    std::cout << "ERROR : This name, " << name << " is not a valid shader program name!" << std::endl;
+  }
+  return program_ID;
 }
 
-PhongMaterial::PhongMaterial() : SGE::Material(ShaderManager::instance()->getShader(SHADER_PHONG))
+PhongMaterial::PhongMaterial() : SGE::Material(ShaderManager::instance()->getShader("SHADER_PHONG"))
 {
   diffuse_color_ = glm::vec3(1.0, 1.0, 1.0);
   specular_color_ = glm::vec3(1.0, 1.0, 1.0);
@@ -73,7 +75,7 @@ void PhongMaterial::render() const
   glUniform1i(shinyness_ID_, shinyness_);
 }
 
-OneColorMaterial::OneColorMaterial() : SGE::Material(ShaderManager::instance()->getShader(SHADER_ONE_COLOR))
+OneColorMaterial::OneColorMaterial() : SGE::Material(ShaderManager::instance()->getShader("SHADER_ONE_COLOR"))
 {
   diffuse_color_ = glm::vec3(1.0, 1.0, 1.0);
   
@@ -88,7 +90,7 @@ void OneColorMaterial::render() const
   glUniform3f(diffuseColor_ID_,diffuse_color_.r,diffuse_color_.g, diffuse_color_.b);
 }
 
-BackgroundMaterial::BackgroundMaterial() : SGE::Material(ShaderManager::instance()->getShader(SHADER_BACKGROUND))
+BackgroundMaterial::BackgroundMaterial() : SGE::Material(ShaderManager::instance()->getShader("SHADER_BACKGROUND"))
 {
   glUseProgram(program_ID_);
 }
@@ -1033,11 +1035,6 @@ SimpleGraphicsEngine::SimpleGraphicsEngine()
 
 SimpleGraphicsEngine::~SimpleGraphicsEngine()
 {
-  /*
-  glDeleteProgram(program_ID_basic_render_);
-  glDeleteProgram(program_ID_one_color_shader_);
-  glDeleteProgram(program_ID_background_shader_);
-  */
   glfwTerminate();
   delete scene_;
   delete view_space_;
@@ -1105,7 +1102,7 @@ bool SimpleGraphicsEngine::initialize()
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   
   // Instantiate (needs to be done after creating OpenGL context)
-  shader_manager_->instance();
+  ShaderManager::instance();
   
   background_material_ = new BackgroundMaterial();
   grid_mesh_material_ = new OneColorMaterial();
@@ -1116,10 +1113,10 @@ bool SimpleGraphicsEngine::initialize()
   
   camera_ = new Object3D();
   viewspace_ortho_camera_ = new Object3D();
-  basic_cam_ = new PerspectiveCamera(shader_manager_->instance()->getShader(SHADER_PHONG), window_);
-  one_color_cam_ = new PerspectiveCamera(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), window_);
-  one_color_ortho_cam_ = new OrthoCamera(shader_manager_->instance()->getShader(SHADER_ONE_COLOR), window_);
-  background_ortho_cam_ = new OrthoCamera(shader_manager_->instance()->getShader(SHADER_BACKGROUND), window_);
+  basic_cam_ = new PerspectiveCamera(ShaderManager::instance()->getShader("SHADER_PHONG"), window_);
+  one_color_cam_ = new PerspectiveCamera(ShaderManager::instance()->getShader("SHADER_ONE_COLOR"), window_);
+  one_color_ortho_cam_ = new OrthoCamera(ShaderManager::instance()->getShader("SHADER_ONE_COLOR"), window_);
+  background_ortho_cam_ = new OrthoCamera(ShaderManager::instance()->getShader("SHADER_BACKGROUND"), window_);
   
   camera_->addChild(basic_cam_);
   camera_->addChild(one_color_cam_);
