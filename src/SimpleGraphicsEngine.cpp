@@ -1009,9 +1009,10 @@ LightMesh3D::LightMesh3D(float size)
   circle_x_ = new LineMesh(white_material_);
   circle_y_ = new LineMesh(white_material_);
   circle_z_ = new LineMesh(white_material_);
-  circle_x_->initCircle(glm::vec3(0,0,0), glm::vec3(1,0,0), size * glm::vec3(1,1,1), 10);
-  circle_y_->initCircle(glm::vec3(0,0,0), glm::vec3(0,1,0), size * glm::vec3(1,1,1), 10);
-  circle_z_->initCircle(glm::vec3(0,0,0), glm::vec3(0,0,1), size * glm::vec3(1,1,1), 10);
+  int dividions = 20;
+  circle_x_->initCircle(glm::vec3(0,0,0), glm::vec3(1,0,0), size * glm::vec3(1,1,1), dividions);
+  circle_y_->initCircle(glm::vec3(0,0,0), glm::vec3(0,1,0), size * glm::vec3(1,1,1), dividions);
+  circle_z_->initCircle(glm::vec3(0,0,0), glm::vec3(0,0,1), size * glm::vec3(1,1,1), dividions);
   this->addChild(circle_x_);
   this->addChild(circle_y_);
   this->addChild(circle_z_);
@@ -1132,7 +1133,7 @@ bool SimpleGraphicsEngine::initialize()
   grid_plane_mesh_->initGridPlane(glm::vec3(0.0f,0.0f,0.0f),
                              glm::vec3(0.0f,1.0f,0.0f),
                              glm::vec3(2.0f,2.0f,2.0f),
-                             10);
+                             20);
   grid_mesh_material_->diffuse_color_ = glm::vec3(0.8,0.8,0.8);
   axis_object_ = new AxesObject3D(0.1, 0.005);
   axis_object_small_ = new AxesObject3D(0.2, 0.02);
@@ -1190,11 +1191,16 @@ void SimpleGraphicsEngine::update()
   glm::vec3 rot = camera_->transform_.getEulerRotationXYZ();
   Transform t;
   
+  int width;
+  int height;
+  glfwGetWindowSize(window_, &width, &height);
+  float aspect = float(width)/height;
+  
   t.rotateY(rot.y);
   t.rotateX(rot.x);
   t.rotateZ(rot.z);
   t.scale(glm::vec3(0.1,0.1,0.1));
-  t.translate(glm::vec3(-1.3,-0.8,0));
+  t.translate(glm::vec3(aspect,1,0) * -0.85f);
 
   axis_object_small_->transform_ = t;
 }

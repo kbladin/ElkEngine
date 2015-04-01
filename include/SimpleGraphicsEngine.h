@@ -368,6 +368,16 @@ namespace SGE {
     void initialize();
   };
   
+  class PointCloudGPU : public Object3D {
+  public:
+    PointCloudGPU();
+    ~PointCloudGPU();
+    void render(glm::mat4 M);
+  private:
+    std::vector<glm::vec3> start_positions;
+    GLuint position_testure_ID;
+  };
+  
   //! An axis aligned bounding box.
   class BoundingBox : public Object3D{
   public:
