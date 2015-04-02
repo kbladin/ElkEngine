@@ -24,6 +24,8 @@ ShaderManager::ShaderManager()
                               "../../data/shaders/one_color.frag" )));
   shader_program_IDs.insert(std::pair<std::string,GLuint>("SHADER_BACKGROUND",ShaderLoader::loadShaders("../../data/shaders/background.vert",
                               "../../data/shaders/background.frag" )));
+  shader_program_IDs.insert(std::pair<std::string,GLuint>("SHADER_UPDATE_POINT_CLOUD",ShaderLoader::loadShaders("../../data/shaders/point_cloud_programs/update.vert", "../../data/shaders/point_cloud_programs/update.frag")));
+  shader_program_IDs.insert(std::pair<std::string,GLuint>("SHADER_RENDER_POINT_CLOUD",ShaderLoader::loadShaders("../../data/shaders/point_cloud_programs/render.vert", "../../data/shaders/point_cloud_programs/render.frag")));
 }
 
 ShaderManager::~ShaderManager()
@@ -99,6 +101,39 @@ void BackgroundMaterial::render() const
 {
   // Use our shader
   glUseProgram(program_ID_);
+}
+
+UpdatePointCloudMaterial::UpdatePointCloudMaterial() : SGE::Material(ShaderManager::instance()->getShader("SHADER_UPDATE_POINT_CLOUD"))
+{
+  glUseProgram(program_ID_);
+}
+
+UpdatePointCloudMaterial::~UpdatePointCloudMaterial()
+{
+}
+
+void UpdatePointCloudMaterial::render() const
+{
+  // Use our shader
+  glUseProgram(program_ID_);
+  // Set our "myTextureSampler" sampler to user Texture Unit 0
+}
+
+PointCloudMaterial::PointCloudMaterial() : SGE::Material(ShaderManager::instance()->getShader("SHADER_RENDER_POINT_CLOUD"))
+{
+  glUseProgram(program_ID_);
+}
+
+PointCloudMaterial::~PointCloudMaterial()
+{
+  //glDeleteTextures(1, &texture_to_sample_);
+}
+
+void PointCloudMaterial::render() const
+{
+  // Use our shader
+  glUseProgram(program_ID_);
+
 }
 
 Transform::Transform(){
@@ -196,7 +231,6 @@ AbstractMesh::~AbstractMesh()
 {
   // Cleanup VBO
   glDeleteBuffers(1, &vertex_buffer_);
-  glDeleteBuffers(1, &element_buffer_);
   glDeleteVertexArrays(1, &vertex_array_ID_);
 }
 
@@ -220,10 +254,6 @@ void AbstractMesh::initialize()
   glGenBuffers(1, &vertex_buffer_);
   glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
   glBufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(glm::vec3), &vertices_[0], GL_STATIC_DRAW);
-  
-  glGenBuffers(1, &element_buffer_);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements_.size() * sizeof(unsigned short), &elements_[0] , GL_STATIC_DRAW);
   
   // Get a handle for our matrix uniform
   model_matrix_ID_ = glGetUniformLocation(material_->getProgramID(), "M");
@@ -253,6 +283,7 @@ TriangleMesh::TriangleMesh(Material* material) : AbstractMesh(material)
 
 TriangleMesh::~TriangleMesh()
 {
+  glDeleteBuffers(1, &element_buffer_);
   glDeleteBuffers(1, &normal_buffer_);
 }
 
@@ -570,6 +601,10 @@ void TriangleMesh::initialize()
   glGenBuffers(1, &normal_buffer_);
   glBindBuffer(GL_ARRAY_BUFFER, normal_buffer_);
   glBufferData(GL_ARRAY_BUFFER, normals_.size() * sizeof(glm::vec3), &normals_[0], GL_STATIC_DRAW);
+  
+  glGenBuffers(1, &element_buffer_);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements_.size() * sizeof(unsigned short), &elements_[0] , GL_STATIC_DRAW);
 }
 
 void TriangleMesh::render(glm::mat4 M)
@@ -631,7 +666,7 @@ LineMesh::LineMesh(Material* material) : AbstractMesh(material)
 
 LineMesh::~LineMesh()
 {
-
+  glDeleteBuffers(1, &element_buffer_);
 }
 
 void LineMesh::initLine(glm::vec3 start, glm::vec3 end)
@@ -734,21 +769,13 @@ void LineMesh::initCircle(
 
 void LineMesh::initialize()
 {
+  AbstractMesh::initialize();
+  
   glUseProgram(material_->getProgramID());
 
-  glGenVertexArrays(1, &vertex_array_ID_);
-  glBindVertexArray(vertex_array_ID_);
-  
-  glGenBuffers(1, &vertex_buffer_);
-  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
-  glBufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(glm::vec3), &vertices_[0], GL_STATIC_DRAW);
-  
   glGenBuffers(1, &element_buffer_);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer_);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, elements_.size() * sizeof(unsigned short), &elements_[0] , GL_STATIC_DRAW);
-  
-  // Get a handle for our matrix uniform
-  model_matrix_ID_ = glGetUniformLocation(material_->getProgramID(), "M");
 }
 
 void LineMesh::render(glm::mat4 M)
@@ -789,6 +816,191 @@ void LineMesh::render(glm::mat4 M)
   
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);
+}
+
+PointCloudMesh::PointCloudMesh(Material* material, int size) : AbstractMesh(material)
+{
+  vertices_.resize(size);
+  indices_.resize(size);
+  for (int i=0; i<vertices_.size(); i++) {
+    vertices_[i] = glm::vec3(float (rand()) / RAND_MAX, float (rand()) / RAND_MAX, float (rand()) / RAND_MAX);
+    indices_[i] = i;
+  }
+  initialize();
+}
+
+void PointCloudMesh::initialize()
+{
+  AbstractMesh::initialize();
+  
+  glUseProgram(material_->getProgramID());
+  
+  glGenBuffers(1, &index_buffer_);
+  glBindBuffer(GL_ARRAY_BUFFER, index_buffer_);
+  glBufferData(GL_ARRAY_BUFFER, indices_.size() * sizeof(unsigned int), &indices_[0], GL_STATIC_DRAW);
+}
+
+PointCloudMesh::~PointCloudMesh()
+{
+  glDeleteBuffers(1, &index_buffer_);
+}
+
+void PointCloudMesh::render(glm::mat4 M)
+{
+  material_->render();
+  Object3D::render(M);
+  
+  glm::mat4 total_transform = M * transform_.getMatrix();
+  
+  // Use our shader
+  glUseProgram(material_->getProgramID());
+  glUniformMatrix4fv(model_matrix_ID_, 1, GL_FALSE, &total_transform[0][0]);
+  
+  glBindVertexArray(vertex_array_ID_);
+  
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
+  glVertexAttribPointer(
+                        0,                  // attribute
+                        3,                  // size
+                        GL_FLOAT,           // type
+                        GL_FALSE,           // normalized?
+                        0,                  // stride
+                        (void*)0            // array buffer offset
+                        );
+  
+  glEnableVertexAttribArray(1);
+  glBindBuffer(GL_ARRAY_BUFFER, index_buffer_);
+  glVertexAttribPointer(
+                        1,                  // attribute
+                        1,                  // size
+                        GL_UNSIGNED_INT,           // type
+                        GL_FALSE,           // normalized?
+                        0,                  // stride
+                        (void*)0            // array buffer offset
+                        );
+  
+  glDrawArrays(GL_POINTS, 0, vertices_.size());
+  
+  glDisableVertexAttribArray(0);
+  glDisableVertexAttribArray(1);
+}
+
+PointCloudGPU::PointCloudGPU(unsigned int size)
+{
+  
+  //std::vector<int> indices; // 0 , 1 , 2 ... size - 1.
+  //indices.resize(size);
+
+  
+  //material_ = new UpdatePointCloudMaterial();
+  //render_quad_ = new TriangleMesh(material_);
+  //render_quad_->initPlane(glm::vec3(0,0,0), glm::vec3(0,0,1), glm::vec3(2,2,2));
+  
+  material_ = new PointCloudMaterial();// PointCloudMaterial();
+  mesh_ = new PointCloudMesh(material_, size);// PointMesh(material_, size);
+  
+  texture_sampler1D_ID_ = glGetUniformLocation(material_->getProgramID(), "textureSampler1D");
+  
+  //const int size = 1000;
+  
+  std::vector<glm::vec3> hej;
+  hej.resize(size);
+  
+  for (int i=0; i<hej.size(); i++) {
+    hej[i] = glm::vec3(1.0f,1.0f,1.0f) * float(i) / 1000.0f;
+  }
+  
+  glGenTextures(1, &texture_to_sample_);
+  glBindTexture(GL_TEXTURE_1D, texture_to_sample_);
+  glTexImage1D(GL_TEXTURE_1D,
+               0,
+               GL_RGB,
+               size,
+               0,
+               GL_RGB,
+               GL_FLOAT,
+               &hej[0]);
+  
+  // ... nice trilinear filtering.
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glGenerateMipmap(GL_TEXTURE_1D);
+  
+  //glUseProgram(material_->getProgramID());
+
+  
+  //glGenFramebuffers(1, &frame_buffer_);
+  //glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
+  //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,position_texture_ID0_, 0);
+  // Always check that our framebuffer is ok
+  //if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    //std::cout << "ERROR : Frame buffer not ok!" << std::endl;
+  
+  //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+  //mesh_->initCircle(glm::vec3(0,0,0), glm::vec3(1,1,1), glm::vec3(1,1,1), 20);
+  
+  //render_program_ID_ = ShaderManager::instance()->getShader("SHADER_RENDER_POINT_CLOUD");
+  //glUseProgram(render_program_ID_);
+  //texture_sampler_ID_ = glGetUniformLocation(render_program_ID_,
+    //                                         "textureSampler1D");
+  
+  //glGenBuffers(1, &VBO_indices_);
+  //glBindBuffer(GL_ARRAY_BUFFER, VBO_indices_);
+  //glBufferData(GL_ARRAY_BUFFER, indices.size(), &indices[0], GL_STATIC_DRAW);
+}
+
+PointCloudGPU::~PointCloudGPU()
+{
+  delete material_;
+  delete mesh_;
+  //delete render_quad_;
+  //delete material_;
+  //glDeleteTextures(0, &position_texture_ID0_);
+  //glDeleteFramebuffers(1, &frame_buffer_);
+}
+
+void PointCloudGPU::render(glm::mat4 M)
+{
+  glUseProgram(material_->getProgramID());
+  
+  // Bind our texture in Texture Unit 0
+  
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_1D, texture_to_sample_);
+  glUniform1i(texture_sampler1D_ID_, 0);
+  
+  mesh_->render(M);
+
+  
+  // Set our "textureSampler1D" sampler to user Texture Unit 0
+  //glUniform1i(texture_sampler_ID_, 0);
+  
+  //glUniformMatrix4fv(model_matrix_ID_, 1, GL_FALSE, &total_transform[0][0]);
+
+  
+  
+  //glDisableVertexAttribArray(1);
+}
+
+void PointCloudGPU::update(float dt)
+{
+  //glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
+  //render_quad_->render(glm::mat4());
+  //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void PointCloudGPU::swapTextures()
+{
+  /*
+  GLuint tmp = position_texture_ID0;
+  position_texture_ID0 = position_texture_ID1;
+  position_texture_ID1 = tmp;
+   */
 }
 
 BoundingBox::BoundingBox(const AbstractMesh* template_mesh)
@@ -1053,12 +1265,15 @@ SimpleGraphicsEngine::~SimpleGraphicsEngine()
   delete axis_object_;
   delete axis_object_small_;
   
+  delete point_cloud_;
+  
   delete camera_;
   delete basic_cam_;
   delete one_color_cam_;
   delete one_color_ortho_cam_;
   delete viewspace_ortho_camera_;
   delete background_ortho_cam_;
+  delete point_cloud_cam_;
   
   delete grid_mesh_material_;
   delete background_material_;
@@ -1118,9 +1333,11 @@ bool SimpleGraphicsEngine::initialize()
   one_color_cam_ = new PerspectiveCamera(ShaderManager::instance()->getShader("SHADER_ONE_COLOR"), window_);
   one_color_ortho_cam_ = new OrthoCamera(ShaderManager::instance()->getShader("SHADER_ONE_COLOR"), window_);
   background_ortho_cam_ = new OrthoCamera(ShaderManager::instance()->getShader("SHADER_BACKGROUND"), window_);
+  point_cloud_cam_ = new PerspectiveCamera(ShaderManager::instance()->getShader("SHADER_RENDER_POINT_CLOUD"), window_);
   
   camera_->addChild(basic_cam_);
   camera_->addChild(one_color_cam_);
+  camera_->addChild(point_cloud_cam_);
   viewspace_ortho_camera_->addChild(one_color_ortho_cam_);
   viewspace_ortho_camera_->addChild(background_ortho_cam_);
   
@@ -1142,6 +1359,8 @@ bool SimpleGraphicsEngine::initialize()
   background_plane_ = new TriangleMesh(background_material_);
   background_plane_->initPlane(glm::vec3(0,0,0), glm::vec3(0,0,1), glm::vec3(10,2,2));
   
+  point_cloud_ = new PointCloudGPU(1000);
+  
   grid_plane_child1_->addChild(grid_plane_mesh_);
   grid_plane_child2_->addChild(grid_plane_mesh_);
   grid_plane_child3_->addChild(grid_plane_mesh_);
@@ -1152,7 +1371,11 @@ bool SimpleGraphicsEngine::initialize()
   grid_plane_child2_->transform_.scale(glm::vec3(5,5,5));
   grid_plane_child3_->transform_.scale(glm::vec3(5,5,5));
   
+  
   scene_->addChild(camera_);
+  
+  scene_->addChild(point_cloud_);
+  
   scene_->addChild(grid_plane_);
   scene_->addChild(axis_object_);
   

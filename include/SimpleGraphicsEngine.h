@@ -116,6 +116,38 @@ namespace SGE {
   private:
   };
   
+  //! Every Mesh has a material which specifies parameters for shading.
+  class UpdatePointCloudMaterial : public Material {
+  public:
+    //! Create a material which is bound to the UpdatePointCloud shader.
+    UpdatePointCloudMaterial();
+    ~UpdatePointCloudMaterial();
+    //! Updating the shader parameters.
+    /*!
+     This function is automatically called when a mesh with this material is
+     rendered.
+     */
+    void render()const;
+  private:
+  };
+  
+  //! Every Mesh has a material which specifies parameters for shading.
+  class PointCloudMaterial : public Material {
+  public:
+    //! Create a material which is bound to the UpdatePointCloud shader.
+    PointCloudMaterial();
+    ~PointCloudMaterial();
+    //! Updating the shader parameters.
+    /*!
+     This function is automatically called when a mesh with this material is
+     rendered.
+     */
+    void render()const;
+  private:
+    //GLuint texture_sampler1D_ID_;
+    //GLuint texture_to_sample_;
+  };
+  
   //! A transform defining a transformation matrix.
   /*!
    Transformation matrix is defined from different parameters such as position,
@@ -229,10 +261,9 @@ namespace SGE {
     
     //GLuint program_ID_;
     std::vector<glm::vec3> vertices_;
-    std::vector<unsigned short> elements_; // Maximum around 60000 vertices for unsigned short.
+
     GLuint vertex_array_ID_;
     GLuint vertex_buffer_;
-    GLuint element_buffer_;
     GLuint model_matrix_ID_;
   private:
     friend BoundingBox;
@@ -317,6 +348,8 @@ namespace SGE {
     virtual void render(glm::mat4 M);
   private:
     void initialize();
+    std::vector<unsigned short> elements_; // Maximum around 60000 vertices for unsigned short.
+    GLuint element_buffer_;
     GLuint normal_buffer_;
     std::vector<glm::vec3> normals_;
   };
@@ -366,16 +399,46 @@ namespace SGE {
     virtual void render(glm::mat4 M);
   private:
     void initialize();
+    std::vector<unsigned short> elements_; // Maximum around 60000 vertices for unsigned short.
+    GLuint element_buffer_;
+  };
+  
+  class PointCloudGPU;
+  //! This class extends AbstractMesh and renders lines
+  /*!
+   Currently, this mesh can not be loaded from file.
+   */
+  class PointCloudMesh : public AbstractMesh {
+  public:
+    PointCloudMesh(Material* material, int size);
+    ~PointCloudMesh();
+    virtual void render(glm::mat4 M);
+  private:
+    friend PointCloudGPU;
+    void initialize();
+    std::vector<unsigned int> indices_;
+    GLuint index_buffer_;
   };
   
   class PointCloudGPU : public Object3D {
   public:
-    PointCloudGPU();
+    PointCloudGPU(unsigned int size);
     ~PointCloudGPU();
     void render(glm::mat4 M);
+    void update(float dt);
   private:
-    std::vector<glm::vec3> start_positions;
-    GLuint position_testure_ID;
+    void swapTextures();
+    //TriangleMesh* render_quad_;
+    //UpdatePointCloudMaterial* material_; //Actually not using the color of this material
+    //GLuint position_texture_ID0_;
+    //GLuint position_texture_ID1;
+    //GLuint frame_buffer_;
+    PointCloudMesh* mesh_;
+    PointCloudMaterial* material_;
+    GLuint texture_sampler1D_ID_;
+    GLuint texture_to_sample_;
+    //GLuint render_program_ID_;
+    //GLuint texture_sampler_ID_;
   };
   
   //! An axis aligned bounding box.
@@ -558,9 +621,12 @@ namespace SGE {
     
     TriangleMesh* background_plane_;
     
+    PointCloudGPU* point_cloud_;
+    
     // One camera for each shader
     PerspectiveCamera* basic_cam_;
     PerspectiveCamera* one_color_cam_;
+    PerspectiveCamera* point_cloud_cam_;
     
     OrthoCamera* one_color_ortho_cam_;
     OrthoCamera* background_ortho_cam_;
