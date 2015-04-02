@@ -117,35 +117,46 @@ namespace SGE {
   };
   
   //! Every Mesh has a material which specifies parameters for shading.
-  class UpdatePointCloudMaterial : public Material {
-  public:
-    //! Create a material which is bound to the UpdatePointCloud shader.
-    UpdatePointCloudMaterial();
-    ~UpdatePointCloudMaterial();
-    //! Updating the shader parameters.
-    /*!
-     This function is automatically called when a mesh with this material is
-     rendered.
-     */
-    void render()const;
-  private:
-  };
-  
-  //! Every Mesh has a material which specifies parameters for shading.
   class PointCloudMaterial : public Material {
   public:
     //! Create a material which is bound to the UpdatePointCloud shader.
-    PointCloudMaterial();
+    PointCloudMaterial(unsigned long size);
     ~PointCloudMaterial();
     //! Updating the shader parameters.
     /*!
      This function is automatically called when a mesh with this material is
      rendered.
      */
+    GLuint switchTexture(GLuint texture_ID);
+    GLuint getTextureToSample(){return texture_to_sample_;};
     void render()const;
   private:
+    GLuint texture_sampler1D_ID_;
+    GLuint texture_to_sample_;
     //GLuint texture_sampler1D_ID_;
     //GLuint texture_to_sample_;
+  };
+  
+  //! Every Mesh has a material which specifies parameters for shading.
+  class UpdatePointCloudMaterial : public Material {
+  public:
+    //! Create a material which is bound to the UpdatePointCloud shader.
+    UpdatePointCloudMaterial(PointCloudMaterial* point_cloud_material, unsigned long size);
+    ~UpdatePointCloudMaterial();
+    //! Updating the shader parameters.
+    /*!
+     This function is automatically called when a mesh with this material is
+     rendered.
+     */
+    GLuint switchTexture(GLuint texture_ID);
+    GLuint getTextureToRender(){return texture_to_render_;};
+    GLuint getDtID(){return dt_ID_;};
+    void render()const;
+  private:
+    GLuint texture_to_render_;
+    GLuint texture_sampler1D_ID_;
+    GLuint dt_ID_;
+    PointCloudMaterial* point_cloud_material_;
   };
   
   //! A transform defining a transformation matrix.
@@ -416,29 +427,26 @@ namespace SGE {
   private:
     friend PointCloudGPU;
     void initialize();
-    std::vector<unsigned int> indices_;
+    std::vector<unsigned long> indices_;
     GLuint index_buffer_;
   };
   
   class PointCloudGPU : public Object3D {
   public:
-    PointCloudGPU(unsigned int size);
+    PointCloudGPU(unsigned long size);
     ~PointCloudGPU();
     void render(glm::mat4 M);
     void update(float dt);
-  private:
     void swapTextures();
-    //TriangleMesh* render_quad_;
-    //UpdatePointCloudMaterial* material_; //Actually not using the color of this material
-    //GLuint position_texture_ID0_;
-    //GLuint position_texture_ID1;
-    //GLuint frame_buffer_;
+
+  private:
+    const unsigned long size_;
+    TriangleMesh* render_quad_;
+    UpdatePointCloudMaterial* update_material_;
     PointCloudMesh* mesh_;
     PointCloudMaterial* material_;
-    GLuint texture_sampler1D_ID_;
-    GLuint texture_to_sample_;
-    //GLuint render_program_ID_;
-    //GLuint texture_sampler_ID_;
+    
+    GLuint frame_buffer_;
   };
   
   //! An axis aligned bounding box.

@@ -234,9 +234,9 @@ ModelViewer::ModelViewer() : SimpleGraphicsEngine(), listener_(this)
   light_->addChild(light_mesh_);
 
   //Add objects to scene
-  scene_->addChild(bunny_);
-  scene_->addChild(light_);
-  scene_->addChild(hand_);
+  //scene_->addChild(bunny_);
+  //scene_->addChild(light_);
+  //scene_->addChild(hand_);
   
   // Set callback functions
   glfwSetScrollCallback(window_, mouseScrollCallback);

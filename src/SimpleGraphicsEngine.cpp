@@ -103,25 +103,78 @@ void BackgroundMaterial::render() const
   glUseProgram(program_ID_);
 }
 
-UpdatePointCloudMaterial::UpdatePointCloudMaterial() : SGE::Material(ShaderManager::instance()->getShader("SHADER_UPDATE_POINT_CLOUD"))
+UpdatePointCloudMaterial::UpdatePointCloudMaterial(PointCloudMaterial* point_cloud_material, unsigned long size) : SGE::Material(ShaderManager::instance()->getShader("SHADER_UPDATE_POINT_CLOUD"))
 {
+  point_cloud_material_ = point_cloud_material;
   glUseProgram(program_ID_);
+  
+  glGenTextures(1, &texture_to_render_);
+  glBindTexture(GL_TEXTURE_1D, texture_to_render_);
+  glTexImage1D(GL_TEXTURE_1D,
+               0,
+               GL_RGB,
+               size,
+               0,
+               GL_RGB,
+               GL_FLOAT,
+               0);
+  // Need mipmap for some reason......
+  glGenerateMipmap(GL_TEXTURE_1D);
+  
+  texture_sampler1D_ID_ = glGetUniformLocation(program_ID_, "textureSampler1D");
+  texture_sampler1D_ID_ = glGetUniformLocation(dt_ID_, "dt");
 }
 
 UpdatePointCloudMaterial::~UpdatePointCloudMaterial()
 {
+  glDeleteTextures(1, &texture_to_render_);
+}
+
+GLuint UpdatePointCloudMaterial::switchTexture(GLuint texture_ID)
+{
+  GLuint tmp = texture_to_render_;
+  texture_to_render_ = texture_ID;
+  return tmp;
 }
 
 void UpdatePointCloudMaterial::render() const
 {
   // Use our shader
   glUseProgram(program_ID_);
+  // Bind our texture in Texture Unit 0
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_1D, point_cloud_material_->getTextureToSample());
+  glUniform1i(texture_sampler1D_ID_, 0);
+  
   // Set our "myTextureSampler" sampler to user Texture Unit 0
 }
 
-PointCloudMaterial::PointCloudMaterial() : SGE::Material(ShaderManager::instance()->getShader("SHADER_RENDER_POINT_CLOUD"))
+PointCloudMaterial::PointCloudMaterial(unsigned long size) : SGE::Material(ShaderManager::instance()->getShader("SHADER_RENDER_POINT_CLOUD"))
 {
   glUseProgram(program_ID_);
+  
+  std::vector<glm::vec3> positions;
+  positions.resize(size);
+  
+  for (int i=0; i<positions.size(); i++) {
+    positions[i] = glm::vec3(float(rand()) / RAND_MAX,float(rand()) / RAND_MAX,float(rand()) / RAND_MAX);
+  }
+  
+  glGenTextures(1, &texture_to_sample_);
+  glBindTexture(GL_TEXTURE_1D, texture_to_sample_);
+  glTexImage1D(GL_TEXTURE_1D,
+               0,
+               GL_RGB,
+               size,
+               0,
+               GL_RGB,
+               GL_FLOAT,
+               &positions[0]);
+  
+  // Need mipmap for some reason......
+  glGenerateMipmap(GL_TEXTURE_1D);
+  
+  texture_sampler1D_ID_ = glGetUniformLocation(program_ID_, "textureSampler1D");
 }
 
 PointCloudMaterial::~PointCloudMaterial()
@@ -129,11 +182,23 @@ PointCloudMaterial::~PointCloudMaterial()
   //glDeleteTextures(1, &texture_to_sample_);
 }
 
+GLuint PointCloudMaterial::switchTexture(GLuint texture_ID)
+{
+  GLuint tmp = texture_to_sample_;
+  texture_to_sample_ = texture_ID;
+  return tmp;
+}
+
 void PointCloudMaterial::render() const
 {
   // Use our shader
   glUseProgram(program_ID_);
-
+  
+  // Bind our texture in Texture Unit 0
+  
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_1D, texture_to_sample_);
+  glUniform1i(texture_sampler1D_ID_, 0);
 }
 
 Transform::Transform(){
@@ -316,10 +381,10 @@ void TriangleMesh::initPlane(glm::vec3 position, glm::vec3 normal, glm::vec3 sca
   
   for (int i = 0; i < vertices_.size(); i++) {
     normals_[i] = glm::vec3(glm::vec4(glm::vec3(0.0f, 0.0f, -1.0f), 0) * M);
-    vertices_[i] = glm::vec3(glm::vec4(vertices_[i], 1) * M);
+    vertices_[i] = glm::vec3(glm::vec4(vertices_[i] * scale, 1) * M);
   }
 
-  transform_.scale(scale);
+  //transform_.scale(scale);
   transform_.translate(position);
   
   initialize();
@@ -820,10 +885,8 @@ void LineMesh::render(glm::mat4 M)
 
 PointCloudMesh::PointCloudMesh(Material* material, int size) : AbstractMesh(material)
 {
-  vertices_.resize(size);
   indices_.resize(size);
-  for (int i=0; i<vertices_.size(); i++) {
-    vertices_[i] = glm::vec3(float (rand()) / RAND_MAX, float (rand()) / RAND_MAX, float (rand()) / RAND_MAX);
+  for (int i=0; i<indices_.size(); i++) {
     indices_[i] = i;
   }
   initialize();
@@ -837,7 +900,7 @@ void PointCloudMesh::initialize()
   
   glGenBuffers(1, &index_buffer_);
   glBindBuffer(GL_ARRAY_BUFFER, index_buffer_);
-  glBufferData(GL_ARRAY_BUFFER, indices_.size() * sizeof(unsigned int), &indices_[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, indices_.size() * sizeof(unsigned long), &indices_[0], GL_STATIC_DRAW);
 }
 
 PointCloudMesh::~PointCloudMesh()
@@ -857,150 +920,82 @@ void PointCloudMesh::render(glm::mat4 M)
   glUniformMatrix4fv(model_matrix_ID_, 1, GL_FALSE, &total_transform[0][0]);
   
   glBindVertexArray(vertex_array_ID_);
-  
+
   glEnableVertexAttribArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
-  glVertexAttribPointer(
-                        0,                  // attribute
-                        3,                  // size
-                        GL_FLOAT,           // type
-                        GL_FALSE,           // normalized?
-                        0,                  // stride
-                        (void*)0            // array buffer offset
-                        );
-  
-  glEnableVertexAttribArray(1);
   glBindBuffer(GL_ARRAY_BUFFER, index_buffer_);
   glVertexAttribPointer(
-                        1,                  // attribute
+                        0,                  // attribute
                         1,                  // size
-                        GL_UNSIGNED_INT,           // type
+                        GL_INT,           // type
                         GL_FALSE,           // normalized?
                         0,                  // stride
                         (void*)0            // array buffer offset
                         );
   
-  glDrawArrays(GL_POINTS, 0, vertices_.size());
+  glDrawArrays(GL_POINTS, 0, indices_.size());
   
   glDisableVertexAttribArray(0);
-  glDisableVertexAttribArray(1);
 }
 
-PointCloudGPU::PointCloudGPU(unsigned int size)
+PointCloudGPU::PointCloudGPU(unsigned long size) : size_(size)
 {
+  material_ = new PointCloudMaterial(size_);// PointCloudMaterial();
+  update_material_ = new UpdatePointCloudMaterial(material_,size_);
+  mesh_ = new PointCloudMesh(material_, size_);// PointMesh(material_, size);
+  render_quad_ = new TriangleMesh(update_material_);
+  render_quad_->initPlane(glm::vec3(0,0,0), glm::vec3(0,0,1), glm::vec3(2,2,2));
   
-  //std::vector<int> indices; // 0 , 1 , 2 ... size - 1.
-  //indices.resize(size);
-
+  glGenFramebuffers(1, &frame_buffer_);
+  glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,update_material_->getTextureToRender(), 0);
   
-  //material_ = new UpdatePointCloudMaterial();
-  //render_quad_ = new TriangleMesh(material_);
-  //render_quad_->initPlane(glm::vec3(0,0,0), glm::vec3(0,0,1), glm::vec3(2,2,2));
+  // Set the list of draw buffers.
+  GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
+  glDrawBuffers(1, draw_buffers); // "1" is the size of DrawBuffers
   
-  material_ = new PointCloudMaterial();// PointCloudMaterial();
-  mesh_ = new PointCloudMesh(material_, size);// PointMesh(material_, size);
-  
-  texture_sampler1D_ID_ = glGetUniformLocation(material_->getProgramID(), "textureSampler1D");
-  
-  //const int size = 1000;
-  
-  std::vector<glm::vec3> hej;
-  hej.resize(size);
-  
-  for (int i=0; i<hej.size(); i++) {
-    hej[i] = glm::vec3(1.0f,1.0f,1.0f) * float(i) / 1000.0f;
-  }
-  
-  glGenTextures(1, &texture_to_sample_);
-  glBindTexture(GL_TEXTURE_1D, texture_to_sample_);
-  glTexImage1D(GL_TEXTURE_1D,
-               0,
-               GL_RGB,
-               size,
-               0,
-               GL_RGB,
-               GL_FLOAT,
-               &hej[0]);
-  
-  // ... nice trilinear filtering.
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glGenerateMipmap(GL_TEXTURE_1D);
-  
-  //glUseProgram(material_->getProgramID());
-
-  
-  //glGenFramebuffers(1, &frame_buffer_);
-  //glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
-  //glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,position_texture_ID0_, 0);
   // Always check that our framebuffer is ok
-  //if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    //std::cout << "ERROR : Frame buffer not ok!" << std::endl;
+  if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    std::cout << "ERROR : Frame buffer not ok!" << std::endl;
   
-  //glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-  //mesh_->initCircle(glm::vec3(0,0,0), glm::vec3(1,1,1), glm::vec3(1,1,1), 20);
-  
-  //render_program_ID_ = ShaderManager::instance()->getShader("SHADER_RENDER_POINT_CLOUD");
-  //glUseProgram(render_program_ID_);
-  //texture_sampler_ID_ = glGetUniformLocation(render_program_ID_,
-    //                                         "textureSampler1D");
-  
-  //glGenBuffers(1, &VBO_indices_);
-  //glBindBuffer(GL_ARRAY_BUFFER, VBO_indices_);
-  //glBufferData(GL_ARRAY_BUFFER, indices.size(), &indices[0], GL_STATIC_DRAW);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 PointCloudGPU::~PointCloudGPU()
 {
   delete material_;
   delete mesh_;
-  //delete render_quad_;
-  //delete material_;
-  //glDeleteTextures(0, &position_texture_ID0_);
-  //glDeleteFramebuffers(1, &frame_buffer_);
+  delete update_material_;
+  delete render_quad_;
+  glDeleteFramebuffers(1, &frame_buffer_);
 }
 
 void PointCloudGPU::render(glm::mat4 M)
 {
-  glUseProgram(material_->getProgramID());
-  
-  // Bind our texture in Texture Unit 0
-  
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_1D, texture_to_sample_);
-  glUniform1i(texture_sampler1D_ID_, 0);
-  
   mesh_->render(M);
-
-  
-  // Set our "textureSampler1D" sampler to user Texture Unit 0
-  //glUniform1i(texture_sampler_ID_, 0);
-  
-  //glUniformMatrix4fv(model_matrix_ID_, 1, GL_FALSE, &total_transform[0][0]);
-
-  
-  
-  //glDisableVertexAttribArray(1);
 }
 
 void PointCloudGPU::update(float dt)
 {
-  //glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
-  //render_quad_->render(glm::mat4());
-  //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
+  glViewport(0,0,size_,1);
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glUseProgram(update_material_->getProgramID());
+  
+  glUniform1f(update_material_->getDtID(), dt);;
+  // Bind our texture in Texture Unit 0
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D, update_material_->getTextureToRender());
+  render_quad_->render(glm::mat4());
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  swapTextures();
 }
 
 void PointCloudGPU::swapTextures()
 {
-  /*
-  GLuint tmp = position_texture_ID0;
-  position_texture_ID0 = position_texture_ID1;
-  position_texture_ID1 = tmp;
-   */
+  update_material_->switchTexture(material_->switchTexture(update_material_->getTextureToRender()));
+  glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_);
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,update_material_->getTextureToRender(), 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 BoundingBox::BoundingBox(const AbstractMesh* template_mesh)
@@ -1359,7 +1354,7 @@ bool SimpleGraphicsEngine::initialize()
   background_plane_ = new TriangleMesh(background_material_);
   background_plane_->initPlane(glm::vec3(0,0,0), glm::vec3(0,0,1), glm::vec3(10,2,2));
   
-  point_cloud_ = new PointCloudGPU(1000);
+  point_cloud_ = new PointCloudGPU(16384);
   
   grid_plane_child1_->addChild(grid_plane_mesh_);
   grid_plane_child2_->addChild(grid_plane_mesh_);
@@ -1390,6 +1385,9 @@ void SimpleGraphicsEngine::run()
 {
   while (!glfwWindowShouldClose(window_))
   {
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     update();
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1411,6 +1409,8 @@ void SimpleGraphicsEngine::update()
   dt_ = glfwGetTime() - time_;
   time_ = glfwGetTime();
   
+  point_cloud_->update(dt_);
+  
   glm::vec3 rot = camera_->transform_.getEulerRotationXYZ();
   Transform t;
   
@@ -1418,7 +1418,7 @@ void SimpleGraphicsEngine::update()
   int height;
   glfwGetWindowSize(window_, &width, &height);
   float aspect = float(width)/height;
-  
+  glViewport(0,0,width * 2,height * 2);
   t.rotateY(rot.y);
   t.rotateX(rot.x);
   t.rotateZ(rot.z);
