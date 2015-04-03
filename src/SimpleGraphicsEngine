@@ -115,12 +115,9 @@ PointCloudMaterial::PointCloudMaterial(unsigned long size) : SGE::Material(Shade
   positions.resize(size);
   
   for (int i=0; i<positions.size(); i++) {
-    positions[i] = glm::vec3(float(rand()) / RAND_MAX - 0.5f,(float(rand()) / RAND_MAX - 0.5f),float(rand()) / RAND_MAX - 0.5f);
-    if (positions[i].x < 0)
-      velocities[i] = glm::vec3(0,0,1) * 0.1f;
-    else
-      velocities[i] = -glm::vec3(0,0,1) * 0.1f;
-    accelerations[i] = glm::vec3(0,0,0);
+    positions[i] = glm::vec3(float(rand()) / RAND_MAX - 0.5,float(rand()) / RAND_MAX - 0.5,float(rand()) / RAND_MAX - 0.5) * 2.0f;
+    velocities[i] = glm::vec3(float(rand()) / RAND_MAX - 0.5,float(rand()) / RAND_MAX - 0.5,float(rand()) / RAND_MAX - 0.5) * 2.0f * 0.1f;
+    accelerations[i] = glm::vec3(0,-0.1,0);
   }
   
   glGenTextures(1, &acceleration_texture_to_sample_);
@@ -204,17 +201,17 @@ void PointCloudMaterial::render() const
   // Use our shader
   glUseProgram(program_ID_);
   
-  glActiveTexture(GL_TEXTURE0);
+  glActiveTexture(GL_TEXTURE0 + 4);
   glBindTexture(GL_TEXTURE_1D, acceleration_texture_to_sample_);
-  glUniform1i(acceleration_texture_sampler1D_ID_, 0);
+  glUniform1i(acceleration_texture_sampler1D_ID_, 4);
   
-  glActiveTexture(GL_TEXTURE0 + 1);
+  glActiveTexture(GL_TEXTURE0 + 5);
   glBindTexture(GL_TEXTURE_1D, velocity_texture_to_sample_);
-  glUniform1i(velocity_texture_sampler1D_ID_, 1);
+  glUniform1i(velocity_texture_sampler1D_ID_, 5);
   
-  glActiveTexture(GL_TEXTURE0 + 2);
+  glActiveTexture(GL_TEXTURE0 + 6);
   glBindTexture(GL_TEXTURE_1D, position_texture_to_sample_);
-  glUniform1i(position_texture_sampler1D_ID_, 2);
+  glUniform1i(position_texture_sampler1D_ID_, 6);
   
 }
 
@@ -949,8 +946,7 @@ void PointCloudMesh::render(glm::mat4 M)
                         (void*)0            // array buffer offset
                         );
   
-  glPointSize(7);
-  glDrawArrays(GL_POINTS, 0, indices_.size() * 2); // Say what? Dont know why I have to take times 2 for all to render....
+  glDrawArrays(GL_POINTS, 0, indices_.size());
   
   glDisableVertexAttribArray(0);
 }
@@ -1052,8 +1048,8 @@ PointCloudGPU::PointCloudGPU(unsigned long size) : size_(size)
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,acceleration_texture_to_render_, 0);
   
   // Set the list of draw buffers.
-  //GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
-  //glDrawBuffers(1, draw_buffers); // "1" is the size of DrawBuffers
+  GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
+  glDrawBuffers(1, draw_buffers); // "1" is the size of DrawBuffers
   
   // Always check that our framebuffer is ok
   if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -1065,7 +1061,7 @@ PointCloudGPU::PointCloudGPU(unsigned long size) : size_(size)
   
   // Set the list of draw buffers.
   //GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
-  //glDrawBuffers(1, draw_buffers); // "1" is the size of DrawBuffers
+  glDrawBuffers(1, draw_buffers); // "1" is the size of DrawBuffers
   
   // Always check that our framebuffer is ok
   if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -1078,7 +1074,7 @@ PointCloudGPU::PointCloudGPU(unsigned long size) : size_(size)
   
   // Set the list of draw buffers.
   //GLenum draw_buffers[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,GL_COLOR_ATTACHMENT2 };
-  //glDrawBuffers(1, draw_buffers); // "1" is the size of DrawBuffers
+  glDrawBuffers(1, draw_buffers); // "1" is the size of DrawBuffers
   
   // Always check that our framebuffer is ok
   if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -1128,8 +1124,8 @@ void PointCloudGPU::updateAccelerations(float dt)
   glBindTexture(GL_TEXTURE_1D, material_->getPositionTextureToSample());
   
   
-  //glActiveTexture(GL_TEXTURE0 + 3);
-  //glBindTexture(GL_TEXTURE_1D, acceleration_texture_to_render_);
+  glActiveTexture(GL_TEXTURE0 + 3);
+  glBindTexture(GL_TEXTURE_1D, acceleration_texture_to_render_);
   
   glBindVertexArray(quad_VAO_);
   // 1rst attribute buffer : vertices
@@ -1170,11 +1166,9 @@ void PointCloudGPU::updateVelocities(float dt)
   glUniform1i(glGetUniformLocation(update_velocities_program_ID_, "velocitySampler1D"), 1);
   glUniform1i(glGetUniformLocation(update_velocities_program_ID_, "positionSampler1D"), 2);
   
-  // Acceleration from current state
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_1D, acceleration_texture_to_render_);
+  glBindTexture(GL_TEXTURE_1D, material_->getAccelerationTextureToSample());
   
-  // These attributes are from previous state
   glActiveTexture(GL_TEXTURE0 + 1);
   glBindTexture(GL_TEXTURE_1D, material_->getVelocityTextureToSample());
   
@@ -1182,8 +1176,8 @@ void PointCloudGPU::updateVelocities(float dt)
   glBindTexture(GL_TEXTURE_1D, material_->getPositionTextureToSample());
   
   
-  //glActiveTexture(GL_TEXTURE0 + 4);
-  //glBindTexture(GL_TEXTURE_1D, velocity_texture_to_render_);
+  glActiveTexture(GL_TEXTURE0 + 3);
+  glBindTexture(GL_TEXTURE_1D, position_texture_to_render_);
   
   glBindVertexArray(quad_VAO_);
   // 1rst attribute buffer : vertices
@@ -1224,20 +1218,19 @@ void PointCloudGPU::updatePositions(float dt)
   glUniform1i(glGetUniformLocation(update_positions_program_ID_, "velocitySampler1D"), 1);
   glUniform1i(glGetUniformLocation(update_positions_program_ID_, "positionSampler1D"), 2);
   
-  // Acceleration and velocity are from current state
+  // Bind our texture in Texture Unit 0
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_1D, acceleration_texture_to_render_);
+  glBindTexture(GL_TEXTURE_1D, material_->getAccelerationTextureToSample());
   
   glActiveTexture(GL_TEXTURE0 + 1);
-  glBindTexture(GL_TEXTURE_1D, velocity_texture_to_render_);
+  glBindTexture(GL_TEXTURE_1D, material_->getVelocityTextureToSample());
   
-  // Position from previous state
   glActiveTexture(GL_TEXTURE0 + 2);
   glBindTexture(GL_TEXTURE_1D, material_->getPositionTextureToSample());
   
   // Bind our texture in Texture Unit 1
-  //glActiveTexture(GL_TEXTURE0 + 5);
-  //glBindTexture(GL_TEXTURE_1D, position_texture_to_render_);
+  glActiveTexture(GL_TEXTURE0 + 3);
+  glBindTexture(GL_TEXTURE_1D, position_texture_to_render_);
   
   glBindVertexArray(quad_VAO_);
   // 1rst attribute buffer : vertices
@@ -1269,13 +1262,10 @@ void PointCloudGPU::updatePositions(float dt)
 
 void PointCloudGPU::update(float dt)
 {
-  const int sims_per_frame = 10;
-  for (int i=0; i<sims_per_frame; i++) {
-    updateAccelerations(dt / sims_per_frame);
-    updateVelocities(dt / sims_per_frame);
-    updatePositions(dt / sims_per_frame);
-    swapTextures();
-  }
+  updateAccelerations(dt);
+  updateVelocities(dt);
+  updatePositions(dt);
+  swapTextures();
 }
 
 void PointCloudGPU::swapTextures()
@@ -1642,7 +1632,7 @@ bool SimpleGraphicsEngine::initialize()
                              glm::vec3(0.0f,1.0f,0.0f),
                              glm::vec3(2.0f,2.0f,2.0f),
                              20);
-  grid_mesh_material_->diffuse_color_ = glm::vec3(0.4,0.4,0.4);
+  grid_mesh_material_->diffuse_color_ = glm::vec3(0.8,0.8,0.8);
   axis_object_ = new AxesObject3D(0.1, 0.005);
   axis_object_small_ = new AxesObject3D(0.2, 0.02);
   axis_object_small_->transform_.scale(glm::vec3(0.2,0.2,0.2));
@@ -1650,7 +1640,7 @@ bool SimpleGraphicsEngine::initialize()
   background_plane_ = new TriangleMesh(background_material_);
   background_plane_->initPlane(glm::vec3(0,0,0), glm::vec3(0,0,1), glm::vec3(10,2,2));
   
-  point_cloud_ = new PointCloudGPU(16000);
+  point_cloud_ = new PointCloudGPU(16384);
   
   grid_plane_child1_->addChild(grid_plane_mesh_);
   grid_plane_child2_->addChild(grid_plane_mesh_);
@@ -1668,7 +1658,7 @@ bool SimpleGraphicsEngine::initialize()
   scene_->addChild(point_cloud_);
   
   scene_->addChild(grid_plane_);
-  //scene_->addChild(axis_object_);
+  scene_->addChild(axis_object_);
   
   view_space_->addChild(viewspace_ortho_camera_);
   view_space_->addChild(axis_object_small_);

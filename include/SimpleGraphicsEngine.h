@@ -127,36 +127,21 @@ namespace SGE {
      This function is automatically called when a mesh with this material is
      rendered.
      */
-    GLuint switchTexture(GLuint texture_ID);
-    GLuint getTextureToSample(){return texture_to_sample_;};
+    GLuint swapAccelerationTexture(GLuint texture_ID);
+    GLuint swapVelocityTexture(GLuint texture_ID);
+    GLuint swapPositionTexture(GLuint texture_ID);
+    GLuint getAccelerationTextureToSample(){return acceleration_texture_to_sample_;};
+    GLuint getVelocityTextureToSample(){return velocity_texture_to_sample_;};
+    GLuint getPositionTextureToSample(){return position_texture_to_sample_;};
     void render()const;
   private:
-    GLuint texture_sampler1D_ID_;
-    GLuint texture_to_sample_;
-    //GLuint texture_sampler1D_ID_;
-    //GLuint texture_to_sample_;
-  };
-  
-  //! Every Mesh has a material which specifies parameters for shading.
-  class UpdatePointCloudMaterial : public Material {
-  public:
-    //! Create a material which is bound to the UpdatePointCloud shader.
-    UpdatePointCloudMaterial(PointCloudMaterial* point_cloud_material, unsigned long size);
-    ~UpdatePointCloudMaterial();
-    //! Updating the shader parameters.
-    /*!
-     This function is automatically called when a mesh with this material is
-     rendered.
-     */
-    GLuint switchTexture(GLuint texture_ID);
-    GLuint getTextureToRender(){return texture_to_render_;};
-    GLuint getDtID(){return dt_ID_;};
-    void render()const;
-  private:
-    GLuint texture_to_render_;
-    GLuint texture_sampler1D_ID_;
-    GLuint dt_ID_;
-    PointCloudMaterial* point_cloud_material_;
+    GLuint acceleration_texture_sampler1D_ID_;
+    GLuint velocity_texture_sampler1D_ID_;
+    GLuint position_texture_sampler1D_ID_;
+    
+    GLuint acceleration_texture_to_sample_;
+    GLuint velocity_texture_to_sample_;
+    GLuint position_texture_to_sample_;
   };
   
   //! A transform defining a transformation matrix.
@@ -440,13 +425,38 @@ namespace SGE {
     void swapTextures();
 
   private:
+    void updateAccelerations(float dt);
+    void updateVelocities(float dt);
+    void updatePositions(float dt);
+    
     const unsigned long size_;
-    TriangleMesh* render_quad_;
-    UpdatePointCloudMaterial* update_material_;
     PointCloudMesh* mesh_;
     PointCloudMaterial* material_;
+
+    GLuint update_accelerations_program_ID_;
+    GLuint update_velocities_program_ID_;
+    GLuint update_positions_program_ID_;
     
-    GLuint frame_buffer_;
+    GLuint acceleration_frame_buffer_;
+    GLuint velocity_frame_buffer_;
+    GLuint position_frame_buffer_;
+    
+    GLuint acceleration_texture_to_render_;
+    GLuint velocity_texture_to_render_;
+    GLuint position_texture_to_render_;
+    
+    //GLuint acceleration_texture_sampler_ID_;
+    //GLuint velocity_texture_sampler_ID_;
+    //GLuint position_texture_sampler_ID_;
+    
+    //GLuint dt_ID_;
+    
+    GLuint quad_VAO_;
+    GLuint quad_VBO_;
+    GLuint quad_element_buffer_;
+    
+    std::vector<glm::vec3> quad_vertices_;
+    std::vector<unsigned short> quad_elements_;
   };
   
   //! An axis aligned bounding box.
