@@ -400,19 +400,16 @@ namespace SGE {
   };
   
   class PointCloudGPU;
-  //! This class extends AbstractMesh and renders lines
-  /*!
-   Currently, this mesh can not be loaded from file.
-   */
+  //! This class extends AbstractMesh
   class PointCloudMesh : public AbstractMesh {
   public:
     PointCloudMesh(Material* material, int size);
     ~PointCloudMesh();
     virtual void render(glm::mat4 M);
   private:
+    const int size_;
     friend PointCloudGPU;
     void initialize();
-    std::vector<unsigned long> indices_;
     GLuint index_buffer_;
   };
   
@@ -444,12 +441,6 @@ namespace SGE {
     GLuint acceleration_texture_to_render_;
     GLuint velocity_texture_to_render_;
     GLuint position_texture_to_render_;
-    
-    //GLuint acceleration_texture_sampler_ID_;
-    //GLuint velocity_texture_sampler_ID_;
-    //GLuint position_texture_sampler_ID_;
-    
-    //GLuint dt_ID_;
     
     GLuint quad_VAO_;
     GLuint quad_VBO_;

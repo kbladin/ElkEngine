@@ -900,12 +900,8 @@ void LineMesh::render(glm::mat4 M)
   glDisableVertexAttribArray(1);
 }
 
-PointCloudMesh::PointCloudMesh(Material* material, int size) : AbstractMesh(material)
+PointCloudMesh::PointCloudMesh(Material* material, int size) : AbstractMesh(material), size_(size)
 {
-  indices_.resize(size);
-  for (int i=0; i<indices_.size(); i++) {
-    indices_[i] = i;
-  }
   initialize();
 }
 
@@ -913,11 +909,14 @@ void PointCloudMesh::initialize()
 {
   AbstractMesh::initialize();
   
-  glUseProgram(material_->getProgramID());
-  
+  std::vector<int> indices;
+  indices.resize(size_);
+  for (int i=0; i<indices.size(); i++) {
+    indices[i] = i;
+  }
   glGenBuffers(1, &index_buffer_);
   glBindBuffer(GL_ARRAY_BUFFER, index_buffer_);
-  glBufferData(GL_ARRAY_BUFFER, indices_.size() * sizeof(unsigned long), &indices_[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, indices.size() * sizeof(int), &indices[0], GL_STATIC_DRAW);
 }
 
 PointCloudMesh::~PointCloudMesh()
@@ -950,13 +949,17 @@ void PointCloudMesh::render(glm::mat4 M)
                         );
   
   glPointSize(7);
-  glDrawArrays(GL_POINTS, 0, indices_.size() * 2); // Say what? Dont know why I have to take times 2 for all to render....
+  glDrawArrays(GL_POINTS, 0, size_);
   
   glDisableVertexAttribArray(0);
 }
 
 PointCloudGPU::PointCloudGPU(unsigned long size) : size_(size)
 {
+  material_ = new PointCloudMaterial(size_);
+  mesh_ = new PointCloudMesh(material_, size_);
+  
+  // Three shaders. One for each attribute
   update_accelerations_program_ID_ = ShaderManager::instance()->getShader("SHADER_UPDATE_POINT_CLOUD_ACCELERATIONS");
   glUseProgram(update_positions_program_ID_);
   update_velocities_program_ID_ = ShaderManager::instance()->getShader("SHADER_UPDATE_POINT_CLOUD_VELOCITIES");
@@ -964,7 +967,8 @@ PointCloudGPU::PointCloudGPU(unsigned long size) : size_(size)
    update_positions_program_ID_ = ShaderManager::instance()->getShader("SHADER_UPDATE_POINT_CLOUD_POSITIONS");
   glUseProgram(update_positions_program_ID_);
   
-  
+  // We want to render to three textures as well. One for each attrubute.
+  // When updating. We sample from previous state and update these textures.
   glGenTextures(1, &acceleration_texture_to_render_);
   glBindTexture(GL_TEXTURE_1D, acceleration_texture_to_render_);
   glTexImage1D(GL_TEXTURE_1D,
@@ -1004,17 +1008,8 @@ PointCloudGPU::PointCloudGPU(unsigned long size) : size_(size)
   // Need mipmap for some reason......
   glGenerateMipmap(GL_TEXTURE_1D);
   
-  
-  glUseProgram(update_positions_program_ID_);
-  /*
-  acceleration_texture_sampler_ID_ = glGetUniformLocation(update_positions_program_ID_, "accelerationSampler1D");
-  velocity_texture_sampler_ID_ = glGetUniformLocation(update_positions_program_ID_, "velocitySampler1D");
-   position_texture_sampler_ID_ = glGetUniformLocation(update_positions_program_ID_, "positionSampler1D");
-  
-  dt_ID_ = glGetUniformLocation(update_positions_program_ID_, "dt");
-   */
-  
-  // Creating a quad
+  // Creating a quad. We render a quad to render to a framebuffer which is
+  // linked to a texture. One framebuffer for each texture
   quad_vertices_.resize(4);
   quad_elements_.resize(6);
   
@@ -1030,8 +1025,6 @@ PointCloudGPU::PointCloudGPU(unsigned long size) : size_(size)
   quad_elements_[4] = 3;
   quad_elements_[5] = 2;
   
-  //glUseProgram(update_positions_program_ID_);
-  
   glGenVertexArrays(1, &quad_VAO_);
   glBindVertexArray(quad_VAO_);
   
@@ -1042,45 +1035,32 @@ PointCloudGPU::PointCloudGPU(unsigned long size) : size_(size)
   glGenBuffers(1, &quad_element_buffer_);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad_element_buffer_);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, quad_elements_.size() * sizeof(unsigned short), &quad_elements_[0] , GL_STATIC_DRAW);
-  
-  material_ = new PointCloudMaterial(size_);
-  mesh_ = new PointCloudMesh(material_, size_);
-  
-  
+
+  // The frame buffers. One for each attribute
+  // Acceleration
   glGenFramebuffers(1, &acceleration_frame_buffer_);
   glBindFramebuffer(GL_FRAMEBUFFER, acceleration_frame_buffer_);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,acceleration_texture_to_render_, 0);
-  
-  // Set the list of draw buffers.
-  //GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
-  //glDrawBuffers(1, draw_buffers); // "1" is the size of DrawBuffers
-  
-  // Always check that our framebuffer is ok
+
+  // Check that the framebuffer is ok
   if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     std::cout << "ERROR : Frame buffer not ok!" << std::endl;
   
+  // Velocity
   glGenFramebuffers(1, &velocity_frame_buffer_);
   glBindFramebuffer(GL_FRAMEBUFFER, velocity_frame_buffer_);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,velocity_texture_to_render_, 0);
-  
-  // Set the list of draw buffers.
-  //GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
-  //glDrawBuffers(1, draw_buffers); // "1" is the size of DrawBuffers
-  
-  // Always check that our framebuffer is ok
+
+  // Check that the framebuffer is ok
   if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     std::cout << "ERROR : Frame buffer not ok!" << std::endl;
   
-  
+  // Position
   glGenFramebuffers(1, &position_frame_buffer_);
   glBindFramebuffer(GL_FRAMEBUFFER, position_frame_buffer_);
   glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,position_texture_to_render_, 0);
-  
-  // Set the list of draw buffers.
-  //GLenum draw_buffers[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,GL_COLOR_ATTACHMENT2 };
-  //glDrawBuffers(1, draw_buffers); // "1" is the size of DrawBuffers
-  
-  // Always check that our framebuffer is ok
+
+  // Check that the framebuffer is ok
   if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     std::cout << "ERROR : Frame buffer not ok!" << std::endl;
   
@@ -1113,11 +1093,13 @@ void PointCloudGPU::updateAccelerations(float dt)
   
   glUseProgram(update_accelerations_program_ID_);
   
+  // These should not be done every time....
   glUniform1f(glGetUniformLocation(update_accelerations_program_ID_, "dt"), dt);
   glUniform1i(glGetUniformLocation(update_accelerations_program_ID_, "accelerationSampler1D"), 0);
   glUniform1i(glGetUniformLocation(update_accelerations_program_ID_, "velocitySampler1D"), 1);
   glUniform1i(glGetUniformLocation(update_accelerations_program_ID_, "positionSampler1D"), 2);
   
+  // Textures we want to sample from. All from previous state
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_1D, material_->getAccelerationTextureToSample());
   
@@ -1127,12 +1109,7 @@ void PointCloudGPU::updateAccelerations(float dt)
   glActiveTexture(GL_TEXTURE0 + 2);
   glBindTexture(GL_TEXTURE_1D, material_->getPositionTextureToSample());
   
-  
-  //glActiveTexture(GL_TEXTURE0 + 3);
-  //glBindTexture(GL_TEXTURE_1D, acceleration_texture_to_render_);
-  
   glBindVertexArray(quad_VAO_);
-  // 1rst attribute buffer : vertices
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, quad_VBO_);
   glVertexAttribPointer(
@@ -1143,9 +1120,8 @@ void PointCloudGPU::updateAccelerations(float dt)
                         0,                  // stride
                         (void*)0            // array buffer offset
                         );
-  // Index buffer
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad_element_buffer_);
-  // Draw the triangles !
+  // Draw the quad
   glDrawElements(
                  GL_TRIANGLES,      // mode
                  quad_elements_.size(),    // count
@@ -1170,7 +1146,7 @@ void PointCloudGPU::updateVelocities(float dt)
   glUniform1i(glGetUniformLocation(update_velocities_program_ID_, "velocitySampler1D"), 1);
   glUniform1i(glGetUniformLocation(update_velocities_program_ID_, "positionSampler1D"), 2);
   
-  // Acceleration from current state
+  // Acceleration from current state (so that we can integrate it, solve diff eq)
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_1D, acceleration_texture_to_render_);
   
@@ -1180,13 +1156,8 @@ void PointCloudGPU::updateVelocities(float dt)
   
   glActiveTexture(GL_TEXTURE0 + 2);
   glBindTexture(GL_TEXTURE_1D, material_->getPositionTextureToSample());
-  
-  
-  //glActiveTexture(GL_TEXTURE0 + 4);
-  //glBindTexture(GL_TEXTURE_1D, velocity_texture_to_render_);
-  
+
   glBindVertexArray(quad_VAO_);
-  // 1rst attribute buffer : vertices
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, quad_VBO_);
   glVertexAttribPointer(
@@ -1197,9 +1168,8 @@ void PointCloudGPU::updateVelocities(float dt)
                         0,                  // stride
                         (void*)0            // array buffer offset
                         );
-  // Index buffer
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad_element_buffer_);
-  // Draw the triangles !
+  // Draw the quad
   glDrawElements(
                  GL_TRIANGLES,      // mode
                  quad_elements_.size(),    // count
@@ -1234,13 +1204,8 @@ void PointCloudGPU::updatePositions(float dt)
   // Position from previous state
   glActiveTexture(GL_TEXTURE0 + 2);
   glBindTexture(GL_TEXTURE_1D, material_->getPositionTextureToSample());
-  
-  // Bind our texture in Texture Unit 1
-  //glActiveTexture(GL_TEXTURE0 + 5);
-  //glBindTexture(GL_TEXTURE_1D, position_texture_to_render_);
-  
+
   glBindVertexArray(quad_VAO_);
-  // 1rst attribute buffer : vertices
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, quad_VBO_);
   glVertexAttribPointer(
@@ -1251,9 +1216,8 @@ void PointCloudGPU::updatePositions(float dt)
                         0,                  // stride
                         (void*)0            // array buffer offset
                         );
-  // Index buffer
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad_element_buffer_);
-  // Draw the triangles !
+  // Draw the quad
   glDrawElements(
                  GL_TRIANGLES,      // mode
                  quad_elements_.size(),    // count
@@ -1280,17 +1244,31 @@ void PointCloudGPU::update(float dt)
 
 void PointCloudGPU::swapTextures()
 {
+  // Swap so that the newly updated textures will be used for sampling. We can
+  // render over the old ones now. They are not used any more.
+  acceleration_texture_to_render_ =
+    material_->swapAccelerationTexture(acceleration_texture_to_render_);
+  velocity_texture_to_render_ =
+    material_->swapVelocityTexture(velocity_texture_to_render_);
+  position_texture_to_render_ =
+    material_->swapPositionTexture(position_texture_to_render_);
   
-  acceleration_texture_to_render_ = material_->swapAccelerationTexture(acceleration_texture_to_render_);
-  velocity_texture_to_render_ = material_->swapVelocityTexture(velocity_texture_to_render_);
-  position_texture_to_render_ = material_->swapPositionTexture(position_texture_to_render_);
-  
+  // We need to relink the texutes for rendering to the frame buffers.
   glBindFramebuffer(GL_FRAMEBUFFER, acceleration_frame_buffer_);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,acceleration_texture_to_render_, 0);
+  glFramebufferTexture(GL_FRAMEBUFFER,
+                       GL_COLOR_ATTACHMENT0,
+                       acceleration_texture_to_render_,
+                       0);
   glBindFramebuffer(GL_FRAMEBUFFER, velocity_frame_buffer_);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,velocity_texture_to_render_, 0);
+  glFramebufferTexture(GL_FRAMEBUFFER,
+                       GL_COLOR_ATTACHMENT0,
+                       velocity_texture_to_render_,
+                       0);
   glBindFramebuffer(GL_FRAMEBUFFER, position_frame_buffer_);
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,position_texture_to_render_, 0);
+  glFramebufferTexture(GL_FRAMEBUFFER,
+                       GL_COLOR_ATTACHMENT0,
+                       position_texture_to_render_,
+                       0);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
