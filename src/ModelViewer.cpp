@@ -97,20 +97,23 @@ void SampleListener::onFrame(const Controller& controller) {
       
       if (glm::dot(avg_finger_direction, hand_normal) < 0.5 && h.palmNormal().y < 0)
       {
-        glm::vec3 prev_position = model_viewer_->rotation_point;
-        model_viewer_->camera_->transform_.translate(glm::vec3(0,0,-model_viewer_->rotation_point.z * diff_z * model_viewer_->dt_));
+        float rotation_speed = 100.0f;
+        float camera_z_speed = 0.5f;
         
-        model_viewer_->rotation_point.z *= (1 - diff_z*model_viewer_->dt_);
+        glm::vec3 prev_position = model_viewer_->rotation_point;
+        model_viewer_->camera_->transform_.translate(glm::vec3(0,0,-model_viewer_->rotation_point.z * diff_z * model_viewer_->dt_ * camera_z_speed));
+        
+        model_viewer_->rotation_point.z *= (1 - diff_z*model_viewer_->dt_ * camera_z_speed);
       
         // Transform back
         model_viewer_->camera_->transform_.translate(-prev_position);
       
-        model_viewer_->camera_->transform_.rotateX(- 200 * diff_y * model_viewer_->dt_);
+        model_viewer_->camera_->transform_.rotateX(- rotation_speed * diff_y * model_viewer_->dt_);
       
         float current_x_rotation = model_viewer_->camera_->transform_.getEulerRotationXYZ().x;
         model_viewer_->camera_->transform_.rotateX(-current_x_rotation);
       
-        model_viewer_->camera_->transform_.rotateY(200 * diff_x * model_viewer_->dt_);
+        model_viewer_->camera_->transform_.rotateY(rotation_speed * diff_x * model_viewer_->dt_);
       
         model_viewer_->camera_->transform_.rotateX(current_x_rotation);
       
@@ -119,8 +122,9 @@ void SampleListener::onFrame(const Controller& controller) {
       }
       else if (h.palmNormal().y < 0)
       {
+        float translation_speed = 0.5f;
         model_viewer_->camera_->transform_.translate(glm::vec3(0,0,0));
-        model_viewer_->camera_->transform_.translate(glm::vec3(diff_x,diff_y,diff_z) * -model_viewer_->rotation_point.z * float(model_viewer_->dt_));
+        model_viewer_->camera_->transform_.translate(glm::vec3(diff_x,diff_y,diff_z) * translation_speed * -model_viewer_->rotation_point.z * float(model_viewer_->dt_));
       }
       
       
@@ -163,7 +167,7 @@ void SampleListener::onFrame(const Controller& controller) {
         model_viewer_->selected_object_->transform_.scale(scale);
         glm::vec3 hand_position = glm::vec3(h.palmPosition().x,h.palmPosition().y,h.palmPosition().z)/200.0f;
         
-        model_viewer_->selected_object_->transform_.matrix_ = glm::translate(glm::mat4(), -glm::vec3(0.5,0.5,0.5)) * model_viewer_->selected_object_->transform_.matrix_;
+        model_viewer_->selected_object_->transform_.matrix_ = model_viewer_->selected_object_->transform_.matrix_;
   
         model_viewer_->selected_object_->transform_.matrix_ = leapMatrixToGlmMatrix(h.basis()) *  model_viewer_->selected_object_->transform_.matrix_;
         
@@ -178,7 +182,7 @@ void SampleListener::onFrame(const Controller& controller) {
         model_viewer_->selected_object_->transform_.matrix_ = glm::inverse(model_viewer_->camera_->transform_.matrix_) * model_viewer_->selected_object_->transform_.getMatrix();
         
         if (h.palmNormal().y > 0) {
-          model_viewer_->selected_object_->transform_.scale(glm::vec3( 1.0f + (h.palmPosition().y / 200.0f - 1.0f) * float(model_viewer_->dt_) * 1.0f));
+          model_viewer_->selected_object_->transform_.scale(glm::vec3( 1.0f + (h.palmPosition().y / 200.0f - 1.0f) * float(model_viewer_->dt_) * 0.5f));
         }
         
       }
@@ -234,9 +238,9 @@ ModelViewer::ModelViewer() : SimpleGraphicsEngine(), listener_(this)
   light_->addChild(light_mesh_);
 
   //Add objects to scene
-  //scene_->addChild(bunny_);
-  //scene_->addChild(light_);
-  //scene_->addChild(hand_);
+  scene_->addChild(bunny_);
+  scene_->addChild(light_);
+  scene_->addChild(hand_);
   
   // Set callback functions
   glfwSetScrollCallback(window_, mouseScrollCallback);

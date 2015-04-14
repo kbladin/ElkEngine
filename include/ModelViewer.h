@@ -12,7 +12,6 @@ class ModelViewer;
 
 class SampleListener : public Listener {
 public:
-  //SampleListener();
   SampleListener(ModelViewer* model_viewer);
   virtual void onConnect(const Controller&);
   virtual void onFrame(const Controller&);

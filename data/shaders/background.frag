@@ -8,7 +8,7 @@ uniform vec3 material_diffiseColor;
 
 void main(){
 	float w = 0.5;
-	float i = 0.3;
+	float i = 0.8;
     color.rgb = ((vec3(vertexPosition.y + 1, vertexPosition.y + 1, 2) / 2) * w + vec3(1,1,1) * (1-w)) * i;
     color.a = 1;
 }
