@@ -1676,7 +1676,7 @@ bool SimpleGraphicsEngine::initialize()
   
   scene_->addChild(camera_);
   
-  //scene_->addChild(point_cloud_);
+  scene_->addChild(point_cloud_);
   
   scene_->addChild(grid_plane_);
   scene_->addChild(axis_object_);
