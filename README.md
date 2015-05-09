@@ -1,2 +1,1 @@
-# ModelViewer
-A simple program for viewing 3D models and interacting with them using the Leap Motion Controller.
+Yes, making my own OpenGL graphics engine (again). This repository is based on the "ModelViewer"
