@@ -129,7 +129,7 @@ public:
 private:
   void initialize();
   
-  const int size_;
+  const int _size;
   GLuint _index_buffer;
 };
 

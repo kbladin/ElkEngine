@@ -100,6 +100,7 @@ SimpleGraphicsEngine::~SimpleGraphicsEngine()
   delete background_space;  
   
   delete camera;
+  delete viewspace_ortho_camera;
 } 
 
 //! Initializes OpenGL, creating context and adding all basic objects for the scene.

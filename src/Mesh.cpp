@@ -699,7 +699,7 @@ void LineMesh::render(glm::mat4 M, GLuint program_ID)
 }
 
 //! Creates a point cloud mesh of size * size particles 
-PointCloudMesh::PointCloudMesh(int size) : size_(size)
+PointCloudMesh::PointCloudMesh(int size) : _size(size)
 {
   initialize();
 }
@@ -709,10 +709,10 @@ void PointCloudMesh::initialize()
   AbstractMesh::initialize();
   
   std::vector< std::pair<int, int> >  indices;
-  indices.resize(size_ * size_);
-  for (int i=0; i<size_; i++) {
-    for (int j=0; j<size_; j++) {
-      indices[i * size_ + j] = std::pair<int, int>(i,j);
+  indices.resize(_size * _size);
+  for (int i=0; i<_size; i++) {
+    for (int j=0; j<_size; j++) {
+      indices[i * _size + j] = std::pair<int, int>(i,j);
     }
   }
   glGenBuffers(1, &_index_buffer);
@@ -763,7 +763,7 @@ void PointCloudMesh::render(glm::mat4 M, GLuint program_ID)
     (void*)0);  // array buffer offset
   
   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-  glDrawArrays(GL_POINTS, 0, size_ * size_);
+  glDrawArrays(GL_POINTS, 0, _size * _size);
   
   glDisableVertexAttribArray(0);
 }

@@ -45,7 +45,7 @@ private:
 /*!
   This class has the scene which can be used to add more objects by adding
   _children to the scene.
-  The scene has some predefined _children such as a grid plane and axes.
+  The scene has some predefined children such as a grid plane and axes.
   Extend this class to create a program to run.
 */
 class SimpleGraphicsEngine {
