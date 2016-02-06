@@ -44,7 +44,7 @@ target_link_libraries(
 	${OPENGL_LIBRARIES}
 	${OPENGL_glu_LIBRARY}
 	${ASSIMP_LIBRARIES}
-	${GLEW_LIBRARY})
+	${GLEW_LIBRARIES})
 
 # Required on Unix OS family to be able to be linked into shared libraries.
 set_target_properties(${PROJECT_NAME}
