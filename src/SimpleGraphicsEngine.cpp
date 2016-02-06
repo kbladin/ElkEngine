@@ -1,8 +1,5 @@
 #include "SGE/SimpleGraphicsEngine.h"
 
-std::map<GLuint, int> LightSource::point_light_counters_;
-std::map<GLuint, int> LightSource::directional_counters_;
-
 //! Creates a LightSource bound to a specific shader.
 /*!
   \param program_ID is the shader program that this LightSource will be bound
@@ -11,42 +8,23 @@ std::map<GLuint, int> LightSource::directional_counters_;
 LightSource::LightSource(
     GLuint program_ID,
     float intensity,
-    glm::vec3 color,
-    bool directional) : directional_(directional)
+    glm::vec3 color)
 {
-  program_ID_ =   program_ID;
-  intensity_ =    intensity;
-  color_ =        color;
-
-  // Increment counter
-  if (directional_)
-  {
-    directional_counters_[program_ID_]++;
-  }
-  else
-  {
-    point_light_counters_[program_ID_]++;
-  }
+  _program_ID =   program_ID;
+  _intensity =    intensity;
+  _color =        color;
   
-  glUseProgram(program_ID_);
+  glUseProgram(_program_ID);
 
-  light_position_ID_ =  glGetUniformLocation(program_ID_, "light_position");
-  light_direction_ID_ = glGetUniformLocation(program_ID_, "light_direction");
-  light_intensity_ID_ = glGetUniformLocation(program_ID_, "light_intensity");
-  light_color_ID_ =     glGetUniformLocation(program_ID_, "light_color");
+  _light_position_ID =  glGetUniformLocation(_program_ID, "light_position");
+  _light_direction_ID = glGetUniformLocation(_program_ID, "light_direction");
+  _light_intensityID = glGetUniformLocation(_program_ID, "light_intensity");
+  _light_colorID =     glGetUniformLocation(_program_ID, "light_color");
 }
 
 LightSource::~LightSource()
 {
-  // Increment counter
-  if (directional_)
-  {
-    directional_counters_[program_ID_]--;
-  }
-  else
-  {
-    point_light_counters_[program_ID_]--;
-  }
+
 }
 
 //! Sets the intensity of the light source.
@@ -55,7 +33,7 @@ LightSource::~LightSource()
 */
 void LightSource::setIntensity(float intensity)
 {
-  intensity_ = intensity;
+  _intensity = intensity;
 }
 
 //! Sets the color of the light source.
@@ -64,7 +42,7 @@ void LightSource::setIntensity(float intensity)
 */
 void LightSource::setColor(glm::vec3 color)
 {
-  color_ = color;
+  _color = color;
 }
 
 //! Render the LightSource.
@@ -74,37 +52,32 @@ void LightSource::setColor(glm::vec3 color)
 */
 void LightSource::render(glm::mat4 M)
 {
-  Object3D::render(M * transform_matrix_);
+  Object3D::render(M * transform_matrix);
 
-  glUseProgram(program_ID_);  
-  if (directional_)
-  { // Directional, upload direction and not position
-    glm::vec4 direction = M * transform_matrix_ * glm::vec4(0.0f, -1.0f, 0.0f, 0.0f);
-    glUniform3f(light_direction_ID_, direction.x, direction.y, direction.z);
-  }
-  else
-  { // Not directional, upload position
-    glm::vec4 position = M * transform_matrix_ * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    glUniform3f(light_position_ID_, position.x, position.y, position.z);
-  }
-
-  glUniform1f(light_intensity_ID_, intensity_);
-  glUniform3f(light_color_ID_, color_.r, color_.g, color_.b);
+  // Data to be uploaded to shader
+  glm::vec4 position = M * transform_matrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+  
+  glUseProgram(_program_ID);
+  
+  // Upload data to shader
+  glUniform3f(_light_position_ID, position.x, position.y, position.z);
+  glUniform1f(_light_intensityID, _intensity);
+  glUniform3f(_light_colorID, _color.r, _color.g, _color.b);
 }
 
 //! Static camera object
 /*!
-  Objects of type AbstractCameras subclasses should be added as children to
+  Objects of type AbstractCameras subclasses should be added as _children to
   this object 
 */
-Object3D* SimpleGraphicsEngine::camera_;
+Object3D* SimpleGraphicsEngine::camera;
 
 //! Static camera object
 /*!
   Objects of type AbstractCameras subclasses which are orthogonal should be
-  added as children to this object. This camera renders objects in screen space.
+  added as _children to this object. This camera renders objects in screen space.
 */
-Object3D* SimpleGraphicsEngine::viewspace_ortho_camera_;
+Object3D* SimpleGraphicsEngine::viewspace_ortho_camera;
 
 //! Constructor
 /*!
@@ -113,7 +86,7 @@ Object3D* SimpleGraphicsEngine::viewspace_ortho_camera_;
 */
 SimpleGraphicsEngine::SimpleGraphicsEngine()
 {
-  if (!initialize())
+  if (!_initialize())
   {
     fprintf(stderr, "Could not initialize SimpleGraphicsEngine\n");
   }
@@ -122,15 +95,15 @@ SimpleGraphicsEngine::SimpleGraphicsEngine()
 //! Destructor
 SimpleGraphicsEngine::~SimpleGraphicsEngine()
 {
-  delete scene_;
-  delete view_space_;
-  delete background_space_;  
+  delete scene;
+  delete view_space;
+  delete background_space;  
   
-  delete camera_;
+  delete camera;
 } 
 
 //! Initializes OpenGL, creating context and adding all basic objects for the scene.
-bool SimpleGraphicsEngine::initialize()
+bool SimpleGraphicsEngine::_initialize()
 {
   glewExperimental = true; // Needed in core profile
   if (glewInit() != GLEW_OK) {
@@ -148,17 +121,15 @@ bool SimpleGraphicsEngine::initialize()
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   
-  scene_ = new Object3D();
-  
-  view_space_ = new Object3D();
-  background_space_ = new Object3D();
+  scene =             new Object3D();
+  view_space =        new Object3D();
+  background_space =  new Object3D();
 
-  camera_ = new Object3D();
-  viewspace_ortho_camera_ = new Object3D();
+  camera =                 new Object3D();
+  viewspace_ortho_camera = new Object3D();
 
-  scene_->addChild(camera_);  
-  
-  view_space_->addChild(viewspace_ortho_camera_);
+  scene->addChild(camera); 
+  view_space->addChild(viewspace_ortho_camera);
   
   return true;
 }
@@ -169,26 +140,26 @@ void SimpleGraphicsEngine::render()
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  float aspect = float(window_width_) / window_height_;
-  glViewport(0,0,window_width_ * 2, window_height_ * 2);
+  float aspect = float(_window_width) / _window_height;
+  glViewport(0,0,_window_width * 2, _window_height * 2);
 
   glDisable(GL_DEPTH_TEST);
-  background_space_->render(glm::mat4());
+  background_space->render(glm::mat4());
   glEnable(GL_DEPTH_TEST);
-  scene_->render(glm::mat4());
-  view_space_->render(glm::mat4());
+  scene->render(glm::mat4());
+  view_space->render(glm::mat4());
 }
 
 //! Returns the window width   
 int SimpleGraphicsEngine::getWindowWidth()
 {
-  return window_width_;
+  return _window_width;
 }
 
 //! Returns the window height
 int SimpleGraphicsEngine::getWindowHeight()
 {
-  return window_height_;
+  return _window_height;
 }
 
 //! Set resolution to new window width and height
@@ -198,6 +169,6 @@ int SimpleGraphicsEngine::getWindowHeight()
 */
 void SimpleGraphicsEngine::setWindowResolution(int width, int height)
 {
-  window_width_ = width;
-  window_height_ = height;
+  _window_width = width;
+  _window_height = height;
 }

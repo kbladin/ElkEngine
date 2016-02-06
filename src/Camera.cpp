@@ -11,13 +11,18 @@
 */
 AbstractCamera::AbstractCamera(GLuint program_ID, int width, int height)
 {
-  width_ = width;
-  height_ = height;
-  program_ID_ = program_ID;
-  glUseProgram(program_ID_);
+  _width = width;
+  _height = height;
+  _program_ID = program_ID;
+  glUseProgram(_program_ID);
 
-  view_matrix_ID_ = glGetUniformLocation(program_ID_, "V");
-  projection_matrix_ID_ = glGetUniformLocation(program_ID_, "P");
+  _view_matrix_ID = glGetUniformLocation(_program_ID, "V");
+  _projection_matrix_ID = glGetUniformLocation(_program_ID, "P");
+}
+
+AbstractCamera::~AbstractCamera()
+{
+  
 }
 
 //! Render the Camera.
@@ -28,13 +33,13 @@ AbstractCamera::AbstractCamera(GLuint program_ID, int width, int height)
 */
 void AbstractCamera::render(glm::mat4 M)
 {
-  glm::mat4 V = M * transform_matrix_;
+  glm::mat4 V = M * transform_matrix;
   Object3D::render(V);
   
-  glUseProgram(program_ID_);
+  glUseProgram(_program_ID);
 
-  glUniformMatrix4fv(view_matrix_ID_, 1, GL_FALSE, &V[0][0]);
-  glUniformMatrix4fv(projection_matrix_ID_, 1, GL_FALSE, &projection_transform_[0][0]);
+  glUniformMatrix4fv(_view_matrix_ID, 1, GL_FALSE, &V[0][0]);
+  glUniformMatrix4fv(_projection_matrix_ID, 1, GL_FALSE, &_projection_transform[0][0]);
 }
 
 //! Set the camera to be attached to the shader provided
@@ -45,11 +50,11 @@ void AbstractCamera::render(glm::mat4 M)
 */
 void AbstractCamera::setShader(GLuint program_ID)
 {
-  program_ID_ = program_ID;
-  glUseProgram(program_ID_);
+  _program_ID = program_ID;
+  glUseProgram(_program_ID);
 
-  view_matrix_ID_ = glGetUniformLocation(program_ID_, "V");
-  projection_matrix_ID_ = glGetUniformLocation(program_ID_, "P");
+  _view_matrix_ID = glGetUniformLocation(_program_ID, "V");
+  _projection_matrix_ID = glGetUniformLocation(_program_ID, "P");
 }
 
 //! Set the near clipping plane of the camera
@@ -58,7 +63,7 @@ void AbstractCamera::setShader(GLuint program_ID)
 */
 void AbstractCamera::setNearClippingPlane(float near)
 {
-  near_ = near;
+  _near = near;
 }
 
 //! Set the far clipping plane of the camera
@@ -67,19 +72,19 @@ void AbstractCamera::setNearClippingPlane(float near)
 */
 void AbstractCamera::setFarClippingPlane(float far)
 {
-  far_ = far;
+  _far = far;
 }
 
 void AbstractCamera::setResolution(int width, int height)
 {
-  width_ = width;
-  height_ = height;
+  _width = width;
+  _height = height;
 }
 
 //! Returns the cameras projection matrix
 glm::mat4 AbstractCamera::getProjectionTransform()
 {
-  return projection_transform_;
+  return _projection_transform;
 }
 
 //! Creates camera to render objects with the defined shader program attached.
@@ -103,12 +108,12 @@ PerspectiveCamera::PerspectiveCamera(
     float far) :
 AbstractCamera(program_ID, width, height)
 {
-  fov_ = fov;
-  near_ = near;
-  far_ = far;
+  _fov = fov;
+  _near = near;
+  _far = far;
 
-  float aspect = float(width_)/height_;
-  projection_transform_ = glm::perspective(fov_, aspect, near_, far_);
+  float aspect = float(_width)/_height;
+  _projection_transform = glm::perspective(_fov, aspect, _near, _far);
 }
 
 //! Render the Camera.
@@ -119,8 +124,8 @@ AbstractCamera(program_ID, width, height)
 */
 void PerspectiveCamera::render(glm::mat4 M)
 {
-  float aspect = float(width_)/height_;
-  projection_transform_ = glm::perspective(fov_, aspect, near_, far_);
+  float aspect = float(_width)/_height;
+  _projection_transform = glm::perspective(_fov, aspect, _near, _far);
   
   AbstractCamera::render(M);
 }
@@ -131,7 +136,7 @@ void PerspectiveCamera::render(glm::mat4 M)
 */
 void PerspectiveCamera::setFOV(float fov)
 {
-  fov_ = fov;
+  _fov = fov;
 }
 
 //! Creates camera to render objects with the defined shader program attached.
@@ -154,11 +159,11 @@ OrthoCamera::OrthoCamera(
   float far) :
   AbstractCamera(program_ID, width, height)
 {
-  near_ = near;
-  far_ = far;
+  _near = near;
+  _far = far;
 
-  float aspect = float(width_)/height_;
-  projection_transform_ = glm::ortho(-aspect, aspect, -1.0f, 1.0f, -far_, near_);
+  float aspect = float(_width)/_height;
+  _projection_transform = glm::ortho(-aspect, aspect, -1.0f, 1.0f, -_far, _near);
 }
 
 //! Render the Camera.
@@ -169,8 +174,8 @@ OrthoCamera::OrthoCamera(
 */
 void OrthoCamera::render(glm::mat4 M)
 {
-  float aspect = float(width_)/height_;
-  projection_transform_ = glm::ortho(-aspect, aspect, -1.0f, 1.0f, -far_, near_);
+  float aspect = float(_width)/_height;
+  _projection_transform = glm::ortho(-aspect, aspect, -1.0f, 1.0f, -_far, _near);
   
   AbstractCamera::render(M);
 }

@@ -14,11 +14,11 @@
   \param out_normals is the output normals.
 */
 bool loadMesh_assimp(
-  const char * path,
-  std::vector<unsigned short> * out_indices,
-  std::vector<glm::vec3> * out_vertices, 
-  std::vector<glm::vec2> * out_uvs, 
-  std::vector<glm::vec3> * out_normals)
+  const char*                   path,
+  std::vector<unsigned short>*  out_indices,
+  std::vector<glm::vec3>*       out_vertices, 
+  std::vector<glm::vec2>*       out_uvs, 
+  std::vector<glm::vec3>*       out_normals)
 { 
   Assimp::Importer importer;
 

@@ -21,15 +21,18 @@ class AbstractMesh : public Object3D{
 public:
   AbstractMesh();
   ~AbstractMesh();
+
   virtual void render(glm::mat4 M, GLuint program_ID) = 0;
   
 protected:
   virtual void initialize() = 0;
-  
-  std::vector<glm::vec3> vertices_;
 
-  GLuint vertex_array_ID_;
-  GLuint vertex_buffer_;
+  // OpenGL handles  
+  GLuint _vertex_array_ID;
+  GLuint _vertex_buffer;
+
+  // Data
+  std::vector<glm::vec3> _vertices;
 };
 
 //! This class extends AbstractMesh and renders triangles
@@ -45,8 +48,16 @@ public:
     std::vector<unsigned short> elements);
   TriangleMesh();
   ~TriangleMesh();
-  void initPlane(glm::vec3 position, glm::vec3 normal, glm::vec3 scale);
-  void initBox(glm::vec3 max, glm::vec3 min, glm::vec3 position);
+  
+  // Initialization functions
+  void initPlane(
+    glm::vec3 position,
+    glm::vec3 normal,
+    glm::vec3 scale);
+  void initBox(
+    glm::vec3 max,
+    glm::vec3 min,
+    glm::vec3 position);
   void initCone(
     glm::vec3 position,
     glm::vec3 direction,
@@ -57,14 +68,19 @@ public:
     glm::vec3 direction,
     glm::vec3 scale,
     int divisions);
+
   virtual void render(glm::mat4 M, GLuint program_ID);
 private:
   void initialize();
+
+  // OpenGL handles
+  GLuint _element_buffer;
+  GLuint _normal_buffer;
+
+  // Data
   // Maximum around 60000 vertices for unsigned short.
-  std::vector<unsigned short> elements_;
-  GLuint element_buffer_;
-  GLuint normal_buffer_;
-  std::vector<glm::vec3> normals_;
+  std::vector<unsigned short> _elements;
+  std::vector<glm::vec3>      _normals;
 };
 
 //! This class extends AbstractMesh and renders lines
@@ -75,7 +91,11 @@ class LineMesh : public AbstractMesh {
 public:
   LineMesh();
   ~LineMesh();
-  void initLine(glm::vec3 start, glm::vec3 end);
+
+  // Initialization functions
+  void initLine(
+    glm::vec3 start,
+    glm::vec3 end);
   void initGridPlane(
     glm::vec3 position,
     glm::vec3 normal,
@@ -86,12 +106,17 @@ public:
     glm::vec3 normal,
     glm::vec3 scale,
     unsigned int divisions);
+  
   virtual void render(glm::mat4 M, GLuint program_ID);
 private:
   void initialize();
+
+  // OpenGL handles
+  GLuint _element_buffer;
+
+  // Data
   // Maximum around 60000 vertices for unsigned short.
-  std::vector<unsigned short> elements_;
-  GLuint element_buffer_;
+  std::vector<unsigned short> _elements;
 };
 
 //! This class extends AbstractMesh
@@ -99,11 +124,13 @@ class PointCloudMesh : public AbstractMesh {
 public:
   PointCloudMesh(int size);
   ~PointCloudMesh();
+
   virtual void render(glm::mat4 M, GLuint program_ID);
 private:
-  const int size_;
   void initialize();
-  GLuint index_buffer_;
+  
+  const int size_;
+  GLuint _index_buffer;
 };
 
 #endif

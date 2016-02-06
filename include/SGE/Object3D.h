@@ -9,7 +9,7 @@
 
 //! An object positioned in 3D space.
 /*!
-  This object can not be rendered by itself. It needs a child or children in
+  This object can not be rendered by itself. It needs a child or _children in
   form of meshes (TriangleMesh or LineMesh).
   All objects inheriting from Object3D can be added as child.
 */
@@ -17,12 +17,15 @@ class Object3D {
 public:
   Object3D() {};
   virtual ~Object3D();
+  
   void addChild(Object3D* child);
   void removeChild(Object3D* child);
   virtual void render(glm::mat4 M);
-  glm::mat4 transform_matrix_;
+  
+  // Data
+  glm::mat4 transform_matrix;
 private:
-  std::vector<Object3D*> children;
+  std::vector<Object3D*> _children;
 };
 
 #endif
