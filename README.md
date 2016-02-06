@@ -1,1 +1,1 @@
-Yes, making my own OpenGL graphics engine (again). This repository is based on the "ModelViewer"
+Graphics engine to control low level OpenGL interfacing used in most of my OpenGL projects.
