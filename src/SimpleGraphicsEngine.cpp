@@ -111,10 +111,12 @@ Object3D* SimpleGraphicsEngine::viewspace_ortho_camera_;
   Create an object of SimpleGraphicsEngine.
   \param time is the currens global time.
 */
-SimpleGraphicsEngine::SimpleGraphicsEngine(double time)
+SimpleGraphicsEngine::SimpleGraphicsEngine()
 {
-  time_ = time;
-  dt_ = 0;
+  if (!initialize())
+  {
+    fprintf(stderr, "Could not initialize SimpleGraphicsEngine\n");
+  }
 }
 
 //! Destructor
@@ -161,8 +163,8 @@ bool SimpleGraphicsEngine::initialize()
   return true;
 }
 
-//! This function needs to be implemented if extending this class.
-void SimpleGraphicsEngine::update()
+//! 
+void SimpleGraphicsEngine::render()
 {
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -175,12 +177,6 @@ void SimpleGraphicsEngine::update()
   glEnable(GL_DEPTH_TEST);
   scene_->render(glm::mat4());
   view_space_->render(glm::mat4());
-}
-
-//! Returns the current delta time which is set each time step
-float SimpleGraphicsEngine::getDt()
-{
-  return dt_;
 }
 
 //! Returns the window width   

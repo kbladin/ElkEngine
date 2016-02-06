@@ -49,3 +49,19 @@ target_link_libraries(
 # Required on Unix OS family to be able to be linked into shared libraries.
 set_target_properties(${PROJECT_NAME}
                       PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+############
+# Examples #
+############
+option(BUILD_EXAMPLES "Build all examples." OFF)
+if (BUILD_EXAMPLES)
+  find_package(GLFW3 REQUIRED)
+  include_directories(${GLFW_INCLUDE_DIRS})
+  file(GLOB EXAMPLE1_SOURCE ${PROJECT_SOURCE_DIR}/examples/glfw_example.cpp)
+  add_executable(glfw_example ${EXAMPLE1_SOURCE})
+  target_link_libraries(
+    glfw_example
+    ${PROJECT_NAME}
+    ${GLFW_LIBRARIES}
+  )
+endif()

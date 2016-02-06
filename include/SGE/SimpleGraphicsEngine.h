@@ -56,7 +56,7 @@ private:
 */
 class SimpleGraphicsEngine {
 public:
-  SimpleGraphicsEngine(double time);
+  SimpleGraphicsEngine();
   virtual ~SimpleGraphicsEngine();
   
   float getDt();
@@ -65,11 +65,8 @@ public:
 
   virtual void setWindowResolution(int width, int height);
 protected:
-  void update();
-  virtual bool initialize();
+  void render();
 
-  double time_;  
-  double dt_;
   int window_width_;
   int window_height_;
 
@@ -80,6 +77,7 @@ protected:
   static Object3D* camera_;
   static Object3D* viewspace_ortho_camera_;
 private:
+  virtual bool initialize();
 };
 
 #endif
