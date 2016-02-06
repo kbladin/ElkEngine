@@ -19,39 +19,33 @@
 class LightSource : public Object3D {
 public:
   LightSource(
-    GLuint program_ID,
-    float intensity,
-    glm::vec3 color,
-    bool directional);
+    GLuint    program_ID,
+    float     intensity,
+    glm::vec3 color);
   ~LightSource();
   virtual void render(glm::mat4 M);
   
+  // Setters
   void setIntensity(float intensity);
   void setColor(glm::vec3 color);
 private:
-  const bool directional_;
-  float intensity_;
-  glm::vec3 color_;
-  // Counters to keep track on the number of light sources
-  // Each shader program has its own counter
-  // Directional_counter keeps track of the number of directional light
-  // sources while point_light_counter keeps track of the number of
-  // point light sources.
-  static std::map<GLuint, int> point_light_counters_;
-  static std::map<GLuint, int> directional_counters_;
+  // OpenGL handles
+  GLuint _program_ID;
+  GLuint _light_position_ID;
+  GLuint _light_direction_ID;
+  GLuint _light_intensityID;
+  GLuint _light_colorID;
 
-  GLuint program_ID_;
-  GLuint light_position_ID_;
-  GLuint light_direction_ID_;
-  GLuint light_intensity_ID_;
-  GLuint light_color_ID_;
+  // Data
+  float     _intensity;
+  glm::vec3 _color;
 };
 
 //! This class manages all objects in the engine.
 /*!
-  This class has the scene_ which can be used to add more objects by adding
-  children to the scene.
-  The scene_ has some predefined children such as a grid plane and axes.
+  This class has the scene which can be used to add more objects by adding
+  _children to the scene.
+  The scene has some predefined _children such as a grid plane and axes.
   Extend this class to create a program to run.
 */
 class SimpleGraphicsEngine {
@@ -59,25 +53,30 @@ public:
   SimpleGraphicsEngine();
   virtual ~SimpleGraphicsEngine();
   
+  // Getters
   float getDt();
   int getWindowWidth();
   int getWindowHeight();
 
+  // Setters
   virtual void setWindowResolution(int width, int height);
 protected:
   void render();
 
-  int window_width_;
-  int window_height_;
+  // Add children to these objects
+  Object3D* scene;
+  Object3D* view_space;
+  Object3D* background_space;
 
-  Object3D* scene_;
-  Object3D* view_space_;
-  Object3D* background_space_;
-  
-  static Object3D* camera_;
-  static Object3D* viewspace_ortho_camera_;
+  // Add cameras as children to these objects
+  static Object3D* camera;
+  static Object3D* viewspace_ortho_camera;
 private:
-  virtual bool initialize();
+  virtual bool _initialize();
+
+  // Data
+  int _window_width;
+  int _window_height;
 };
 
 #endif

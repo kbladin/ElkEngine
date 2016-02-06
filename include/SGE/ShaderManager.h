@@ -1,10 +1,10 @@
 #ifndef SHADER_MANAGER_H
 #define SHADER_MANAGER_H
 
-#include "SGE/ShaderLoader.h"
-
 #include <map>
 #include <iostream>
+#include <fstream>
+#include <vector>
 
 #include <gl/glew.h>
 
@@ -28,8 +28,15 @@ public:
   GLuint getShader(std::string name);
 private:
   ShaderManager();
-  static ShaderManager* instance_;
-  std::map<std::string, GLuint> shader_program_IDs;
+  GLuint _compileShader(
+    const char* vertex_file_path,
+    const char* tesselation_control_file_path,
+    const char* tesselation_eval_file_path,
+    const char* geometry_file_path,
+    const char* fragment_file_path);
+  
+  static ShaderManager* _instance;
+  std::map<std::string, GLuint> _shader_program_IDs;
 };
 
 

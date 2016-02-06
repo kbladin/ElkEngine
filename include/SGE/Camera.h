@@ -1,5 +1,5 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#ifndef cameraH
+#define cameraH
 
 #include "SGE/Object3D.h"
 
@@ -13,53 +13,64 @@
 class AbstractCamera : public Object3D {
 public:
   AbstractCamera(GLuint program_ID, int width, int height);
+  ~AbstractCamera();
+
   virtual void render(glm::mat4 M) = 0;
+
+  // Getters
+  glm::mat4 getProjectionTransform();
+
+  // Setters
   void setShader(GLuint program_ID);
   void setNearClippingPlane(float near);
   void setFarClippingPlane(float far);
   void setResolution(int width, int height);
 
-  glm::mat4 getProjectionTransform();
 protected:
-  GLuint program_ID_;
-  GLuint view_matrix_ID_;
-  GLuint projection_matrix_ID_;
+  // OpenGL handles
+  GLuint _program_ID;
+  GLuint _view_matrix_ID;
+  GLuint _projection_matrix_ID;
   
-  glm::mat4 projection_transform_;
-  
-  int width_;
-  int height_;
-  float near_;
-  float far_;
+  // Data
+  glm::mat4 _projection_transform;
+  int       _width;   // Width in pixels
+  int       _height;  // Height in pixels
+  float     _near;    // Near plane in camera coordinates (positive value)
+  float     _far;     // Far plane in camera coordinates (positive value)
 };
 
 //! A perspective camera defined in 3D space
 class PerspectiveCamera : public AbstractCamera {
 public:
   PerspectiveCamera(
-    GLuint program_ID,
-    int width,
-    int height,
-    float fov,
-    float near,
-    float far);
+    GLuint  program_ID,
+    int     width,
+    int     height,
+    float   fov,
+    float   near,
+    float   far);
+  
   virtual void render(glm::mat4 M);
+  
+  // Setters
   void setFOV(float fov);
 private:
-  float fov_;
+  // Data
+  float _fov;
 };
 
 //! An orthographic camera defined in 3D space
 class OrthoCamera : public AbstractCamera {
 public:
   OrthoCamera(
-    GLuint program_ID,
-    int width,
-    int height,
-    float near,
-    float far);
+    GLuint  program_ID,
+    int     width,
+    int     height,
+    float   near,
+    float   far);
+
   virtual void render(glm::mat4 M);
 };
-
 
 #endif
