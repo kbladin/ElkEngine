@@ -6,7 +6,7 @@ set(PROJECT_NAME SGE)
 project(${PROJECT_NAME})
 
 # Add the external module path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/Modules)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/Modules)
 
 # Find external packages
 find_package(OPENGL REQUIRED)
