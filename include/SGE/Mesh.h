@@ -1,7 +1,6 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "SGE/Object3D.h"
 #include "SGE/MeshLoader.h"
 
 #include <vector>
@@ -17,12 +16,12 @@
   All meshes have a list of vertices but depending of type it can have different
   connectivity information.
 */
-class AbstractMesh : public Object3D{
+class AbstractMesh {
 public:
   AbstractMesh();
   ~AbstractMesh();
 
-  virtual void render(glm::mat4 M, GLuint program_ID) = 0;
+  virtual void render() = 0;
   
 protected:
   virtual void initialize() = 0;
@@ -51,25 +50,21 @@ public:
   
   // Initialization functions
   void initPlane(
-    glm::vec3 position,
     glm::vec3 normal,
     glm::vec3 scale);
   void initBox(
     glm::vec3 max,
-    glm::vec3 min,
-    glm::vec3 position);
+    glm::vec3 min);
   void initCone(
-    glm::vec3 position,
     glm::vec3 direction,
     glm::vec3 scale,
     int divisions);
   void initCylinder(
-    glm::vec3 position,
     glm::vec3 direction,
     glm::vec3 scale,
     int divisions);
 
-  virtual void render(glm::mat4 M, GLuint program_ID);
+  virtual void render();
 private:
   void initialize();
 
@@ -97,17 +92,15 @@ public:
     glm::vec3 start,
     glm::vec3 end);
   void initGridPlane(
-    glm::vec3 position,
     glm::vec3 normal,
     glm::vec3 scale,
     unsigned int divisions);
   void initCircle(
-    glm::vec3 position,
     glm::vec3 normal,
     glm::vec3 scale,
     unsigned int divisions);
   
-  virtual void render(glm::mat4 M, GLuint program_ID);
+  virtual void render();
 private:
   void initialize();
 
@@ -120,17 +113,29 @@ private:
 };
 
 //! This class extends AbstractMesh
-class PointCloudMesh : public AbstractMesh {
+class GPUPointCloudMesh : public AbstractMesh {
 public:
-  PointCloudMesh(int size);
-  ~PointCloudMesh();
+  GPUPointCloudMesh(int size);
+  ~GPUPointCloudMesh();
 
-  virtual void render(glm::mat4 M, GLuint program_ID);
+  virtual void render();
 private:
   void initialize();
   
-  const int _size;
+  const int size_;
   GLuint _index_buffer;
+};
+
+//! This class extends AbstractMesh
+class CPUPointCloudMesh : public AbstractMesh{
+public:
+  CPUPointCloudMesh();
+  ~CPUPointCloudMesh();
+
+  void update(const std::vector<glm::vec3>& vertices);
+  virtual void render();
+protected:
+  virtual void initialize();
 };
 
 #endif

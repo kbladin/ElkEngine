@@ -49,6 +49,7 @@ target_link_libraries(
 # Required on Unix OS family to be able to be linked into shared libraries.
 set_target_properties(${PROJECT_NAME}
                       PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-std=c++14")
 
 ############
 # Examples #
@@ -64,4 +65,5 @@ if (BUILD_EXAMPLES)
     ${PROJECT_NAME}
     ${GLFW_LIBRARIES}
   )
+  set_target_properties(glfw_example PROPERTIES COMPILE_FLAGS "-std=c++14")
 endif()

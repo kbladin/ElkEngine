@@ -81,7 +81,6 @@ TriangleMesh::~TriangleMesh()
   \param scale defines scaling in x-, y-, and z- direction.
 */
 void TriangleMesh::initPlane(
-  glm::vec3 position,
   glm::vec3 normal,
   glm::vec3 scale)
 {
@@ -118,8 +117,6 @@ void TriangleMesh::initPlane(
     _vertices[i] = glm::vec3(glm::vec4(_vertices[i] * scale, 1) * M);
   }
 
-  transform_matrix *= glm::translate(position);
-
   initialize();
 }
 
@@ -129,9 +126,7 @@ void TriangleMesh::initPlane(
   \param min is the min corner of the box.
   \param position is a point in the center of the box.
 */
-void TriangleMesh::initBox(glm::vec3 max,
-                   glm::vec3 min,
-                   glm::vec3 position)
+void TriangleMesh::initBox(glm::vec3 max, glm::vec3 min)
 {
   // Data sizes
   _vertices.resize(24);
@@ -249,8 +244,6 @@ void TriangleMesh::initBox(glm::vec3 max,
   _elements[34] = 23;
   _elements[35] = 20;
   
-  transform_matrix *= glm::translate(position);
-
   initialize();
 }
 
@@ -262,7 +255,7 @@ void TriangleMesh::initBox(glm::vec3 max,
   \param scale defines scaling in x-, y-, and z- direction.
   \param divisions is the subdivision level.
 */
-void TriangleMesh::initCone(glm::vec3 position,
+void TriangleMesh::initCone(
               glm::vec3 direction,
               glm::vec3 scale,
               int divisions)
@@ -322,7 +315,6 @@ void TriangleMesh::initCone(glm::vec3 position,
     _vertices[i] = glm::vec3(glm::vec4(_vertices[i], 1) * M);
   }
   
-  transform_matrix *= glm::translate(position);
   initialize();
 }
 
@@ -333,7 +325,7 @@ void TriangleMesh::initCone(glm::vec3 position,
   \param scale defines scaling in x-, y-, and z- direction.
   \param divisions is the subdivision level.
 */
-void TriangleMesh::initCylinder(glm::vec3 position,
+void TriangleMesh::initCylinder(
                                 glm::vec3 direction,
                                 glm::vec3 scale,
                                 int divisions)
@@ -417,8 +409,6 @@ void TriangleMesh::initCylinder(glm::vec3 position,
     _vertices[i] = glm::vec3(glm::vec4(_vertices[i], 1) * M);
   }
   
-  transform_matrix *= glm::translate(position);
-
   initialize();
 }
 
@@ -447,22 +437,8 @@ void TriangleMesh::initialize()
 /*!
   \param M is the transformation matrix of the parent.
 */
-void TriangleMesh::render(glm::mat4 M, GLuint program_ID)
-{
-  // Render all _children
-  Object3D::render(M);
-  
-  // Use our shader
-  glUseProgram(program_ID);
-
-  // Shader input
-  glm::mat4 total_transform = M * transform_matrix;
-  glUniformMatrix4fv(
-    glGetUniformLocation(program_ID, "M"),
-    1,
-    GL_FALSE,
-    &total_transform[0][0]);
-  
+void TriangleMesh::render()
+{ 
   glBindVertexArray(_vertex_array_ID);
   
   // 1rst attribute buffer : vertices
@@ -542,7 +518,6 @@ void LineMesh::initLine(glm::vec3 start, glm::vec3 end)
   \param divisions defines how dense the grid will be.
 */
 void LineMesh::initGridPlane(
-  glm::vec3 position,
   glm::vec3 normal,
   glm::vec3 scale,
   unsigned int divisions)
@@ -578,15 +553,13 @@ void LineMesh::initGridPlane(
     glm::vec3(0.0f, 0.0f, 0.0f),
     normal,
     up);
+    M *= glm::scale(scale);
   
   for (int i = 0; i < _vertices.size(); i++) {
     _vertices[i] /= divisions;
     _vertices[i] = glm::vec3(glm::vec4(_vertices[i], 1) * M);
   }
   
-  transform_matrix *= glm::translate(position - glm::vec3(0.5f,0.0f,0.5f));
-  transform_matrix *= glm::scale(scale);
-
   initialize();
 }
 
@@ -598,7 +571,6 @@ void LineMesh::initGridPlane(
   \param divisions defines how many vertices the circle will contain.
 */
 void LineMesh::initCircle(
-                glm::vec3 position,
                 glm::vec3 normal,
                 glm::vec3 scale,
                 unsigned int divisions)
@@ -625,14 +597,12 @@ void LineMesh::initCircle(
                   glm::vec3(0.0f, 0.0f, 0.0f),
                   normal,
                   up);
-  
+    M *= glm::scale(scale);
+
   for (int i = 0; i < _vertices.size(); i++) {
     //_vertices[i] /= divisions;
     _vertices[i] = glm::vec3(glm::vec4(_vertices[i], 1) * M);
   }
-
-  transform_matrix *= glm::scale(scale);  
-  transform_matrix *= glm::translate(position - glm::vec3(0.5f,0.0f,0.5f));
   
   initialize();
 }
@@ -655,21 +625,8 @@ void LineMesh::initialize()
   \param M is the transformation matrix of the parent.
   \param program_ID is the shader that will be bound for rendering.
 */
-void LineMesh::render(glm::mat4 M, GLuint program_ID)
+void LineMesh::render()
 {
-  Object3D::render(M);
-  
-  // Use the shader
-  glUseProgram(program_ID);
-  
-  // Input to the shader
-  glm::mat4 total_transform = M * transform_matrix;
-  glUniformMatrix4fv(
-    glGetUniformLocation(program_ID, "M"),
-    1,
-    GL_FALSE,
-    &total_transform[0][0]);
-  
   glBindVertexArray(_vertex_array_ID);
   
   // 1rst attribute buffer : vertices
@@ -699,20 +656,20 @@ void LineMesh::render(glm::mat4 M, GLuint program_ID)
 }
 
 //! Creates a point cloud mesh of size * size particles 
-PointCloudMesh::PointCloudMesh(int size) : _size(size)
+GPUPointCloudMesh::GPUPointCloudMesh(int size) : size_(size)
 {
   initialize();
 }
 
-void PointCloudMesh::initialize()
+void GPUPointCloudMesh::initialize()
 {
   AbstractMesh::initialize();
   
   std::vector< std::pair<int, int> >  indices;
-  indices.resize(_size * _size);
-  for (int i=0; i<_size; i++) {
-    for (int j=0; j<_size; j++) {
-      indices[i * _size + j] = std::pair<int, int>(i,j);
+  indices.resize(size_ * size_);
+  for (int i=0; i<size_; i++) {
+    for (int j=0; j<size_; j++) {
+      indices[i * size_ + j] = std::pair<int, int>(i,j);
     }
   }
   glGenBuffers(1, &_index_buffer);
@@ -725,7 +682,7 @@ void PointCloudMesh::initialize()
 }
 
 //! Destructor
-PointCloudMesh::~PointCloudMesh()
+GPUPointCloudMesh::~GPUPointCloudMesh()
 {
   glDeleteBuffers(1, &_index_buffer);
 }
@@ -735,21 +692,9 @@ PointCloudMesh::~PointCloudMesh()
   \param M is the transformation matrix of the parent.
   \param program_ID is the shader that will be bound for rendering.
 */
-void PointCloudMesh::render(glm::mat4 M, GLuint program_ID)
+void GPUPointCloudMesh::render()
 {
-  Object3D::render(M);
     
-  // Use our shader
-  glUseProgram(program_ID);
-
-  // Input to the shader
-  glm::mat4 total_transform = M * transform_matrix;
-  glUniformMatrix4fv(
-    glGetUniformLocation(program_ID, "M"),
-    1,
-    GL_FALSE,
-    &total_transform[0][0]);
-  
   glBindVertexArray(_vertex_array_ID);
 
   glEnableVertexAttribArray(0);
@@ -763,7 +708,61 @@ void PointCloudMesh::render(glm::mat4 M, GLuint program_ID)
     (void*)0);  // array buffer offset
   
   glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-  glDrawArrays(GL_POINTS, 0, _size * _size);
+  glDrawArrays(GL_POINTS, 0, size_ * size_);
+  
+  glDisableVertexAttribArray(0);
+}
+
+
+//! Creates a point cloud mesh of size * size particles 
+CPUPointCloudMesh::CPUPointCloudMesh()
+{
+  initialize();
+}
+
+void CPUPointCloudMesh::initialize()
+{
+  AbstractMesh::initialize();
+}
+
+//! Destructor
+CPUPointCloudMesh::~CPUPointCloudMesh()
+{
+
+}
+
+void CPUPointCloudMesh::update(const std::vector<glm::vec3>& vertices)
+{
+  _vertices = vertices;
+  glBindBuffer(GL_ARRAY_BUFFER, _vertex_buffer);
+  glBufferData(
+    GL_ARRAY_BUFFER,
+    _vertices.size() * sizeof(glm::vec3),
+    &_vertices[0],
+    GL_STATIC_DRAW);
+}
+
+//! Render the mesh.
+/*!
+  \param M is the transformation matrix of the parent.
+  \param program_ID is the shader that will be bound for rendering.
+*/
+void CPUPointCloudMesh::render()
+{
+  glBindVertexArray(_vertex_array_ID);
+
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, _vertex_buffer);
+  glVertexAttribPointer(
+    0,          // attribute
+    3,          // size
+    GL_FLOAT,   // type
+    GL_FALSE,   // normalized?
+    0,          // stride
+    (void*)0);  // array buffer offset
+  
+  glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+  glDrawArrays(GL_POINTS, 0, _vertices.size());
   
   glDisableVertexAttribArray(0);
 }

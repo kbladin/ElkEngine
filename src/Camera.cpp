@@ -9,20 +9,32 @@
   \param width is the width in pixels of the camera.
   \param height is the height in pixels of the camera.
 */
-AbstractCamera::AbstractCamera(GLuint program_ID, int width, int height)
+AbstractCamera::AbstractCamera()
 {
-  _width = width;
-  _height = height;
-  _program_ID = program_ID;
-  glUseProgram(_program_ID);
 
-  _view_matrix_ID = glGetUniformLocation(_program_ID, "V");
-  _projection_matrix_ID = glGetUniformLocation(_program_ID, "P");
 }
 
 AbstractCamera::~AbstractCamera()
 {
   
+}
+
+void AbstractCamera::addToShader(GLuint program_ID)
+{
+  glUseProgram(program_ID);
+  CameraShaderHandle handle;
+  // Update values
+  handle.view_matrix_ID =  glGetUniformLocation(program_ID, "V");
+  handle.projection_matrix_ID = glGetUniformLocation(program_ID, "P");
+
+  // Add to the map
+  shader_handles_.insert(
+    std::pair<GLuint, CameraShaderHandle>(program_ID, handle));
+}
+
+void AbstractCamera::removeFromShader(GLuint program_ID)
+{
+  shader_handles_.erase(program_ID);
 }
 
 //! Render the Camera.
@@ -33,52 +45,24 @@ AbstractCamera::~AbstractCamera()
 */
 void AbstractCamera::render(glm::mat4 M)
 {
-  glm::mat4 V = M * transform_matrix;
+  glm::mat4 V = glm::inverse(M * transform_matrix);
   Object3D::render(V);
   
-  glUseProgram(_program_ID);
-
-  glUniformMatrix4fv(_view_matrix_ID, 1, GL_FALSE, &V[0][0]);
-  glUniformMatrix4fv(_projection_matrix_ID, 1, GL_FALSE, &_projection_transform[0][0]);
-}
-
-//! Set the camera to be attached to the shader provided
-/*!
-  The camera will set the needed view and projection matrices when rendering.
-  \param program_ID is the shader program containing the V and P matrices
-  to be set by the camera
-*/
-void AbstractCamera::setShader(GLuint program_ID)
-{
-  _program_ID = program_ID;
-  glUseProgram(_program_ID);
-
-  _view_matrix_ID = glGetUniformLocation(_program_ID, "V");
-  _projection_matrix_ID = glGetUniformLocation(_program_ID, "P");
-}
-
-//! Set the near clipping plane of the camera
-/*!
-  \param near is a positive value.
-*/
-void AbstractCamera::setNearClippingPlane(float near)
-{
-  _near = near;
-}
-
-//! Set the far clipping plane of the camera
-/*!
-  \param far is a positive value.
-*/
-void AbstractCamera::setFarClippingPlane(float far)
-{
-  _far = far;
-}
-
-void AbstractCamera::setResolution(int width, int height)
-{
-  _width = width;
-  _height = height;
+  // For all shaders, push data as uniforms
+  for(auto it = shader_handles_.begin(); it != shader_handles_.end(); ++it)
+  {
+    glUseProgram(it->first);
+    glUniformMatrix4fv(
+      it->second.view_matrix_ID,
+      1,
+      GL_FALSE,
+      &V[0][0]);
+    glUniformMatrix4fv(
+      it->second.projection_matrix_ID,
+      1,
+      GL_FALSE,
+      &_projection_transform[0][0]);
+  }
 }
 
 //! Returns the cameras projection matrix
@@ -100,20 +84,16 @@ glm::mat4 AbstractCamera::getProjectionTransform()
   \param far is the far plane of the camera (a positive value)
 */
 PerspectiveCamera::PerspectiveCamera(
-    GLuint program_ID,
-    int width,
-    int height,
-    float fov,
-    float near,
-    float far) :
-AbstractCamera(program_ID, width, height)
+  float fov,
+  float aspect,
+  float near,
+  float far) :
+  _fov(fov),
+  _aspect(aspect),
+  _near(near),
+  _far(far)
 {
-  _fov = fov;
-  _near = near;
-  _far = far;
-
-  float aspect = float(_width)/_height;
-  _projection_transform = glm::perspective(_fov, aspect, _near, _far);
+  _projection_transform = glm::perspective(_fov, _aspect, _near, _far);
 }
 
 //! Render the Camera.
@@ -124,9 +104,7 @@ AbstractCamera(program_ID, width, height)
 */
 void PerspectiveCamera::render(glm::mat4 M)
 {
-  float aspect = float(_width)/_height;
-  _projection_transform = glm::perspective(_fov, aspect, _near, _far);
-  
+  _projection_transform = glm::perspective(_fov, _aspect, _near, _far);
   AbstractCamera::render(M);
 }
 
@@ -138,6 +116,30 @@ void PerspectiveCamera::setFOV(float fov)
 {
   _fov = fov;
 }
+
+//! Set the near clipping plane of the camera
+/*!
+  \param near is a positive value.
+*/
+void PerspectiveCamera::setNearClippingPlane(float near)
+{
+  _near = near;
+}
+
+//! Set the far clipping plane of the camera
+/*!
+  \param far is a positive value.
+*/
+void PerspectiveCamera::setFarClippingPlane(float far)
+{
+  _far = far;
+}
+
+void PerspectiveCamera::setAspectRatio(float aspect)
+{
+  _aspect = aspect;
+}
+
 
 //! Creates camera to render objects with the defined shader program attached.
 /*!
@@ -152,18 +154,20 @@ void PerspectiveCamera::setFOV(float fov)
   \param far is the far plane of the camera (a positive value)
 */
 OrthoCamera::OrthoCamera(
-  GLuint program_ID,
-  int width,
-  int height,
-  float near,
-  float far) :
-  AbstractCamera(program_ID, width, height)
+  float   left,
+  float   right,
+  float   bottom,
+  float   top,
+  float   near,
+  float   far) :
+  _left(left),
+  _right(right),
+  _bottom(bottom),
+  _top(top),
+  _near(near),
+  _far(far)
 {
-  _near = near;
-  _far = far;
-
-  float aspect = float(_width)/_height;
-  _projection_transform = glm::ortho(-aspect, aspect, -1.0f, 1.0f, -_far, _near);
+  _projection_transform = glm::ortho(_left, _right, _bottom, _top, _near, _far);
 }
 
 //! Render the Camera.
@@ -174,8 +178,7 @@ OrthoCamera::OrthoCamera(
 */
 void OrthoCamera::render(glm::mat4 M)
 {
-  float aspect = float(_width)/_height;
-  _projection_transform = glm::ortho(-aspect, aspect, -1.0f, 1.0f, -_far, _near);
-  
+  _projection_transform = glm::ortho(_left, _right, _bottom, _top, _near, _far);
+
   AbstractCamera::render(M);
 }
