@@ -25,6 +25,26 @@ void AbstractMesh::initialize()
     GL_STATIC_DRAW);
 }
 
+glm::vec3 AbstractMesh::computeMinPosition() const
+{
+  glm::vec3 max = _vertices[0];
+  for (int i = 1; i < _vertices.size(); i++)
+  {
+    max = glm::max(max, _vertices[i]);
+  }
+  return max;
+}
+
+glm::vec3 AbstractMesh::computeMaxPosition() const
+{
+  glm::vec3 min = _vertices[0];
+  for (int i = 1; i < _vertices.size(); i++)
+  {
+    min = glm::min(min, _vertices[i]);
+  }
+  return min;
+}
+
 //! Create a TriangleMesh from file.
 /*!
   \param file_name is the file path for the model, for example "bunny.obj".

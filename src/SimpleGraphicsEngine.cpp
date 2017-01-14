@@ -5,10 +5,12 @@
   Create an object of SimpleGraphicsEngine.
   \param time is the currens global time.
 */
-SimpleGraphicsEngine::SimpleGraphicsEngine(int width, int height)
+SimpleGraphicsEngine::SimpleGraphicsEngine(int width, int height) :
+  perspective_camera(45, static_cast<float>(width) / height, 0.01, 100),
+  viewspace_ortho_camera(-1,1,-1,1,1,-1)
 {
   setWindowResolution(width, height);
-  if (!_initialize())
+  if (!_initializeGL())
   {
     fprintf(stderr, "Could not initialize SimpleGraphicsEngine. Is an OpenGL context created?\n");
   }
@@ -17,16 +19,11 @@ SimpleGraphicsEngine::SimpleGraphicsEngine(int width, int height)
 //! Destructor
 SimpleGraphicsEngine::~SimpleGraphicsEngine()
 {
-  delete scene;
-  delete view_space;
-  delete background_space;  
-  
-  delete camera;
-  delete viewspace_ortho_camera;
+
 } 
 
 //! Initializes OpenGL, creating context and adding all basic objects for the scene.
-bool SimpleGraphicsEngine::_initialize()
+bool SimpleGraphicsEngine::_initializeGL()
 {
   glewExperimental = true; // Needed in core profile
   if (glewInit() != GLEW_OK) {
@@ -43,45 +40,58 @@ bool SimpleGraphicsEngine::_initialize()
   // Enable blending
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  
-  scene =             new Object3D();
-  view_space =        new Object3D();
-  background_space =  new Object3D();
 
-  camera =                 new PerspectiveCamera(45, 2.0, 0.01, 100);
-  viewspace_ortho_camera = new OrthoCamera(-1,1,-1,1,1,-1);
-
-  scene->addChild(camera);
-  view_space->addChild(viewspace_ortho_camera);
-  
   return true;
 }
 
 //! 
 void SimpleGraphicsEngine::render()
 {
+  // First update
+  perspective_camera.update(glm::mat4());
+  viewspace_ortho_camera.update(glm::mat4());
+
+  scene.update(glm::mat4());
+  view_space.update(glm::mat4());
+  background_space.update(glm::mat4());
+
+  // Then render
+  perspective_camera.execute();
+  viewspace_ortho_camera.execute();
+
   glClearColor(0.0, 0.0, 0.0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glViewport(0,0,_window_width * 2, _window_height * 2);
 
   glDisable(GL_DEPTH_TEST);
-  background_space->render(glm::mat4());
+  background_space.execute();
   glEnable(GL_DEPTH_TEST);
-  scene->render(glm::mat4());
-  view_space->render(glm::mat4());
+  scene.execute();
+  glDisable(GL_DEPTH_TEST);
+  view_space.execute();
 }
 
 //! Returns the window width   
-int SimpleGraphicsEngine::getWindowWidth()
+int SimpleGraphicsEngine::windowWidth()
 {
   return _window_width;
 }
 
 //! Returns the window height
-int SimpleGraphicsEngine::getWindowHeight()
+int SimpleGraphicsEngine::windowHeight()
 {
   return _window_height;
+}
+
+const PerspectiveCamera& SimpleGraphicsEngine::camera()
+{
+  return perspective_camera;
+}
+
+const OrthoCamera& SimpleGraphicsEngine::viewSpaceCamera()
+{
+  return viewspace_ortho_camera;
 }
 
 //! Set resolution to new window width and height
@@ -93,4 +103,5 @@ void SimpleGraphicsEngine::setWindowResolution(int width, int height)
 {
   _window_width = width;
   _window_height = height;
+  perspective_camera.setAspectRatio( static_cast<float>(width) / height);
 }

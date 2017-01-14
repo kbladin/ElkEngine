@@ -22,6 +22,8 @@ public:
   ~AbstractMesh();
 
   virtual void render() = 0;
+  glm::vec3 computeMinPosition() const;
+  glm::vec3 computeMaxPosition() const;
   
 protected:
   virtual void initialize() = 0;

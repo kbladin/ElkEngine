@@ -20,12 +20,16 @@ public:
   
   void addChild(Object3D* child);
   void removeChild(Object3D* child);
-  virtual void render(glm::mat4 M);
-  
-  // Data
-  glm::mat4 transform_matrix;
+  virtual void update(const glm::mat4& stacked_transform);
+  virtual void execute();
+
+  const glm::mat4& relativeTransform() const;
+  const glm::mat4& absoluteTransform() const;
+  void setTransform(glm::mat4 transform);
 private:
   std::vector<Object3D*> _children;
+  glm::mat4 _relative_transform;
+  glm::mat4 _absolute_transform;
 };
 
 #endif

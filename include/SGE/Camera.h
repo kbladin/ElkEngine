@@ -23,12 +23,14 @@ public:
   AbstractCamera();
   ~AbstractCamera();
 
-  virtual void render(glm::mat4 M) = 0;
+  virtual void execute() = 0;
   void addToShader(GLuint program_ID);
   void removeFromShader(GLuint program_ID);
 
   // Getters
-  glm::mat4 getProjectionTransform();
+  const glm::mat4& projectionTransform();
+  void unproject(
+    glm::vec2 position_ndc, glm::vec3* origin, glm::vec3* direction) const;
 protected:
   // OpenGL handles
   std::map<GLuint, CameraShaderHandle> shader_handles_;
@@ -46,7 +48,7 @@ public:
     float near,
     float far);
   
-  virtual void render(glm::mat4 M);
+  virtual void execute();
 
   // Setters
   void setFOV(float fov);
@@ -72,7 +74,7 @@ public:
     float near,
     float far);
 
-  virtual void render(glm::mat4 M);
+  virtual void execute();
 private:
   float _left;
   float _right;

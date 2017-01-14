@@ -43,11 +43,9 @@ void AbstractCamera::removeFromShader(GLuint program_ID)
   corresponding transforms for the camera.
   \param M is the transformation matrix of the parent.
 */
-void AbstractCamera::render(glm::mat4 M)
+void AbstractCamera::execute()
 {
-  glm::mat4 V = glm::inverse(M * transform_matrix);
-  Object3D::render(V);
-  
+  glm::mat4 V = glm::inverse(absoluteTransform());
   // For all shaders, push data as uniforms
   for(auto it = shader_handles_.begin(); it != shader_handles_.end(); ++it)
   {
@@ -66,9 +64,27 @@ void AbstractCamera::render(glm::mat4 M)
 }
 
 //! Returns the cameras projection matrix
-glm::mat4 AbstractCamera::getProjectionTransform()
+const glm::mat4& AbstractCamera::projectionTransform()
 {
   return _projection_transform;
+}
+
+void AbstractCamera::unproject(
+  glm::vec2 position_ndc,  glm::vec3* origin, glm::vec3* direction) const
+{
+  // Transform from [-1, 1] to [0, 1]
+  glm::vec2 position = position_ndc / 2.0f + glm::vec2(0.5);
+  float w = 1, h = 1;
+
+  const glm::mat4& V = glm::inverse(absoluteTransform());
+  const glm::mat4& P = _projection_transform;
+  
+  glm::vec3 from =
+    glm::unProject(glm::vec3(position, 0.0f), V, P, glm::vec4(0, 0, w, h));
+  glm::vec3 to =
+    glm::unProject(glm::vec3(position, 1.0f), V, P, glm::vec4(0, 0, w, h));
+  *origin = from;
+  *direction = glm::normalize(to - from);
 }
 
 //! Creates camera to render objects with the defined shader program attached.
@@ -102,10 +118,10 @@ PerspectiveCamera::PerspectiveCamera(
   corresponding transforms for the camera.
   \param M is the transformation matrix of the parent.
 */
-void PerspectiveCamera::render(glm::mat4 M)
+void PerspectiveCamera::execute()
 {
   _projection_transform = glm::perspective(_fov, _aspect, _near, _far);
-  AbstractCamera::render(M);
+  AbstractCamera::execute();
 }
 
 //! Set the field of view of the camera in angles
@@ -176,9 +192,8 @@ OrthoCamera::OrthoCamera(
   corresponding transforms for the camera.
   \param M is the transformation matrix of the parent.
 */
-void OrthoCamera::render(glm::mat4 M)
+void OrthoCamera::execute()
 {
   _projection_transform = glm::ortho(_left, _right, _bottom, _top, _near, _far);
-
-  AbstractCamera::render(M);
+  AbstractCamera::execute();
 }

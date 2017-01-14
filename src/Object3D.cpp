@@ -26,19 +26,39 @@ void Object3D::addChild(Object3D *child)
 */
 void Object3D::removeChild(Object3D *child)
 {
-  _children.erase(std::remove(_children.begin(), _children.end(), child), _children.end());
+  _children.erase(std::remove(
+    _children.begin(), _children.end(), child), _children.end());
   for (int i=0; i<_children.size(); i++) {
     _children[i]->removeChild(child);
   }
 }
 
-//! Calling the render function for all of the children
-/*!
-  \param M is the transformation matrix of the parent.
-*/
-void Object3D::render(glm::mat4 M)
+void Object3D::update(const glm::mat4& stacked_transform)
 {
-  for (std::vector<Object3D*>::const_iterator iter = _children.begin(); iter != _children.end(); iter++) {
-    (*iter)->render(M * transform_matrix);
+  _absolute_transform = stacked_transform * _relative_transform;
+  for (auto it = _children.begin(); it != _children.end(); it++) {
+    (*it)->update(_absolute_transform);
   }
+}
+
+void Object3D::execute()
+{
+  for (auto it = _children.begin(); it != _children.end(); it++) {
+    (*it)->execute();
+  }
+}
+
+const glm::mat4& Object3D::relativeTransform() const
+{
+  return _relative_transform;
+}
+
+const glm::mat4& Object3D::absoluteTransform() const
+{
+  return _absolute_transform;
+}
+
+void Object3D::setTransform(glm::mat4 transform)
+{
+  _relative_transform = transform;
 }

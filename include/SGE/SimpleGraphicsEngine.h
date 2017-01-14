@@ -25,9 +25,10 @@ public:
   virtual ~SimpleGraphicsEngine();
   
   // Getters
-  float getDt();
-  int getWindowWidth();
-  int getWindowHeight();
+  int windowWidth();
+  int windowHeight();
+  const PerspectiveCamera& camera();
+  const OrthoCamera& viewSpaceCamera();
 
   // Setters
   virtual void setWindowResolution(int width, int height);
@@ -35,14 +36,14 @@ protected:
   void render();
 
   // Add children to these objects
-  Object3D* scene;
-  Object3D* view_space;
-  Object3D* background_space;
+  Object3D scene;
+  Object3D view_space;
+  Object3D background_space;
 
-  PerspectiveCamera* camera;
-  OrthoCamera* viewspace_ortho_camera;
+  PerspectiveCamera perspective_camera;
+  OrthoCamera viewspace_ortho_camera;
 private:
-  virtual bool _initialize();
+  virtual bool _initializeGL();
 
   // Data
   int _window_width;
