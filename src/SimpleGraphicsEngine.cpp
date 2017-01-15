@@ -56,19 +56,18 @@ void SimpleGraphicsEngine::render()
   background_space.update(glm::mat4());
 
   // Then render
-  perspective_camera.execute();
-  viewspace_ortho_camera.execute();
-
   glClearColor(0.0, 0.0, 0.0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glViewport(0,0,_window_width * 2, _window_height * 2);
+  glViewport(0,0,_window_width, _window_height);
 
   glDisable(GL_DEPTH_TEST);
+  viewspace_ortho_camera.execute();
   background_space.execute();
   glEnable(GL_DEPTH_TEST);
+  perspective_camera.execute();
   scene.execute();
   glDisable(GL_DEPTH_TEST);
+  viewspace_ortho_camera.execute();
   view_space.execute();
 }
 

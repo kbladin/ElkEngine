@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 # Create the project
 set(PROJECT_NAME SGE)
+set(CMAKE_MACOSX_RPATH 1)
 project(${PROJECT_NAME})
 
 # Add the external module path
@@ -35,7 +36,7 @@ set(CMAKE_CXX_FLAGS "-g")
 
 # Creating our own SGE library
 file(GLOB ${PROJECT_NAME}_SOURCES ${PROJECT_SOURCE_DIR}/src/*.cpp)
-file(GLOB ${PROJECT_NAME}_HEADERS ${PROJECT_SOURCE_DIR}/include/*.h)
+file(GLOB ${PROJECT_NAME}_HEADERS ${PROJECT_SOURCE_DIR}/include/SGE/*.h)
 add_library(${PROJECT_NAME} SHARED ${SGE_SOURCES} ${SGE_HEADERS})
 
 # Link other libraries
