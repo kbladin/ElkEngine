@@ -4,7 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-Controller::Controller(Object3D* object) :
+Controller::Controller(Object3D& object) :
 	_object(object),
 	_mouse_x(0),
 	_mouse_y(0),
@@ -20,7 +20,6 @@ Controller::~Controller()
 
 }
 
-// NDC coordinates
 void Controller::mousePosCallback(double x, double y)
 {
 	_mouse_dx = x - _mouse_x;
@@ -97,7 +96,7 @@ void Controller::windowSizeCallback(int width, int height)
 
 }
 
-SphericalController::SphericalController(Object3D* object) :
+SphericalController::SphericalController(Object3D& object) :
 	Controller(object)
 {
 	// These should be set according to the transform matrix of object
@@ -145,5 +144,5 @@ void SphericalController::transformObject()
 
 	glm::mat4 M = R2 * R1 * T;
 
-	_object->setTransform(M);
+	_object.setTransform(M);
 }

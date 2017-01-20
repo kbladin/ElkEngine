@@ -13,8 +13,9 @@ public:
   ~BoundingBox();
   inline glm::vec3 min() const {return _min;}
   inline glm::vec3 max() const {return _max;}
-  bool intersects(glm::vec3 point) const;
-  bool intersects(glm::vec3 origin, glm::vec3 direction, float* t) const;
+  bool intersects(const glm::vec3& point) const;
+  std::pair<bool, float> intersects(
+  	const glm::vec3& origin, const glm::vec3& direction) const;
 private:
   glm::vec3 _min;
   glm::vec3 _max;

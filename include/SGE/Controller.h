@@ -160,10 +160,10 @@ enum class MouseButton
 class Controller
 {
 public:
-	Controller(Object3D* object);
+	Controller(Object3D& object);
 	~Controller();
 
-	// NDC coordinates
+	//! \param x and \param y are given in NDC coordinates
 	void mousePosCallback(double x, double y);
 	void mouseButtonCallback(MouseButton button, KeyAction action);
 	void mouseScrollCallback(double dx, double dy);
@@ -172,7 +172,7 @@ public:
 
 	virtual void step(float dt) = 0;
 protected:
-	Object3D* _object; // Object to be controlled
+	Object3D& _object; // Object to be controlled
 	std::set<MouseButton> _mouse_buttons_pressed;
 	std::set<Key> _keys_pressed;
 	std::set<KeyModifier> _modifiers_pressed;
@@ -182,7 +182,7 @@ protected:
 class SphericalController : public Controller
 {
 public:
-	SphericalController(Object3D* object);
+	SphericalController(Object3D& object);
 	~SphericalController();
 	
 	virtual void step(float dt);

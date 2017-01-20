@@ -17,7 +17,7 @@
 //! This class manages all objects in the engine.
 /*!
   This class has the scene which can be used to add more objects by adding
-  children to the scene.
+  children to it.
 */
 class SimpleGraphicsEngine {
 public:
@@ -33,6 +33,7 @@ public:
   // Setters
   virtual void setWindowResolution(int width, int height);
 protected:
+  //! Update the transforms of all objects in the scene and renders them
   void render();
 
   // Add children to these objects
@@ -43,6 +44,7 @@ protected:
   PerspectiveCamera perspective_camera;
   OrthoCamera viewspace_ortho_camera;
 private:
+  //! Initializes GLEW, an OpenGL context needs to be active
   virtual bool _initializeGL();
 
   // Data

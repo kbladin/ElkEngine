@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <memory>
 
 #include <gl/glew.h>
 
@@ -16,7 +17,7 @@
 */
 class ShaderManager {
 public:
-  static ShaderManager* instance();
+  static ShaderManager& instance();
   ~ShaderManager();
   void loadShader(
     std::string name,
@@ -35,7 +36,7 @@ private:
     const char* geometry_file_path,
     const char* fragment_file_path);
   
-  static ShaderManager* _instance;
+  static ShaderManager _instance;
   std::map<std::string, GLuint> _shader_program_IDs;
 };
 

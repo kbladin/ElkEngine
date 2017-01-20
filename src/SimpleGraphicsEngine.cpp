@@ -1,13 +1,8 @@
 #include "SGE/SimpleGraphicsEngine.h"
 
-//! Constructor
-/*!
-  Create an object of SimpleGraphicsEngine.
-  \param time is the currens global time.
-*/
 SimpleGraphicsEngine::SimpleGraphicsEngine(int width, int height) :
-  perspective_camera(45, static_cast<float>(width) / height, 0.01, 100),
-  viewspace_ortho_camera(-1,1,-1,1,1,-1)
+  perspective_camera(45.0f, static_cast<float>(width) / height, 0.01, 100),
+  viewspace_ortho_camera(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f)
 {
   setWindowResolution(width, height);
   if (!_initializeGL())
@@ -16,13 +11,11 @@ SimpleGraphicsEngine::SimpleGraphicsEngine(int width, int height) :
   }
 }
 
-//! Destructor
 SimpleGraphicsEngine::~SimpleGraphicsEngine()
 {
 
 } 
 
-//! Initializes OpenGL, creating context and adding all basic objects for the scene.
 bool SimpleGraphicsEngine::_initializeGL()
 {
   glewExperimental = true; // Needed in core profile
@@ -44,21 +37,19 @@ bool SimpleGraphicsEngine::_initializeGL()
   return true;
 }
 
-//! 
 void SimpleGraphicsEngine::render()
 {
-  // First update
-  perspective_camera.update(glm::mat4());
-  viewspace_ortho_camera.update(glm::mat4());
+  // First update transforms
+  perspective_camera.updateTransform(glm::mat4());
+  viewspace_ortho_camera.updateTransform(glm::mat4());
 
-  scene.update(glm::mat4());
-  view_space.update(glm::mat4());
-  background_space.update(glm::mat4());
+  scene.updateTransform(glm::mat4());
+  view_space.updateTransform(glm::mat4());
+  background_space.updateTransform(glm::mat4());
 
   // Then render
   glClearColor(0.0, 0.0, 0.0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glViewport(0,0,_window_width, _window_height);
 
   glDisable(GL_DEPTH_TEST);
   viewspace_ortho_camera.execute();
@@ -71,13 +62,11 @@ void SimpleGraphicsEngine::render()
   view_space.execute();
 }
 
-//! Returns the window width   
 int SimpleGraphicsEngine::windowWidth()
 {
   return _window_width;
 }
 
-//! Returns the window height
 int SimpleGraphicsEngine::windowHeight()
 {
   return _window_height;
@@ -93,14 +82,10 @@ const OrthoCamera& SimpleGraphicsEngine::viewSpaceCamera()
   return viewspace_ortho_camera;
 }
 
-//! Set resolution to new window width and height
-/*!
-  \param width is the new window width.
-  \param height is the new window height.
-*/
 void SimpleGraphicsEngine::setWindowResolution(int width, int height)
 {
   _window_width = width;
   _window_height = height;
+  glViewport(0,0,_window_width, _window_height);
   perspective_camera.setAspectRatio( static_cast<float>(width) / height);
 }

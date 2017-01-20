@@ -4,6 +4,7 @@ BoundingBox::BoundingBox(const AbstractMesh& template_mesh) :
   _min(template_mesh.computeMinPosition()),
   _max(template_mesh.computeMaxPosition())
 {
+
 }
 
 BoundingBox::BoundingBox(glm::vec3 min, glm::vec3 max) :
@@ -18,7 +19,7 @@ BoundingBox::~BoundingBox()
   
 }
 
-bool BoundingBox::intersects(glm::vec3 point) const
+bool BoundingBox::intersects(const glm::vec3& point) const
 {
   return (point.x > _min.x &&
           point.y > _min.y &&
@@ -28,7 +29,8 @@ bool BoundingBox::intersects(glm::vec3 point) const
           point.z < _max.z);
 }
 
-bool BoundingBox::intersects(glm::vec3 origin, glm::vec3 direction, float* t) const
+std::pair<bool, float> BoundingBox::intersects(
+  const glm::vec3& origin, const glm::vec3& direction) const
 {
   // r.dir is unit direction vector of ray
   glm::vec3 dirfrac(1.0f / direction.x, 1.0f / direction.y, 1.0f / direction.z);
@@ -52,18 +54,14 @@ bool BoundingBox::intersects(glm::vec3 origin, glm::vec3 direction, float* t) co
   // if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
   if (tmax < 0)
   {
-      *t = tmax;
-      return false;
+      return {false, tmax};
   }
 
   // if tmin > tmax, ray doesn't intersect AABB
   if (tmin > tmax)
   {
-      *t = tmax;
-      return false;
+      return {false, tmax};
   }
 
-  *t = tmin;
-  return true;
-  return false;
+    return {true, tmin};
 }

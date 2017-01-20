@@ -29,13 +29,18 @@ public:
 
   // Getters
   const glm::mat4& projectionTransform();
-  void unproject(
-    glm::vec2 position_ndc, glm::vec3* origin, glm::vec3* direction) const;
+  // Origin and direction
+  std::pair<glm::vec3, glm::vec3> unproject(const glm::vec2& position_ndc) const;
 protected:
-  // OpenGL handles
-  std::map<GLuint, CameraShaderHandle> shader_handles_;
-
+  //!
+  /*!
+    Sets the view and projection matrices of the cameras shader to the
+    corresponding transforms for the camera. Updates the uniforms "V" and "P"
+    for all shaders
+  */
+  void updateAllShaderUniforms();
   // Data
+  std::map<GLuint, CameraShaderHandle> shader_handles_;
   glm::mat4 _projection_transform;
 };
 
@@ -51,8 +56,20 @@ public:
   virtual void execute();
 
   // Setters
+  //! Set the field of view of the camera in angles
+  /*!
+    \param fov is a positive value.
+  */
   void setFOV(float fov);
+  //! Set the near clipping plane of the camera
+  /*!
+    \param near is a positive value.
+  */
   void setNearClippingPlane(float near);
+  //! Set the far clipping plane of the camera
+  /*!
+    \param far is a positive value.
+  */
   void setFarClippingPlane(float far);
   void setAspectRatio(float aspect);
 private:

@@ -1,13 +1,12 @@
 #include "SGE/ShaderManager.h"
 
-ShaderManager* ShaderManager::_instance;
+ShaderManager ShaderManager::_instance;
 
 ShaderManager::ShaderManager()
 {
 
 }
 
-//! Destructor
 ShaderManager::~ShaderManager()
 {
   for (std::map<std::string, GLuint>::const_iterator it =
@@ -18,15 +17,8 @@ ShaderManager::~ShaderManager()
   }
 }
 
-//! Returning the instance that can be used for calling other functions.
-/*!
-  This function can not be called before an OpenGL context is created.
-*/
-ShaderManager* ShaderManager::instance()
+ShaderManager& ShaderManager::instance()
 {
-  if (!_instance) {
-    _instance = new ShaderManager();
-  }
   return _instance;
 }
 
@@ -48,10 +40,6 @@ void ShaderManager::loadShader(
       fs_src)));  // Fragment shader file path
 }
 
-//! Returns a program ID based on a name.
-/*!
-  \param name is the name of a previously added shader program
-*/
 GLuint ShaderManager::getShader(std::string name)
 {
   GLuint program_ID = _shader_program_IDs[name];
@@ -80,9 +68,6 @@ GLuint ShaderManager::getShader(std::string name)
     #define GL_PATCHES 0x000E
 #endif
 
-//! Load and compile a shader program.
-/*!
-*/
 GLuint ShaderManager::_compileShader(
   const char* vertex_file_path,
   const char* tesselation_control_file_path,
