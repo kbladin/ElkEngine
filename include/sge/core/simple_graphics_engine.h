@@ -1,9 +1,8 @@
-#ifndef SIMPLE_GRAPHICS_ENGINE_H
-#define SIMPLE_GRAPHICS_ENGINE_H
+#pragma once
 
-#include "SGE/Object3D.h"
-#include "SGE/Mesh.h"
-#include "SGE/Camera.h"
+#include "SGE/core/object_3d.h"
+#include "SGE/core/mesh.h"
+#include "SGE/core/camera.h"
 
 #include <vector>
 #include <map>
@@ -13,6 +12,8 @@
 #include <glm/gtx/transform.hpp>
 
 #include <gl/glew.h>
+
+namespace sge { namespace core {
 
 //! This class manages all objects in the engine.
 /*!
@@ -52,4 +53,4 @@ private:
   int _window_height;
 };
 
-#endif
+} }

@@ -1,7 +1,6 @@
-#ifndef MESH_H
-#define MESH_H
+#pragma once
 
-#include "SGE/MeshLoader.h"
+#include "SGE/core/mesh_loader.h"
 
 #include <vector>
 
@@ -11,6 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
+namespace sge { namespace core {
 //! This class serves as a base for the mesh classes
 /*!
   All meshes have a list of vertices but depending of type it can have different
@@ -140,4 +140,4 @@ protected:
   virtual void initialize();
 };
 
-#endif
+} }

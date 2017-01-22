@@ -1,11 +1,12 @@
-#ifndef MESH_LOADER
-#define MESH_LOADER
+#pragma once
 
 #include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
+
+namespace sge { namespace core {
 
 bool loadMesh_assimp(
   const char* 					path,
@@ -14,4 +15,4 @@ bool loadMesh_assimp(
   std::vector<glm::vec2>* 		out_uvs, 
   std::vector<glm::vec3>* 		out_normals);
 
-#endif
+} }

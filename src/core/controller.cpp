@@ -1,11 +1,12 @@
-#include "SGE/Controller.h"
+#include "SGE/core/controller.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-Controller::Controller(Object3D& object) :
-	_object(object),
+namespace sge { namespace core {
+
+Controller::Controller() :
 	_mouse_x(0),
 	_mouse_y(0),
 	_mouse_dx(0),
@@ -97,7 +98,8 @@ void Controller::windowSizeCallback(int width, int height)
 }
 
 SphericalController::SphericalController(Object3D& object) :
-	Controller(object)
+	Controller(),
+	_object(object)
 {
 	// These should be set according to the transform matrix of object
 	_theta = 0;
@@ -146,3 +148,5 @@ void SphericalController::transformObject()
 
 	_object.setTransform(M);
 }
+
+} }

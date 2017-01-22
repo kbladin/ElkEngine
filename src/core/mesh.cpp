@@ -1,4 +1,6 @@
-#include "SGE/Mesh.h"
+#include "SGE/core/mesh.h"
+
+namespace sge { namespace core {
 
 AbstractMesh::AbstractMesh()
 {
@@ -786,3 +788,5 @@ void CPUPointCloudMesh::render()
   
   glDisableVertexAttribArray(0);
 }
+
+} }

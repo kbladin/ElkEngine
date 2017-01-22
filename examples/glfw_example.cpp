@@ -1,10 +1,18 @@
 #include <gl/glew.h>
 #include <gl/glfw3.h>
 
-#include <SGE/SimpleGraphicsEngine.h>
+#include <SGE/core/simple_graphics_engine.h>
+#include <SGE/window/application_window_glfw.h>
+
+
+#include <functional>
 
 // This class extends SimpleGraphicsEngine,
 // Before initializing this object, an OpenGL context must be created
+
+using namespace sge::core;
+using namespace sge::window;
+
 class MyEngine : public SimpleGraphicsEngine
 {
 public:
@@ -14,7 +22,7 @@ public:
   void update();
 };
 
-MyEngine::MyEngine() : SimpleGraphicsEngine()
+MyEngine::MyEngine() : SimpleGraphicsEngine(720, 480)
 {
   
 }
@@ -31,34 +39,14 @@ void MyEngine::update()
 
 int main(int argc, char const *argv[])
 {
-  // Initialize glfw
-  if (!glfwInit())
-    return -1;
-  // Modern OpenGL
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  // Create a windowed mode window and its OpenGL context
-  GLFWwindow* window = glfwCreateWindow(720, 480, "Example1", NULL, NULL);
-  if (!window)
-  {
-    glfwTerminate();
-    return -1;
-  }
-  // Make the window's context current
-  glfwMakeContextCurrent(window);
-  printf("%s\n", glGetString(GL_VERSION));
-  
+  ApplicationWindowGLFW window(720, 480);
   MyEngine e;
-
-  while (!glfwWindowShouldClose(window))
+  std::function<void(void)> loop = [&]()
   {
     e.update();
-
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-  }
+  };
+  
+  window.run(loop);
 
   return 0;
 }

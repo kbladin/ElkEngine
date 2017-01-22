@@ -1,4 +1,6 @@
-#include "SGE/BoundingBox.h"
+#include "SGE/core/bounding_box.h"
+
+namespace sge { namespace core {
 
 BoundingBox::BoundingBox(const AbstractMesh& template_mesh) :
   _min(template_mesh.computeMinPosition()),
@@ -65,3 +67,5 @@ std::pair<bool, float> BoundingBox::intersects(
 
     return {true, tmin};
 }
+
+} }

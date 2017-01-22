@@ -1,5 +1,4 @@
-#ifndef SHADER_MANAGER_H
-#define SHADER_MANAGER_H
+#pragma once
 
 #include <map>
 #include <iostream>
@@ -9,6 +8,7 @@
 
 #include <gl/glew.h>
 
+namespace sge { namespace core {
 //! A class containing all shader program IDs in a map.
 /*!
   This class uses the singleton design pattern. This means that It is not
@@ -40,5 +40,4 @@ private:
   std::map<std::string, GLuint> _shader_program_IDs;
 };
 
-
-#endif
+} }

@@ -1,9 +1,10 @@
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
+#pragma once
 
-#include "SGE/Object3D.h"
+#include "SGE/core/object_3d.h"
 
 #include <set>
+
+namespace sge { namespace core {
 
 enum class Key
 {
@@ -160,7 +161,7 @@ enum class MouseButton
 class Controller
 {
 public:
-	Controller(Object3D& object);
+	Controller();
 	~Controller();
 
 	//! \param x and \param y are given in NDC coordinates
@@ -172,7 +173,6 @@ public:
 
 	virtual void step(float dt) = 0;
 protected:
-	Object3D& _object; // Object to be controlled
 	std::set<MouseButton> _mouse_buttons_pressed;
 	std::set<Key> _keys_pressed;
 	std::set<KeyModifier> _modifiers_pressed;
@@ -189,8 +189,10 @@ public:
 private:
 	void handleInput(float dt);
 	void transformObject();
+	
+	Object3D& _object; // Object to be controlled
 	float _theta, _phi, _r;
 	float sensitivity = 0.01;
 };
 
-#endif
+} }

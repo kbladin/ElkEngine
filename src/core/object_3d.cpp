@@ -1,4 +1,6 @@
-#include "SGE/Object3D.h"
+#include "SGE/core/object_3d.h"
+
+namespace sge { namespace core {
 
 void Object3D::addChild(Object3D& child)
 {
@@ -43,3 +45,5 @@ void Object3D::setTransform(const glm::mat4& transform)
 {
   _relative_transform = transform;
 }
+
+} }

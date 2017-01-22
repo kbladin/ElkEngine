@@ -1,9 +1,10 @@
-#ifndef BOUNDING_BOX_H
-#define BOUNDING_BOX_H
+#pragma once
 
-#include "SGE/Mesh.h"
+#include "SGE/core/mesh.h"
 
 #include <glm/glm.hpp>
+
+namespace sge { namespace core {
 
 //! An axis aligned bounding box.
 class BoundingBox {
@@ -21,5 +22,4 @@ private:
   glm::vec3 _max;
 };
 
-
-#endif
+} }

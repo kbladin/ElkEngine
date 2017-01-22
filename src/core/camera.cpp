@@ -1,4 +1,6 @@
-#include "SGE/Camera.h"
+#include "SGE/core/camera.h"
+
+namespace sge { namespace core {
 
 AbstractCamera::AbstractCamera()
 {
@@ -132,3 +134,5 @@ void OrthoCamera::execute()
   _projection_transform = glm::ortho(_left, _right, _bottom, _top, _near, _far);
   AbstractCamera::updateAllShaderUniforms();
 }
+
+} }

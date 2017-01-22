@@ -1,10 +1,16 @@
-#include "SGE/MeshLoader.h"
+#include "SGE/core/mesh_loader.h"
 
 #include <iostream>
+
+#ifdef SGE_USE_ASSIMP
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+
+#endif
+
+namespace sge { namespace core {
 
 //! Loads a mesh using the assimp library.
 /*!
@@ -19,7 +25,9 @@ bool loadMesh_assimp(
   std::vector<glm::vec3>*       out_vertices, 
   std::vector<glm::vec2>*       out_uvs, 
   std::vector<glm::vec3>*       out_normals)
-{ 
+{
+#ifdef SGE_USE_ASSIMP
+
   Assimp::Importer importer;
 
   const aiScene* scene=importer.ReadFile(
@@ -100,4 +108,10 @@ bool loadMesh_assimp(
   }
 
   return true;
+
+#else
+  std::cout << "Assimp is not enabled in build options!!" << std::endl;
+#endif
 }
+
+} }

@@ -1,7 +1,6 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#pragma once
 
-#include "SGE/Object3D.h"
+#include "SGE/core/object_3d.h"
 
 #include <map>
 
@@ -10,6 +9,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
+
+namespace sge { namespace core {
 
 struct CameraShaderHandle
 {
@@ -101,4 +102,4 @@ private:
   float _far;
 };
 
-#endif
+} }

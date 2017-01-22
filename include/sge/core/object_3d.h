@@ -1,11 +1,12 @@
-#ifndef OBJECT_3D_H
-#define OBJECT_3D_H
+#pragma once
 
 #include <vector>
   
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
+
+namespace sge { namespace core {
 
 //! An object positioned in 3D space.
 /*!
@@ -43,4 +44,4 @@ private:
   glm::mat4 _absolute_transform;
 };
 
-#endif
+} }

@@ -1,4 +1,7 @@
-#include "SGE/ShaderManager.h"
+#include "sge/core/shader_manager.h"
+
+
+namespace sge { namespace core {
 
 ShaderManager ShaderManager::_instance;
 
@@ -289,3 +292,5 @@ GLuint ShaderManager::_compileShader(
 
   return program_ID;
 }
+
+} }

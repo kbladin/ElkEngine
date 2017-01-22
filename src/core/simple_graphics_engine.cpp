@@ -1,4 +1,6 @@
-#include "SGE/SimpleGraphicsEngine.h"
+#include "SGE/core/simple_graphics_engine.h"
+
+namespace sge { namespace core {
 
 SimpleGraphicsEngine::SimpleGraphicsEngine(int width, int height) :
   perspective_camera(45.0f, static_cast<float>(width) / height, 0.01, 100),
@@ -89,3 +91,5 @@ void SimpleGraphicsEngine::setWindowResolution(int width, int height)
   glViewport(0,0,_window_width, _window_height);
   perspective_camera.setAspectRatio( static_cast<float>(width) / height);
 }
+
+} }
