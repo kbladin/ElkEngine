@@ -1,26 +1,9 @@
 #include "sge/core/file_utils.h"
 
+namespace sge { namespace core {
+
 std::string read_file(const char* file_path)
 {
-	/*
-	std::ifstream file_stream(file_path, std::ios::in);
-	std::string file_string;
-
-	if(ifstream.is_open())
-	{
-	  std::string line = "";
-	  while(getline(ifstream, line))
-	  {
-	  	file_string += line + "\n";
-	  }
-	  file_stream.close();
-	}
-	else
-	{
-	  printf("ERROR : %s could not be opened.\n", file_path);
-	}
-*/
-
 	std::string result;
 	if (FILE *fp = fopen(file_path, "rb"))
 	{
@@ -33,6 +16,8 @@ std::string read_file(const char* file_path)
 	{
 		printf("ERROR : %s could not be opened.\n", file_path);
 	}
-
+  
 	return result;
 }
+
+} }

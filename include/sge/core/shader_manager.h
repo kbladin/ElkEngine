@@ -1,5 +1,7 @@
 #pragma once
 
+#include "sge/core/shader_program.h"
+
 #include <map>
 #include <iostream>
 #include <fstream>
@@ -19,25 +21,19 @@ class ShaderManager {
 public:
   static ShaderManager& instance();
   ~ShaderManager();
-  void loadShader(
+  void loadAndAddShader(
     std::string name,
     const char* vs_src,
     const char* tcs_src,
     const char* tes_src,
     const char* gs_src,
     const char* fs_src);
-  GLuint getShader(std::string name);
+  ShaderProgram* getShader(std::string name);
 private:
   ShaderManager();
-  GLuint _compileShader(
-    const char* vertex_file_path,
-    const char* tesselation_control_file_path,
-    const char* tesselation_eval_file_path,
-    const char* geometry_file_path,
-    const char* fragment_file_path);
-  
+
   static ShaderManager _instance;
-  std::map<std::string, GLuint> _shader_program_IDs;
+  std::map<std::string, std::unique_ptr<ShaderProgram> > _shader_programs;
 };
 
 } }
