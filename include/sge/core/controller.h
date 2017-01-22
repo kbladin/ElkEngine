@@ -165,11 +165,11 @@ public:
 	~Controller();
 
 	//! \param x and \param y are given in NDC coordinates
-	void mousePosCallback(double x, double y);
-	void mouseButtonCallback(MouseButton button, KeyAction action);
-	void mouseScrollCallback(double dx, double dy);
-	void keyCallback(Key key, KeyAction action);
-  	void windowSizeCallback(int width, int height);
+	virtual void mousePosCallback(double x, double y);
+	virtual void mouseButtonCallback(MouseButton button, KeyAction action);
+	virtual void mouseScrollCallback(double dx, double dy);
+	virtual void keyCallback(Key key, KeyAction action);
+  	virtual void windowSizeCallback(int width, int height);
 
 	virtual void step(float dt) = 0;
 protected:
@@ -189,7 +189,7 @@ public:
 private:
 	void handleInput(float dt);
 	void transformObject();
-	
+
 	Object3D& _object; // Object to be controlled
 	float _theta, _phi, _r;
 	float sensitivity = 0.01;
