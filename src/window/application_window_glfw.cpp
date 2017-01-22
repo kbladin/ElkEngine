@@ -59,6 +59,11 @@ void ApplicationWindowGLFW::run(std::function<void(void)> f)
 {
   while (!glfwWindowShouldClose(_window))
   {
+    for (auto&& controller : _controllers)
+    {
+      controller->step(0);
+    }
+
     f();
 
     _frame_counter ++;
