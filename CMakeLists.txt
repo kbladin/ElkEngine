@@ -56,7 +56,7 @@ if (${PROJECT_NAME}_USE_GLFW)
   include_directories(${GLFW_INCLUDE_DIRS})
   target_link_libraries(${PROJECT_NAME} ${GLFW_LIBRARIES})
   target_sources(${PROJECT_NAME} PUBLIC
-    ${PROJECT_SOURCE_DIR}/include/SGE/window/application_window_glfw.h
+    ${PROJECT_SOURCE_DIR}/include/sge/window/application_window_glfw.h
     ${PROJECT_SOURCE_DIR}/src/window/application_window_glfw.cpp)
     #target_compile_definitions(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_USE_GLFW = "1")
 endif()
@@ -65,7 +65,10 @@ if (${PROJECT_NAME}_USE_ASSIMP)
   find_package(ASSIMP REQUIRED)
   include_directories(${ASSIMP_INCLUDE_DIRS})
   target_link_libraries(${PROJECT_NAME} ${ASSIMP_LIBRARIES})
-  target_compile_definitions(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_USE_ASSIMP = "1")
+  target_sources(${PROJECT_NAME} PUBLIC
+    ${PROJECT_SOURCE_DIR}/include/sge/asset_loading/asset_loading_assimp.h
+    ${PROJECT_SOURCE_DIR}/src/asset_loading/asset_loading_assimp.cpp)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_USE_ASSIMP)
 endif()
 
 ############

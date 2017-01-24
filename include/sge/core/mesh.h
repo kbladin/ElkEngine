@@ -1,7 +1,5 @@
 #pragma once
 
-#include "SGE/core/mesh_loader.h"
-
 #include <vector>
 
 #include <gl/glew.h>
@@ -42,7 +40,6 @@ protected:
   */
 class TriangleMesh : public AbstractMesh{
 public:
-  TriangleMesh(const char *file_name);
   TriangleMesh(
     std::vector<glm::vec3> vertices,
     std::vector<glm::vec3> normals,

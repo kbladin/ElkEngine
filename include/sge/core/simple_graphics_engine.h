@@ -28,8 +28,8 @@ public:
   // Getters
   int windowWidth();
   int windowHeight();
-  const PerspectiveCamera& camera();
-  const OrthoCamera& viewSpaceCamera();
+  PerspectiveCamera& camera();
+  OrthoCamera& viewSpaceCamera();
 
   // Setters
   virtual void setWindowResolution(int width, int height);
@@ -47,6 +47,7 @@ protected:
 private:
   //! Initializes GLEW, an OpenGL context needs to be active
   virtual bool _initializeGL();
+  void checkForErrors();
 
   // Data
   int _window_width;

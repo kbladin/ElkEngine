@@ -1,24 +1,14 @@
-#include "SGE/core/mesh_loader.h"
-
-#include <iostream>
-
-#ifdef SGE_USE_ASSIMP
+#include "sge/asset_loading/asset_loading_assimp.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#endif
+#include <iostream>
+#include <cassert>
 
 namespace sge { namespace core {
 
-//! Loads a mesh using the assimp library.
-/*!
-  \param path is a cstring of the path to the file.
-  \param out_indices is the output indeces.
-  \param out_uvs is the output uvs.
-  \param out_normals is the output normals.
-*/
 bool loadMesh_assimp(
   const char*                   path,
   std::vector<unsigned short>*  out_indices,
@@ -26,41 +16,46 @@ bool loadMesh_assimp(
   std::vector<glm::vec2>*       out_uvs, 
   std::vector<glm::vec3>*       out_normals)
 {
-#ifdef SGE_USE_ASSIMP
-
   Assimp::Importer importer;
 
   const aiScene* scene=importer.ReadFile(
-    path, 
+    path,
     aiProcess_GenSmoothNormals | 
     aiProcess_Triangulate | 
     aiProcess_CalcTangentSpace | 
     aiProcess_FlipUVs);
 
-  if(!scene || scene->mFlags==AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+  if(!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
   {
     std::cout << "The file wasn't successfuly opened: " << path << std::endl;
     return false;
   }
 
-  aiMesh* mesh=scene->mMeshes[0];
-
-  for(int i=0; i<mesh->mNumVertices; ++i)
+  // Just take the first mesh
+  aiMesh* mesh = scene->mMeshes[0];
+  
+  for(int i = 0; i < mesh->mNumVertices; ++i)
   {
     glm::vec3 tmpVec;
     
-    //position
-    tmpVec.x=mesh->mVertices[i].x;
-    tmpVec.y=mesh->mVertices[i].y;
-    tmpVec.z=mesh->mVertices[i].z;
-    out_vertices->push_back(tmpVec);
+    if (out_vertices)
+    {
+      //position
+      tmpVec.x = mesh->mVertices[i].x;
+      tmpVec.y = mesh->mVertices[i].y;
+      tmpVec.z = mesh->mVertices[i].z;
+      out_vertices->push_back(tmpVec);
+    }
     
-    //normals
-    tmpVec.x=mesh->mNormals[i].x;
-    tmpVec.y=mesh->mNormals[i].y;
-    tmpVec.z=mesh->mNormals[i].z;
-    out_normals->push_back(tmpVec);
-
+    if (out_normals)
+    {
+      //normals
+      tmpVec.x = mesh->mNormals[i].x;
+      tmpVec.y = mesh->mNormals[i].y;
+      tmpVec.z = mesh->mNormals[i].z;
+      out_normals->push_back(tmpVec);
+    }
+    
     // Ignore tangents and colors for now
   /*
     //tangent
@@ -87,31 +82,33 @@ bool loadMesh_assimp(
     tmp.color=tmpVec;
   */
     //Textures
-    if(mesh->mTextureCoords[0])
-    {
-      tmpVec.x=mesh->mTextureCoords[0][i].x;
-      tmpVec.y=mesh->mTextureCoords[0][i].y;        
-    }else{
-      tmpVec.x=tmpVec.y=tmpVec.z=0.0;
-    }
     if (out_uvs)
+    {
+      if(mesh->mTextureCoords[0])
+      {
+        tmpVec.x = mesh->mTextureCoords[0][i].x;
+        tmpVec.y = mesh->mTextureCoords[0][i].y;        
+      }
+      else
+      {
+        tmpVec.x = tmpVec.y = 0.0;
+      }
       out_uvs->push_back(glm::vec2(tmpVec.x, tmpVec.y));
+    }
   }
 
-  for(int i=0;i<mesh->mNumFaces; ++i)
+  for(int i = 0; i < mesh->mNumFaces; ++i)
   {
-    aiFace face=mesh->mFaces[i];
-    for(int j=0;j<face.mNumIndices;++j) //0..2
+    aiFace face = mesh->mFaces[i];
+    for(int j = 0; j < face.mNumIndices; ++j) //0..2
     {
       out_indices->push_back(face.mIndices[j]);
     }
   }
 
-  return true;
+  assert(out_vertices->size() == out_normals->size() && out_vertices->size() == out_uvs->size());
 
-#else
-  std::cout << "Assimp is not enabled in build options!!" << std::endl;
-#endif
+  return true;
 }
 
 } }

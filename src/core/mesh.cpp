@@ -47,17 +47,6 @@ glm::vec3 AbstractMesh::computeMaxPosition() const
   return min;
 }
 
-//! Create a TriangleMesh from file.
-/*!
-  \param file_name is the file path for the model, for example "bunny.obj".
-  \param material is the material of the mesh
-*/
-TriangleMesh::TriangleMesh(const char *file_name)
-{
-  loadMesh_assimp(file_name, &_elements, &_vertices, NULL, &_normals);
-  initialize();
-}
-
 //! Create a TriangleMesh from vertex lists.
 /*!
   \param vertices is a list of vertices.
@@ -453,18 +442,10 @@ void TriangleMesh::initialize()
     _elements.size() * sizeof(unsigned short),
     &_elements[0],
     GL_STATIC_DRAW);
-}
 
-//! Render the mesh.
-/*!
-  \param M is the transformation matrix of the parent.
-*/
-void TriangleMesh::render()
-{ 
   glBindVertexArray(_vertex_array_ID);
-  
+
   // 1rst attribute buffer : vertices
-  glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, _vertex_buffer);
   glVertexAttribPointer(
     0,          // attribute
@@ -475,7 +456,6 @@ void TriangleMesh::render()
     (void*)0);  // array buffer offset
   
   // 2nd attribute buffer : normals
-  glEnableVertexAttribArray(1);
   glBindBuffer(GL_ARRAY_BUFFER, _normal_buffer);
   glVertexAttribPointer(
     1,          // attribute
@@ -484,10 +464,23 @@ void TriangleMesh::render()
     GL_FALSE,   // normalized?
     0,          // stride
     (void*)0);  // array buffer offset
+
+}
+
+//! Render the mesh.
+/*!
+  \param M is the transformation matrix of the parent.
+*/
+void TriangleMesh::render()
+{ 
+  glBindVertexArray(_vertex_array_ID);
   
   // Index buffer
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _element_buffer);
     
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
+
   // Draw the triangles
   glDrawElements(
     GL_TRIANGLES,       // mode
