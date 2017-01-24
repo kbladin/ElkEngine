@@ -111,7 +111,6 @@ glm::vec3 NewMesh::computeMaxPosition() const
   return min;
 }
 
-
 NewCPUPointCloud::NewCPUPointCloud(std::vector<glm::vec3>* positions) :
   NewMesh(nullptr, positions, nullptr, nullptr, nullptr, nullptr,
     GL_POINTS, GL_DYNAMIC_DRAW)
@@ -123,6 +122,7 @@ void NewCPUPointCloud::render()
 {
   _vao.bind();
   _vao.enableAttribArrays();
+  glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
   _vao.getBuffer(0).render();
   _vao.disableAttribArrays();
 }
@@ -132,7 +132,7 @@ void NewCPUPointCloud::update(std::vector<glm::vec3>& positions)
   _vao.getBuffer(0).update(
     {&positions[0], sizeof(glm::vec3) * positions.size(),
     static_cast<GLuint>(positions.size()), GL_FLOAT, GL_ARRAY_BUFFER,
-    GL_POINTS, GL_DYNAMIC_DRAW});
+    GL_DYNAMIC_DRAW, GL_POINTS});
 }
 
 } }
