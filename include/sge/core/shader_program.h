@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <stack>
 
 #include <gl/glew.h>
 
@@ -18,10 +19,12 @@ public:
     const char* fs_src);
   ~ShaderProgram();
 
-  inline void bind() { glUseProgram(_id); };
-  inline void unbind() { glUseProgram(0); };
+  void pushUsage();
+  void popUsage();
+  void useNone();
 
   inline const GLuint& id() { return _id; };
+  static inline const GLuint& currentProgramId() { return _shader_stack.top(); };
 private:
   GLuint loadShaderProgram(
     const char* vs_src,
@@ -32,6 +35,7 @@ private:
 
   std::string _name;
   GLuint _id;
+  static std::stack<GLuint> _shader_stack;
 };
 
 } }

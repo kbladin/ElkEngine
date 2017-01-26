@@ -88,8 +88,8 @@ NewMesh::~NewMesh()
 
 void NewMesh::render()
 {
-  _element_buffer->bind();
   _vao.bind();
+  _element_buffer->bind();
   _vao.enableAttribArrays();
   _element_buffer->render();
   _vao.disableAttribArrays();

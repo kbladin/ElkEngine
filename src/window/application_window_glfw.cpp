@@ -59,14 +59,6 @@ void ApplicationWindowGLFW::run(std::function<void(void)> f)
 {
   while (!glfwWindowShouldClose(_window))
   {
-    for (auto&& controller : _controllers)
-    {
-      controller->step(0);
-    }
-
-    f();
-
-    _frame_counter ++;
     double time_since_last = glfwGetTime() - _time;
     _delay_counter += time_since_last;
 
@@ -77,11 +69,19 @@ void ApplicationWindowGLFW::run(std::function<void(void)> f)
       _frame_counter = 0;
       _delay_counter = 0;
     }
+    
+    for (auto&& controller : _controllers)
+    {
+      controller->step(0);
+    }
 
-
+    f();
+    
+    _time = glfwGetTime();
+    _frame_counter++;
+    
     glfwSwapBuffers(_window);
     glfwPollEvents();
-    _time = glfwGetTime();
   }
 }
 

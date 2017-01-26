@@ -50,7 +50,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-std=c++14")
 option(${PROJECT_NAME}_BUILD_EXAMPLES "Build all examples." OFF)
 option(${PROJECT_NAME}_USE_GLFW "Use GLFW." OFF)
 option(${PROJECT_NAME}_USE_ASSIMP "Use Assimp." OFF)
+option(${PROJECT_NAME}_USE_DEVIL "Use DevIL." OFF)
 
+######################
+# External Libraries #
+######################
 if (${PROJECT_NAME}_USE_GLFW)
   find_package(GLFW3 REQUIRED)
   include_directories(${GLFW_INCLUDE_DIRS})
@@ -69,6 +73,15 @@ if (${PROJECT_NAME}_USE_ASSIMP)
     ${PROJECT_SOURCE_DIR}/include/sge/asset_loading/asset_loading_assimp.h
     ${PROJECT_SOURCE_DIR}/src/asset_loading/asset_loading_assimp.cpp)
   target_compile_definitions(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_USE_ASSIMP)
+endif()
+
+if (${PROJECT_NAME}_USE_DEVIL)
+  find_package(DEVIL REQUIRED)
+  include_directories(${IL_INCLUDE_DIR})
+  target_link_libraries(${PROJECT_NAME} ${IL_LIBRARIES})
+  target_sources(${PROJECT_NAME} PUBLIC
+    ${PROJECT_SOURCE_DIR}/include/sge/texture_loading/texture_loading_devil.h
+    ${PROJECT_SOURCE_DIR}/src/texture_loading/texture_loading_devil.cpp)
 endif()
 
 ############

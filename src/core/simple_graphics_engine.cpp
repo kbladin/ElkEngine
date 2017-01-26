@@ -4,13 +4,14 @@ namespace sge { namespace core {
 
 SimpleGraphicsEngine::SimpleGraphicsEngine(int width, int height) :
   perspective_camera(45.0f, static_cast<float>(width) / height, 0.01, 100),
-  viewspace_ortho_camera(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f)
+  viewspace_ortho_camera(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f),
+  _window_width(width),
+  _window_height(height)
 {
   if (!_initializeGL())
   {
     fprintf(stderr, "Could not initialize SimpleGraphicsEngine. Is an OpenGL context created?\n");
   }
-  setWindowResolution(width, height);
 }
 
 SimpleGraphicsEngine::~SimpleGraphicsEngine()
@@ -43,15 +44,20 @@ bool SimpleGraphicsEngine::_initializeGL()
   return true;
 }
 
-void SimpleGraphicsEngine::render()
+void SimpleGraphicsEngine::updateTransforms()
 {
-  // First update transforms
   perspective_camera.updateTransform(glm::mat4());
   viewspace_ortho_camera.updateTransform(glm::mat4());
 
   scene.updateTransform(glm::mat4());
   view_space.updateTransform(glm::mat4());
   background_space.updateTransform(glm::mat4());
+}
+
+
+void SimpleGraphicsEngine::render()
+{
+  updateTransforms();
 
   // Then render
   glClearColor(0.0, 0.0, 0.0, 1);

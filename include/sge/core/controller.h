@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SGE/core/object_3d.h"
+#include "SGE/core/simple_graphics_engine.h"
 
 #include <set>
 
@@ -192,7 +193,26 @@ private:
 
 	Object3D& _object; // Object to be controlled
 	float _theta, _phi, _r;
-	float sensitivity = 0.01;
+	float _shift_dx, _shift_dy;
+	glm::vec3 _center;
+	float sensitivity = 0.005;
+};
+
+
+class WindowSizeController : public Controller
+{
+public:
+	WindowSizeController(SimpleGraphicsEngine& engine) : _engine(engine) {};
+	~WindowSizeController() {};
+	
+	virtual void step(float dt) {};
+  virtual void windowSizeCallback(int width, int height)
+  {
+    _engine.setWindowResolution(width, height);
+  };
+
+private:
+  SimpleGraphicsEngine& _engine;
 };
 
 } }

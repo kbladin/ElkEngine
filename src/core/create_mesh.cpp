@@ -36,20 +36,16 @@ std::shared_ptr<NewMesh> CreateMesh::load(const char* path)
 
 std::shared_ptr<NewMesh> CreateMesh::quad()
 {
-  std::vector<unsigned short>* elements = new std::vector<unsigned short>;
-  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>;
-  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>;
-
-  // Data sizes
-  positions->resize(4);
-  normals->resize(4);
-  elements->resize(6);
+  std::vector<unsigned short>* elements = new std::vector<unsigned short>(6);
+  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(4);
+  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>(4);
+  std::vector<glm::vec2>* texture_coordinates = new std::vector<glm::vec2>(4);
   
   // Create a quad
-  (*positions)[0] = glm::vec3(1.0f, 1.0f, 0.0f);
+  (*positions)[0] = glm::vec3(-1.0f, -1.0f, 0.0f);
   (*positions)[1] = glm::vec3(1.0f, -1.0f, 0.0f);
-  (*positions)[2] = glm::vec3(-1.0f, -1.0f, 0.0f);
-  (*positions)[3] = glm::vec3(-1.0f, 1.0f, 0.0f);
+  (*positions)[2] = glm::vec3(-1.0f, 1.0f, 0.0f);
+  (*positions)[3] = glm::vec3(1.0f, 1.0f, 0.0f);
   
   // Normals
   (*normals)[0] = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -57,28 +53,29 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
   (*normals)[2] = glm::vec3(0.0f, 0.0f, 1.0f);
   (*normals)[3] = glm::vec3(0.0f, 0.0f, 1.0f);
 
+  // Normals
+  (*texture_coordinates)[0] = glm::vec2(0.0f, 0.0f);
+  (*texture_coordinates)[1] = glm::vec2(1.0f, 0.0f);
+  (*texture_coordinates)[2] = glm::vec2(0.0f, 1.0f);
+  (*texture_coordinates)[3] = glm::vec2(1.0f, 1.0f);
+
   // Connectivity info
   (*elements)[0] = 0;
   (*elements)[1] = 1;
-  (*elements)[2] = 2;
-  (*elements)[3] = 2;
+  (*elements)[2] = 3;
+  (*elements)[3] = 0;
   (*elements)[4] = 3;
-  (*elements)[5] = 0;
+  (*elements)[5] = 2;
 
   // NewMesh takes ownership of the data!
-  return std::make_shared<NewMesh>(elements, positions, normals);
+  return std::make_shared<NewMesh>(elements, positions, normals, texture_coordinates);
 }
 
  std::shared_ptr<NewMesh> CreateMesh::box(glm::vec3 min, glm::vec3 max)
 {
-  std::vector<unsigned short>* elements = new std::vector<unsigned short>;
-  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>;
-  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>;
-
-  // Data sizes
-  positions->resize(24);
-  normals->resize(24);
-  elements->resize(36);
+  std::vector<unsigned short>* elements = new std::vector<unsigned short>(36);
+  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(24);
+  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>(24);
   
   // Bottom
   (*positions)[0] = glm::vec3(min.x, min.y, min.z);
@@ -197,14 +194,9 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
 
  std::shared_ptr<NewMesh> CreateMesh::cone(int divisions)
 {  
-  std::vector<unsigned short>* elements = new std::vector<unsigned short>;
-  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>;
-  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>;
-
-  // Data sizes
-  positions->resize(divisions + 2);
-  normals->resize(divisions + 2);
-  elements->resize(divisions * 6);
+  std::vector<unsigned short>* elements = new std::vector<unsigned short>(divisions * 6);
+  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(divisions + 2);
+  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>(divisions + 2);
 
   // Vertices around the base of the cone
   float delta_theta = M_PI * 2 / float(divisions);
@@ -243,15 +235,10 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
 
  std::shared_ptr<NewMesh> CreateMesh::cylinder(int divisions)
 {
-  std::vector<unsigned short>* elements = new std::vector<unsigned short>;
-  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>;
-  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>;
+  std::vector<unsigned short>* elements = new std::vector<unsigned short>(divisions * 12);
+  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(divisions * 2 + (divisions + 1) * 2);
+  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>(divisions * 2 + (divisions + 1) * 2);
 
-  // Data sizes
-  positions->resize(divisions * 2 + (divisions + 1) * 2);
-  normals->resize(divisions * 2 + (divisions + 1) * 2);
-  elements->resize(divisions * 12);
-  
   float delta_theta = M_PI * 2 / float(divisions);
   for (int i = 0; i<divisions; i++) {
     float x = cos(delta_theta * i);
@@ -331,11 +318,8 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
 
  std::shared_ptr<NewMesh> CreateMesh::grid(unsigned int divisions)
 {
-  std::vector<unsigned short>* elements = new std::vector<unsigned short>;
-  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>;
-
-  positions->resize((divisions + 1) * 4);
-  elements->resize((divisions + 1) * 4);
+  std::vector<unsigned short>* elements = new std::vector<unsigned short>((divisions + 1) * 4);
+  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>((divisions + 1) * 4);
 
   int i = 0;
   for (int j=0; i < divisions + 1; i++, j++) {
@@ -365,11 +349,8 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
 
  std::shared_ptr<NewMesh> CreateMesh::circle(unsigned int divisions)
 {
-  std::vector<unsigned short>* elements = new std::vector<unsigned short>;
-  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>;
-  
-  positions->resize(divisions);
-  elements->resize(divisions*2);
+  std::vector<unsigned short>* elements = new std::vector<unsigned short>(divisions * 2);
+  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(divisions);
   
   float delta_theta = M_PI * 2 / float(divisions);
   for (int i = 0; i<divisions; i++) {

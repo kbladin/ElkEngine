@@ -35,7 +35,9 @@ public:
   virtual void setWindowResolution(int width, int height);
 protected:
   //! Update the transforms of all objects in the scene and renders them
+  void updateTransforms();
   void render();
+  void checkForErrors();
 
   // Add children to these objects
   Object3D scene;
@@ -47,7 +49,6 @@ protected:
 private:
   //! Initializes GLEW, an OpenGL context needs to be active
   virtual bool _initializeGL();
-  void checkForErrors();
 
   // Data
   int _window_width;

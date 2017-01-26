@@ -7,6 +7,8 @@
 
 namespace sge { namespace core {
 
+std::stack<GLuint> ShaderProgram::_shader_stack;
+
 ShaderProgram::ShaderProgram(
 	std::string name,
 	const char* vs_src,
@@ -22,6 +24,24 @@ ShaderProgram::ShaderProgram(
 ShaderProgram::~ShaderProgram()
 {
   glDeleteProgram(_id);
+}
+
+void ShaderProgram::pushUsage()
+{
+  _shader_stack.push(_id);
+  glUseProgram(_shader_stack.top());
+}
+
+void ShaderProgram::popUsage()
+{
+  _shader_stack.pop();
+  glUseProgram(_shader_stack.empty() ? 0 : _shader_stack.top());
+}
+
+void ShaderProgram::useNone()
+{
+  _shader_stack = std::stack<GLuint>();
+  glUseProgram(0);
 }
 
 // https://www.omniref.com/ruby/gems/opengl-bindings/1.3.5/symbols/OpenGL::GL_TESS_CONTROL_SHADER

@@ -52,6 +52,8 @@ public:
   int numberOfChannels() const;
   void uploadTexture();
   void downloadTexture();
+
+  inline GLuint id() const {return _id;};
   
 protected:
   void initialize(bool allocate);

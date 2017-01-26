@@ -105,6 +105,7 @@ SphericalController::SphericalController(Object3D& object) :
 	_theta = 0;
 	_phi = 0;
 	_r = 1;
+	_center = glm::vec3(0.0f, 0.0f, 0.0f);
 }
 
 SphericalController::~SphericalController()
@@ -123,12 +124,25 @@ void SphericalController::handleInput(float dt)
     if (_modifiers_pressed.count(KeyModifier::MOD_CONTROL))
 	{
 		_r -= _scroll_dy * _r * sensitivity;
-		_r = glm::max(_r, 0.01f);
+		_r = glm::clamp(_r, 0.01f, 100.0f);
+    _shift_dx = -_scroll_dx * sensitivity * _r;
+  }
+	else if (_modifiers_pressed.count(KeyModifier::MOD_SHIFT))
+	{
+		_shift_dx = -_scroll_dx * sensitivity * _r;
+		_shift_dy = _scroll_dy * sensitivity * _r;
 	}
 	else
 	{
 		_theta += _scroll_dx * sensitivity;
 		_phi += _scroll_dy * sensitivity;
+    _shift_dx = 0;
+    _shift_dy = 0;
+	}
+
+	if (_keys_pressed.count(Key::KEY_R))
+	{
+		_center = glm::vec3(0.0f);
 	}
 
 	// Reset
@@ -143,8 +157,12 @@ void SphericalController::transformObject()
 	glm::mat4 T = glm::translate(glm::vec3(0.0f, 0.0f, _r));
 	glm::mat4 R1 = glm::rotate(glm::mat4(1.0f), _phi, glm::vec3(1.0f, 0.0f, 0.0f));
 	glm::mat4 R2 = glm::rotate(glm::mat4(1.0f), _theta, glm::vec3(0.0f, 1.0f, 0.0f));
+	
+	_center += glm::vec3(R2 * R1 * glm::vec4(_shift_dx, _shift_dy, 0.0f, 1.0f));
 
-	glm::mat4 M = R2 * R1 * T;
+	glm::mat4 T2 = glm::translate(_center);
+
+	glm::mat4 M = T2 * R2 * R1 * T;
 
 	_object.setTransform(M);
 }
