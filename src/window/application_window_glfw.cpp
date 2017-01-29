@@ -88,6 +88,7 @@ void ApplicationWindowGLFW::run(std::function<void(void)> f)
 void ApplicationWindowGLFW::addController(Controller& controller)
 {
   _controllers.push_back(&controller);
+    windowSizeCallback(_window, 0, 0);
 }
 
 void ApplicationWindowGLFW::mousePosCallback(

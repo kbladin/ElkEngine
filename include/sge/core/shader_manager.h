@@ -28,12 +28,12 @@ public:
     const char* tes_src,
     const char* gs_src,
     const char* fs_src);
-  ShaderProgram* getShader(std::string name);
+  std::shared_ptr<ShaderProgram> getShader(std::string name);
 private:
   ShaderManager();
 
   static ShaderManager _instance;
-  std::map<std::string, std::unique_ptr<ShaderProgram> > _shader_programs;
+  std::map<std::string, std::shared_ptr<ShaderProgram> > _shader_programs;
 };
 
 } }

@@ -24,7 +24,6 @@ public:
 
   enum class WrappingMode {
     Repeat = GL_REPEAT,
-    Clamp = GL_CLAMP,
     ClampToEdge = GL_CLAMP_TO_EDGE,
     ClampToBorder = GL_CLAMP_TO_BORDER,
     MirroredRepeat = GL_MIRRORED_REPEAT

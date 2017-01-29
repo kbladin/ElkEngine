@@ -36,9 +36,9 @@ void ShaderManager::loadAndAddShader(
     name, vs_src, tcs_src, tes_src, gs_src, fs_src)));
 }
 
-ShaderProgram* ShaderManager::getShader(std::string name)
+std::shared_ptr<ShaderProgram> ShaderManager::getShader(std::string name)
 {
-  return _shader_programs[name].get();
+  return _shader_programs[name];
 }
 
 } }

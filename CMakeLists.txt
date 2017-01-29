@@ -29,8 +29,12 @@ include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})
 set(CMAKE_CXX_FLAGS "-g")
 
 # Creating our own SGE library
-file(GLOB ${PROJECT_NAME}_SOURCES ${PROJECT_SOURCE_DIR}/src/core/*.cpp)
-file(GLOB ${PROJECT_NAME}_HEADERS ${PROJECT_SOURCE_DIR}/include/sge/core/*.h)
+file(GLOB ${PROJECT_NAME}_SOURCES
+  ${PROJECT_SOURCE_DIR}/src/core/*.cpp
+  ${PROJECT_SOURCE_DIR}/src/object_extensions/*.cpp)
+file(GLOB ${PROJECT_NAME}_HEADERS
+  ${PROJECT_SOURCE_DIR}/include/sge/core/*.h
+  ${PROJECT_SOURCE_DIR}/include/sge/object_extensions/*.h)
 
 add_library(${PROJECT_NAME} SHARED ${SGE_SOURCES} ${SGE_HEADERS})
 
