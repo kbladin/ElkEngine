@@ -19,12 +19,30 @@ float gaussian(float x, float sigma, float mu)
   return a * exp(-(x_minus_b * x_minus_b) / (2.0f * sigma * sigma));
 }
 
+float schlick(float n1, float n2, float cos_theta)
+{
+  float R0 = pow((n1 - n2) / (n1 + n2), 2);
+  float R = R0 + (1 - R0) * pow((1 - cos_theta), 5);
+  return R;
+}
+
+vec3 environment(vec3 dir)
+{
+  return vec3(0.1, 0.1, 0.1);
+}
+
 void main()
 {
   vec3 albedo = texture(tex0, fs_texture_coordinate).rgb;
   vec3 position = texture(tex1, fs_texture_coordinate).xyz;
   vec3 normal = texture(tex2, fs_texture_coordinate).xyz;
 
+  if (position == vec3(0,0,0))
+  {
+    color = vec4(environment(vec3(1)), 1);
+    return;
+  }
+    
   vec3 n = normalize(normal);
   vec3 l = normalize(vec3(-1));
   vec3 v = normalize(position - vec3(0.0f));
@@ -36,15 +54,19 @@ void main()
   float light_intensity = 0.7;
   float ambient_intensity = 0.2;
 
-  float specularity = 0.1;
-  float roughness = 1.0f;
+  float roughness = 0.01f;
+  float index_of_refraction = 2;
   
-  float cosine_term = max(dot(n, -l), 0.0f);
-  float theta_term = gaussian(1 - max(dot(r, -l), 0.0f), roughness, 0.0f);
+  float cos_alpha = max(dot(n, -l), 0.0f);
+  float cos_beta = gaussian(1 - max(dot(r, -l), 0.0f), roughness, 0.0f);
+  float cos_theta = max(dot(-v, n), 0.0f);
 
-  vec3 ambient = albedo * ambient_color * ambient_intensity;  
-  vec3 diffuse = albedo * (1.0f - specularity) * light_color * light_intensity * cosine_term;
-  vec3 specular = albedo * specularity * light_color * light_intensity * theta_term;
+  // Fresnel term
+  float R = schlick(1, index_of_refraction, cos_theta);
 
-  color = vec4(ambient + diffuse + specular, 1.0f);
+  //vec3 ambient = albedo * ambient_color * ambient_intensity;  
+  vec3 diffuse = albedo * (1.0f - R) * light_color * light_intensity * cos_alpha;
+  vec3 specular = R * ((light_color * light_intensity * cos_beta) + environment(r) * (1 - roughness));
+
+  color = vec4(diffuse + specular, 1.0f);
 }

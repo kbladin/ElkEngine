@@ -29,14 +29,15 @@ public:
   ~MyEngine();
 
   void update();
+  DeferredShadingRenderer& renderer() { return _renderer; };
 private:
   DeferredShadingRenderer _renderer;
   RenderableModel _monkey;
 };
 
 MyEngine::MyEngine() :
-  SimpleGraphicsEngine(720, 480),
-  _renderer(perspective_camera),
+  SimpleGraphicsEngine(),
+  _renderer(perspective_camera, 720 * 2, 480 * 2),
   _monkey("../../data/meshes/suzanne.obj")
 {
   scene.addChild(_monkey);
@@ -51,7 +52,7 @@ void MyEngine::update()
 {
   updateTransforms();
 
-  _renderer.render(scene, windowWidth(), windowHeight());
+  _renderer.render(scene);
 }
 
 int main(int argc, char const *argv[])
@@ -59,7 +60,7 @@ int main(int argc, char const *argv[])
   ApplicationWindowGLFW window(720, 480);
   MyEngine e;
   SphericalController controller(e.camera());
-  WindowSizeController window_controller(e);
+  WindowSizeController window_controller(e.renderer());
   window.addController(controller);
   window.addController(window_controller);
   std::function<void(void)> loop = [&]()

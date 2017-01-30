@@ -12,12 +12,16 @@ namespace sge { namespace core {
 
 class DeferredShadingRenderer {
 public:
-  DeferredShadingRenderer(PerspectiveCamera& camera);
+  DeferredShadingRenderer(
+    PerspectiveCamera& camera, int framebuffer_width, int framebuffer_height);
   ~DeferredShadingRenderer();
   
-  void render(Object3D& scene, int width, int height);
+  void setWindowResolution(int width, int height);
+  void render(Object3D& scene);
 private:
   void checkForErrors();
+
+  int _window_width, _window_height;
 
   std::shared_ptr<ShaderProgram> _gbuffer_program;
   std::shared_ptr<ShaderProgram> _shading_program;

@@ -2,11 +2,9 @@
 
 namespace sge { namespace core {
 
-SimpleGraphicsEngine::SimpleGraphicsEngine(int width, int height) :
-  perspective_camera(45.0f, static_cast<float>(width) / height, 0.01, 100),
-  viewspace_ortho_camera(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f),
-  _window_width(width),
-  _window_height(height)
+SimpleGraphicsEngine::SimpleGraphicsEngine() :
+  perspective_camera(45.0f, 1.0, 0.01, 100),
+  viewspace_ortho_camera(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f)
 {
   if (!_initializeGL())
   {
@@ -86,16 +84,6 @@ void SimpleGraphicsEngine::checkForErrors()
   }
 }
 
-int SimpleGraphicsEngine::windowWidth()
-{
-  return _window_width;
-}
-
-int SimpleGraphicsEngine::windowHeight()
-{
-  return _window_height;
-}
-
 PerspectiveCamera& SimpleGraphicsEngine::camera()
 {
   return perspective_camera;
@@ -104,14 +92,6 @@ PerspectiveCamera& SimpleGraphicsEngine::camera()
 OrthoCamera& SimpleGraphicsEngine::viewSpaceCamera()
 {
   return viewspace_ortho_camera;
-}
-
-void SimpleGraphicsEngine::setWindowResolution(int width, int height)
-{
-  _window_width = width;
-  _window_height = height;
-  glViewport(0,0,_window_width, _window_height);
-  perspective_camera.setAspectRatio( static_cast<float>(width) / height);
 }
 
 } }

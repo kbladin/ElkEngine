@@ -3,8 +3,11 @@
 
 namespace sge { namespace core {
 
-DeferredShadingRenderer::DeferredShadingRenderer(PerspectiveCamera& camera) :
-  _camera(camera)
+DeferredShadingRenderer::DeferredShadingRenderer(
+  PerspectiveCamera& camera, int framebuffer_width, int framebuffer_height) :
+  _camera(camera),
+  _window_width(framebuffer_width),
+  _window_height(framebuffer_height)
 {
   ShaderManager::instance().loadAndAddShader(
     "gbuffer_program",
@@ -30,7 +33,7 @@ DeferredShadingRenderer::DeferredShadingRenderer(PerspectiveCamera& camera) :
 
   _camera.addToShader(_gbuffer_program->id());
 
-  _fbo_quad = std::make_unique<FrameBufferQuad>(720 * 2, 480 * 2, 3);
+  _fbo_quad = std::make_unique<FrameBufferQuad>(_window_width, _window_height, 3);
 }
 
 DeferredShadingRenderer::~DeferredShadingRenderer()
@@ -38,7 +41,14 @@ DeferredShadingRenderer::~DeferredShadingRenderer()
 
 }
 
-void DeferredShadingRenderer::render(Object3D& scene, int width, int height)
+void DeferredShadingRenderer::setWindowResolution(int width, int height)
+{
+  _window_width = width;
+  _window_height = height;
+  _camera.setAspectRatio( static_cast<float>(width) / height);
+}
+
+void DeferredShadingRenderer::render(Object3D& scene)
 {
   _fbo_quad->bindFBO();
   glViewport(0,0, _fbo_quad->width(), _fbo_quad->height());
@@ -50,7 +60,7 @@ void DeferredShadingRenderer::render(Object3D& scene, int width, int height)
   _gbuffer_renderer->render(scene);
   _fbo_quad->unbindFBO();
 
-  glViewport(0,0, width, height);
+  glViewport(0,0, _window_width, _window_height);
   glDisable(GL_DEPTH_TEST);
   _shading_renderer->render(*_fbo_quad);
 

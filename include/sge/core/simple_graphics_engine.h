@@ -22,17 +22,13 @@ namespace sge { namespace core {
 */
 class SimpleGraphicsEngine {
 public:
-  SimpleGraphicsEngine(int width, int height);
+  SimpleGraphicsEngine();
   virtual ~SimpleGraphicsEngine();
   
   // Getters
-  int windowWidth();
-  int windowHeight();
   PerspectiveCamera& camera();
   OrthoCamera& viewSpaceCamera();
 
-  // Setters
-  virtual void setWindowResolution(int width, int height);
 protected:
   //! Update the transforms of all objects in the scene and renders them
   void updateTransforms();
@@ -49,10 +45,6 @@ protected:
 private:
   //! Initializes GLEW, an OpenGL context needs to be active
   virtual bool _initializeGL();
-
-  // Data
-  int _window_width;
-  int _window_height;
 };
 
 } }
