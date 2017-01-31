@@ -4,7 +4,7 @@
 #include "SGE/core/shader_program.h"
 
 namespace sge { namespace core {
-
+/*
 class Renderer {
 public:
   Renderer(ShaderProgram& program);
@@ -16,5 +16,5 @@ private:
 
   ShaderProgram& _program; 
 };
-
+*/
 } }

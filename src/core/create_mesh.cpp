@@ -192,15 +192,15 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
   return std::make_shared<NewMesh>(elements, positions, normals);
 }
 
- std::shared_ptr<NewMesh> CreateMesh::cone(int divisions)
+ std::shared_ptr<NewMesh> CreateMesh::cone(int segments)
 {  
-  std::vector<unsigned short>* elements = new std::vector<unsigned short>(divisions * 6);
-  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(divisions + 2);
-  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>(divisions + 2);
+  std::vector<unsigned short>* elements = new std::vector<unsigned short>(segments * 6);
+  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(segments + 2);
+  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>(segments + 2);
 
   // Vertices around the base of the cone
-  float delta_theta = M_PI * 2 / float(divisions);
-  for (int i=0; i<divisions; i++) {
+  float delta_theta = M_PI * 2 / float(segments);
+  for (int i=0; i<segments; i++) {
     float x = cos(delta_theta * i);
     float z = sin(delta_theta * i);
     (*positions)[i] = glm::vec3(x,0,z);
@@ -208,99 +208,125 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
   }
 
   // Top and bottom vertices
-  (*positions)[divisions] = glm::vec3(0,1,0);
-  (*normals)[divisions] = glm::vec3(0,1,0);
-  (*positions)[divisions + 1] = glm::vec3(0,0,0);
-  (*normals)[divisions + 1] = glm::vec3(0,-1,0);
+  (*positions)[segments] = glm::vec3(0,1,0);
+  (*normals)[segments] = glm::vec3(0,1,0);
+  (*positions)[segments + 1] = glm::vec3(0,0,0);
+  (*normals)[segments + 1] = glm::vec3(0,-1,0);
   
   // Set connectivity
-  for (int i = 0; i<divisions-1; i++) {
+  for (int i = 0; i<segments-1; i++) {
     (*elements)[i*6] = i;
-    (*elements)[i*6 + 1] = divisions;
+    (*elements)[i*6 + 1] = segments;
     (*elements)[i*6 + 2] = i + 1;
     (*elements)[i*6 + 3] = i;
     (*elements)[i*6 + 4] = i + 1;
-    (*elements)[i*6 + 5] = divisions + 1;
+    (*elements)[i*6 + 5] = segments + 1;
   }
-  (*elements)[divisions*6 - 1 - 5] = divisions - 1;
-  (*elements)[divisions*6 - 1 - 4] = divisions;
-  (*elements)[divisions*6 - 1 - 3] = 0;
-  (*elements)[divisions*6 - 1 - 2] = divisions - 1;
-  (*elements)[divisions*6 - 1 - 1] = 0;
-  (*elements)[divisions*6 - 1 - 0] = divisions + 1;
+  (*elements)[segments*6 - 1 - 5] = segments - 1;
+  (*elements)[segments*6 - 1 - 4] = segments;
+  (*elements)[segments*6 - 1 - 3] = 0;
+  (*elements)[segments*6 - 1 - 2] = segments - 1;
+  (*elements)[segments*6 - 1 - 1] = 0;
+  (*elements)[segments*6 - 1 - 0] = segments + 1;
   
   // NewMesh takes ownership of the data!
   return std::make_shared<NewMesh>(elements, positions, normals);
 }
 
- std::shared_ptr<NewMesh> CreateMesh::cylinder(int divisions)
+ std::shared_ptr<NewMesh> CreateMesh::cylinder(int segments)
 {
-  std::vector<unsigned short>* elements = new std::vector<unsigned short>(divisions * 12);
-  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(divisions * 2 + (divisions + 1) * 2);
-  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>(divisions * 2 + (divisions + 1) * 2);
+  std::vector<unsigned short>* elements = new std::vector<unsigned short>(segments * 12);
+  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(segments * 2 + (segments + 1) * 2);
+  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>(segments * 2 + (segments + 1) * 2);
 
-  float delta_theta = M_PI * 2 / float(divisions);
-  for (int i = 0; i<divisions; i++) {
+  float delta_theta = M_PI * 2 / float(segments);
+  for (int i = 0; i<segments; i++) {
     float x = cos(delta_theta * i);
     float z = -sin(delta_theta * i);
     
     (*positions)[i] = glm::vec3(x,1,z) * 0.5f;
     (*normals)[i] = glm::vec3(x,0,z);
     
-    (*positions)[i + divisions] = glm::vec3(x,-1,z) * 0.5f;
-    (*normals)[i + divisions] = glm::vec3(x,0,z);
+    (*positions)[i + segments] = glm::vec3(x,-1,z) * 0.5f;
+    (*normals)[i + segments] = glm::vec3(x,0,z);
     
-    (*positions)[i + 2*divisions] = glm::vec3(x,1,z) * 0.5f;
-    (*normals)[i + 2*divisions] = glm::vec3(0,1,0);
+    (*positions)[i + 2*segments] = glm::vec3(x,1,z) * 0.5f;
+    (*normals)[i + 2*segments] = glm::vec3(0,1,0);
     
-    (*positions)[i + 3*divisions] = glm::vec3(x,-1,z) * 0.5f;
-    (*normals)[i + 3*divisions] = glm::vec3(0,-1,0);
+    (*positions)[i + 3*segments] = glm::vec3(x,-1,z) * 0.5f;
+    (*normals)[i + 3*segments] = glm::vec3(0,-1,0);
   }
   (*positions)[positions->size() - 2] = glm::vec3(0,1,0) * 0.5f;
   (*normals)[normals->size() - 2] = glm::vec3(0,1,0);
   (*positions)[positions->size() - 1] = glm::vec3(0,-1,0) * 0.5f;
   (*normals)[normals->size() - 1] = glm::vec3(0,-1,0);
   
-  for (int i = 0; i<divisions-1; i++) {
+  for (int i = 0; i<segments-1; i++) {
     (*elements)[i*12] = i;
-    (*elements)[i*12 + 1] = i + divisions;
+    (*elements)[i*12 + 1] = i + segments;
     (*elements)[i*12 + 2] = i + 1;
     
     (*elements)[i*12 + 3] = i + 1;
-    (*elements)[i*12 + 4] = i + divisions;
-    (*elements)[i*12 + 5] = i + 1 + divisions;
+    (*elements)[i*12 + 4] = i + segments;
+    (*elements)[i*12 + 5] = i + 1 + segments;
 
-    (*elements)[i*12 + 6] = i + divisions*2;
-    (*elements)[i*12 + 7] = i + divisions*2 + 1;
+    (*elements)[i*12 + 6] = i + segments*2;
+    (*elements)[i*12 + 7] = i + segments*2 + 1;
     (*elements)[i*12 + 8] = positions->size() - 2;
     
-    (*elements)[i*12 + 9] = i + divisions*2 + 1 + divisions;
-    (*elements)[i*12 + 10] = i + divisions*2 + divisions;
+    (*elements)[i*12 + 9] = i + segments*2 + 1 + segments;
+    (*elements)[i*12 + 10] = i + segments*2 + segments;
     (*elements)[i*12 + 11] = positions->size() - 1;
   }
   
-  (*elements)[divisions*12 - 1 - 11] = divisions - 1;
-  (*elements)[divisions*12 - 1 - 10] = divisions - 1 + divisions;
-  (*elements)[divisions*12 - 1 - 9] = 0;
+  (*elements)[segments*12 - 1 - 11] = segments - 1;
+  (*elements)[segments*12 - 1 - 10] = segments - 1 + segments;
+  (*elements)[segments*12 - 1 - 9] = 0;
   
   
-  (*elements)[divisions*12 - 1 - 8] = 0;
-  (*elements)[divisions*12 - 1 - 7] = divisions - 1 + divisions;
-  (*elements)[divisions*12 - 1 - 6] = divisions;
+  (*elements)[segments*12 - 1 - 8] = 0;
+  (*elements)[segments*12 - 1 - 7] = segments - 1 + segments;
+  (*elements)[segments*12 - 1 - 6] = segments;
   
-  (*elements)[divisions*12 - 1 - 5] = divisions*2 + divisions - 1;
-  (*elements)[divisions*12 - 1 - 4] = divisions*2 + 0;
-  (*elements)[divisions*12 - 1 - 3] = positions->size() - 2;
+  (*elements)[segments*12 - 1 - 5] = segments*2 + segments - 1;
+  (*elements)[segments*12 - 1 - 4] = segments*2 + 0;
+  (*elements)[segments*12 - 1 - 3] = positions->size() - 2;
   
-  (*elements)[divisions*12 - 1 - 2] = divisions*2 + divisions;
-  (*elements)[divisions*12 - 1 - 1] = divisions*2 + divisions - 1 + divisions;
-  (*elements)[divisions*12 - 1 - 0] = positions->size() - 1;
+  (*elements)[segments*12 - 1 - 2] = segments*2 + segments;
+  (*elements)[segments*12 - 1 - 1] = segments*2 + segments - 1 + segments;
+  (*elements)[segments*12 - 1 - 0] = positions->size() - 1;
   
   // NewMesh takes ownership of the data!
   return std::make_shared<NewMesh>(elements, positions, normals);
 }
 
- std::shared_ptr<NewMesh> CreateMesh::line(glm::vec3 start, glm::vec3 end)
+std::shared_ptr<NewMesh> CreateMesh::lonLatSphere(int lon_segments, int lat_segments)
+{
+  auto grid_plane = createGridPlane(lon_segments, lat_segments);
+  std::vector<unsigned short>* elements = new std::vector<unsigned short>(grid_plane.first);
+  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>((lon_segments + 1) * (lat_segments + 1));
+  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>((lon_segments + 1) * (lat_segments + 1));
+  std::vector<glm::vec2>* texture_coordinates = new std::vector<glm::vec2>((lon_segments + 1) * (lat_segments + 1));
+
+  for (int i = 0; i < grid_plane.second.size(); ++i)
+  {
+    float theta = (grid_plane.second[i].x - 0.5) * 2 * M_PI;
+    float phi = (grid_plane.second[i].y - 0.5) * M_PI;
+    
+    float x = cos(phi) * cos(theta);
+    float y = sin(phi);
+    float z = -sin(theta) * cos(phi);
+    
+    (*positions)[i] = glm::vec3(x, y, z);
+    (*normals)[i] = normalize(glm::vec3(x, y, z));
+    (*texture_coordinates)[i] = grid_plane.second[i];
+  }
+
+  return std::make_shared<NewMesh>(
+    elements, positions, normals, texture_coordinates);
+}
+
+std::shared_ptr<NewMesh> CreateMesh::line(glm::vec3 start, glm::vec3 end)
 {
   std::vector<unsigned short>* elements = new std::vector<unsigned short>;
   std::vector<glm::vec3>* positions = new std::vector<glm::vec3>;
@@ -316,30 +342,30 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
     elements, positions, nullptr, nullptr, nullptr, nullptr, GL_LINES);
 }
 
- std::shared_ptr<NewMesh> CreateMesh::grid(unsigned int divisions)
+ std::shared_ptr<NewMesh> CreateMesh::grid(unsigned int segments)
 {
-  std::vector<unsigned short>* elements = new std::vector<unsigned short>((divisions + 1) * 4);
-  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>((divisions + 1) * 4);
+  std::vector<unsigned short>* elements = new std::vector<unsigned short>((segments + 1) * 4);
+  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>((segments + 1) * 4);
 
   int i = 0;
-  for (int j=0; i < divisions + 1; i++, j++) {
-    (*positions)[i] = glm::vec3(j,0.0f,0.0f) / static_cast<float>(divisions) - glm::vec3(0.5f,0.5f,0.0f);
+  for (int j=0; i < segments + 1; i++, j++) {
+    (*positions)[i] = glm::vec3(j,0.0f,0.0f) / static_cast<float>(segments) - glm::vec3(0.5f,0.5f,0.0f);
   }
-  for (int j=0; i < (divisions + 1) * 2; i++, j++) {
-    (*positions)[i] = glm::vec3(0.0f,j,0.0f) / static_cast<float>(divisions) - glm::vec3(0.5f,0.5f,0.0f);
+  for (int j=0; i < (segments + 1) * 2; i++, j++) {
+    (*positions)[i] = glm::vec3(0.0f,j,0.0f) / static_cast<float>(segments) - glm::vec3(0.5f,0.5f,0.0f);
   }
-  for (int j=0; i < (divisions + 1) * 3; i++, j++) {
-    (*positions)[i] = glm::vec3(j,divisions,0.0f) / static_cast<float>(divisions) - glm::vec3(0.5f,0.5f,0.0f);
+  for (int j=0; i < (segments + 1) * 3; i++, j++) {
+    (*positions)[i] = glm::vec3(j,segments,0.0f) / static_cast<float>(segments) - glm::vec3(0.5f,0.5f,0.0f);
   }
-  for (int j=0; i < (divisions + 1) * 4; i++, j++) {
-    (*positions)[i] = glm::vec3(divisions,j,0.0f) / static_cast<float>(divisions) - glm::vec3(0.5f,0.5f,0.0f);
+  for (int j=0; i < (segments + 1) * 4; i++, j++) {
+    (*positions)[i] = glm::vec3(segments,j,0.0f) / static_cast<float>(segments) - glm::vec3(0.5f,0.5f,0.0f);
   }
   
   for (int i = 0; i < elements->size(); i = i+2) {
     (*elements)[i] = i/2;
   }
   for (int i = 1; i < elements->size(); i = i+2) {
-    (*elements)[i] = i/2 + (divisions + 1) * 2;
+    (*elements)[i] = i/2 + (segments + 1) * 2;
   }
   
   // NewMesh takes ownership of the data!
@@ -347,26 +373,55 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
     elements, positions, nullptr, nullptr, nullptr, nullptr, GL_LINES);
 }
 
- std::shared_ptr<NewMesh> CreateMesh::circle(unsigned int divisions)
+ std::shared_ptr<NewMesh> CreateMesh::circle(unsigned int segments)
 {
-  std::vector<unsigned short>* elements = new std::vector<unsigned short>(divisions * 2);
-  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(divisions);
+  std::vector<unsigned short>* elements = new std::vector<unsigned short>(segments * 2);
+  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(segments);
   
-  float delta_theta = M_PI * 2 / float(divisions);
-  for (int i = 0; i<divisions; i++) {
+  float delta_theta = M_PI * 2 / float(segments);
+  for (int i = 0; i<segments; i++) {
     float x = cos(delta_theta * i);
     float y = sin(delta_theta * i);
     (*positions)[i] = glm::vec3(x,y,0) * 0.5f;
     (*elements)[i*2] = i;
     (*elements)[i*2 + 1] = i + 1;
   }
-  (*elements)[divisions*2 - 1] = 0;
+  (*elements)[segments*2 - 1] = 0;
   
   // NewMesh takes ownership of the data!
   return std::make_shared<NewMesh>(
     elements, positions, nullptr, nullptr, nullptr, nullptr, GL_LINES);
 }
 
+std::pair<std::vector<unsigned short>, std::vector<glm::vec2>>
+  CreateMesh::createGridPlane(int s_segments, int t_segments)
+{
+  std::vector<glm::vec2> st_coords((s_segments + 1) * (t_segments + 1));
+  std::vector<unsigned short> elements(s_segments * t_segments * 6);
+  for (int t = 0; t < t_segments + 1; ++t)
+  {
+    for (int s = 0; s < s_segments + 1; ++s)
+    {
+      int index = s + (s_segments + 1) * t;
+      st_coords[index] = glm::vec2(static_cast<float>(s) / s_segments, static_cast<float>(t) / t_segments);
+    }
+  }
 
+  for (int t = 0; t < t_segments; ++t)
+  {
+    for (int s = 0; s < s_segments; ++s)
+    {
+      int index = (s + s_segments * t) * 6;
+      int element = s + (s_segments + 1) * t;
+      elements[index + 0] = element;
+      elements[index + 1] = element + 1;
+      elements[index + 2] = element + s_segments + 2;
+      elements[index + 3] = element;
+      elements[index + 4] = element + s_segments + 2;
+      elements[index + 5] = element + s_segments + 1;
+    }
+  }
+  return {elements, st_coords};
+}
 
 } }

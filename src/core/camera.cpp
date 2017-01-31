@@ -50,9 +50,14 @@ void AbstractCamera::updateAllShaderUniforms()
   }
 }
 
-const glm::mat4& AbstractCamera::projectionTransform()
+glm::mat4 AbstractCamera::projectionTransform() const
 {
   return _projection_transform;
+}
+
+glm::mat4 AbstractCamera::viewTransform() const
+{
+  return glm::inverse(absoluteTransform());
 }
 
 std::pair<glm::vec3, glm::vec3> AbstractCamera::unproject(

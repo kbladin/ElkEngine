@@ -6,12 +6,12 @@
 
 namespace sge { namespace core {
 
-class RenderableModel : public Object3D
+class RenderableModel : public Renderable
 {
 public:
     RenderableModel(const char* mesh_path);
     ~RenderableModel(){};
-    virtual void execute() override;
+    virtual void render() override;
 private:
     std::shared_ptr<NewMesh> _new_mesh;
     std::shared_ptr<Texture> _tex;

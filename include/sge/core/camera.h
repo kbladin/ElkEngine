@@ -29,7 +29,8 @@ public:
   void removeFromShader(GLuint program_ID);
 
   // Getters
-  const glm::mat4& projectionTransform();
+  glm::mat4 projectionTransform() const;
+  glm::mat4 viewTransform() const;
   // Origin and direction
   std::pair<glm::vec3, glm::vec3> unproject(const glm::vec2& position_ndc) const;
 protected:
@@ -43,6 +44,9 @@ protected:
   // Data
   std::map<GLuint, CameraShaderHandle> shader_handles_;
   glm::mat4 _projection_transform;
+
+  // Cached view matrix
+  glm::mat4 _view_transform;
 };
 
 //! A perspective camera defined in 3D space

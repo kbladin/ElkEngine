@@ -35,7 +35,7 @@ FrameBufferQuad::~FrameBufferQuad()
 
 }
 
-void FrameBufferQuad::execute()
+void FrameBufferQuad::bindTextures()
 {
   std::vector<TextureUnit> tex_units(_render_textures.size());
   for (int i = 0; i < _render_textures.size(); ++i)
@@ -45,7 +45,10 @@ void FrameBufferQuad::execute()
     const char* texure_uniform_name = (std::string("tex") + std::to_string(i)).c_str();
     glUniform1i(glGetUniformLocation(ShaderProgram::currentProgramId(), texure_uniform_name), tex_units[i]);
   }
-  
+}
+
+void FrameBufferQuad::render()
+{  
   _quad->render();
 }
 

@@ -1,8 +1,16 @@
 #include "SGE/core/object_3d.h"
 
+#include "sge/core/deferred_shading_renderer.h"
+#include "sge/object_extensions/light_source.h"
+
 namespace sge { namespace core {
 
-void Object3D::addChild(Object3D& child)
+void Object3D::addChild(Renderable& child)
+{
+  _children.push_back(&child);
+}
+
+void Object3D::addChild(LightSource& child)
 {
   _children.push_back(&child);
 }
@@ -24,10 +32,10 @@ void Object3D::updateTransform(const glm::mat4& stacked_transform)
   }
 }
 
-void Object3D::execute()
+void Object3D::submit(DeferredShadingRenderer& renderer)
 {
   for (auto it = _children.begin(); it != _children.end(); it++) {
-    (*it)->execute();
+    (*it)->submit(renderer);
   }
 }
 
@@ -44,6 +52,12 @@ const glm::mat4& Object3D::absoluteTransform() const
 void Object3D::setTransform(const glm::mat4& transform)
 {
   _relative_transform = transform;
+}
+
+void Renderable::submit(DeferredShadingRenderer& renderer)
+{
+  Object3D::submit(renderer);
+  renderer.submitRenderable(*this);
 }
 
 } }

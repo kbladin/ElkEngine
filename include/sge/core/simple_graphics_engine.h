@@ -32,7 +32,7 @@ public:
 protected:
   //! Update the transforms of all objects in the scene and renders them
   void updateTransforms();
-  void render();
+  //void render();
   void checkForErrors();
 
   // Add children to these objects

@@ -10,13 +10,14 @@
 
 namespace sge { namespace core {
 
-class FrameBufferQuad : public Object3D
+class FrameBufferQuad : public Renderable
 {
 public:
   FrameBufferQuad(
     int width, int height, int n_color_attachments = 1);
   ~FrameBufferQuad();
-  virtual void execute() override;
+  void bindTextures();
+  virtual void render() override;
   inline void bindFBO() { _fbo.bind(); };
   inline void unbindFBO() { _fbo.unbind(); };
   inline int width() { return _width; };

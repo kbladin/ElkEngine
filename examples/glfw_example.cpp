@@ -15,6 +15,7 @@
 #include "sge/object_extensions/renderable_model.h"
 #include "sge/object_extensions/framebuffer_quad.h"
 #include "sge/object_extensions/renderable_grid.h"
+#include "sge/object_extensions/light_source.h"
 
 #include <functional>
 #include <memory>
@@ -33,14 +34,27 @@ public:
 private:
   DeferredShadingRenderer _renderer;
   RenderableModel _monkey;
+  LightSource _lamp;
+  LightSource _lamp2;
+  LightSource _lamp3;
 };
 
 MyEngine::MyEngine() :
   SimpleGraphicsEngine(),
   _renderer(perspective_camera, 720 * 2, 480 * 2),
-  _monkey("../../data/meshes/suzanne.obj")
+  _monkey("../../data/meshes/suzanne.obj"),
+  _lamp(glm::vec3(1,1,1), 4),
+  _lamp2(glm::vec3(0.5,0.5,1), 4),
+  _lamp3(glm::vec3(1.0,0.5,1), 4)
 {
+  _lamp.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f)));
+  _lamp2.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, -2.0f, 2.0f)));
+  _lamp3.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 4.0f, 0.0f)));
+
   scene.addChild(_monkey);
+  scene.addChild(_lamp);
+  scene.addChild(_lamp2);
+  scene.addChild(_lamp3);
 }
 
 MyEngine::~MyEngine()

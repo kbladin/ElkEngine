@@ -1,5 +1,12 @@
 #version 410 core
 
+struct PointLightSource
+{
+  vec3 position;
+  vec3 color;
+  float intensity;
+};
+
 // Out data
 layout(location = 0) out vec4 color;
 
@@ -10,6 +17,8 @@ uniform sampler2D tex2; // Normal
 uniform sampler2D tex3; // Roughness
 
 uniform ivec2 window_size;
+
+uniform PointLightSource light_source;
 
 #define PI 3.1415
 float gaussian(float x, float sigma, float mu)
@@ -40,15 +49,11 @@ void main()
   float index_of_refraction = 2;
     
   vec3 n = normalize(normal);
-  vec3 l = normalize(vec3(-1));
+  vec3 light_to_point = position - light_source.position;
+  float inv_dist_square = 1.0f / pow(length(light_to_point), 2.0f);
+  vec3 l = normalize(light_to_point);
   vec3 v = normalize(position - vec3(0.0f));
   vec3 r = reflect(v, n);
-
-  vec3 ambient_color = vec3(0.7f, 0.9f, 1.0f);
-  vec3 light_color = vec3(1.0f, 0.9f, 0.7f);
-
-  float light_intensity = 0.7;
-  float ambient_intensity = 0.2;
   
   float cos_alpha = max(dot(n, -l), 0.0f);
   float cos_beta = gaussian(1 - max(dot(r, -l), 0.0f), roughness, 0.0f);
@@ -57,9 +62,8 @@ void main()
   // Fresnel term
   float R = schlick(1, index_of_refraction, cos_theta);
 
-  //vec3 ambient = albedo * ambient_color * ambient_intensity;  
-  vec3 diffuse = albedo * (1.0f - R) * light_color * light_intensity * cos_alpha;
-  vec3 specular = R * ((light_color * light_intensity * cos_beta) + environment(r));
+  vec3 diffuse = albedo * (1.0f - R) * light_source.color * light_source.intensity * cos_alpha * inv_dist_square;
+  vec3 specular = R * (light_source.color * light_source.intensity * cos_beta) * inv_dist_square;
 
   color = vec4(diffuse + specular, 1.0f);
 }

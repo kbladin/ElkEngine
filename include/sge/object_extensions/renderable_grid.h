@@ -6,12 +6,12 @@
 
 namespace sge { namespace core {
 
-class RenderableGrid : public Object3D
+class RenderableGrid : public Renderable
 {
 public:
   RenderableGrid();
   ~RenderableGrid(){};
-  virtual void execute() override;
+  virtual void render() override;
 private:
   std::shared_ptr<ShaderProgram>  _program;
   std::shared_ptr<NewMesh>        _mesh;

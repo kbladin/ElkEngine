@@ -13,7 +13,7 @@ RenderableModel::RenderableModel(const char* mesh_path)
   _tex->uploadTexture();
 }
 
-void RenderableModel::execute()
+void RenderableModel::render()
 {
   TextureUnit tex_unit;
   tex_unit.activate();

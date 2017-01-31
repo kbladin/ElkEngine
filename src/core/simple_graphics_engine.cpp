@@ -52,7 +52,7 @@ void SimpleGraphicsEngine::updateTransforms()
   background_space.updateTransform(glm::mat4());
 }
 
-
+/*
 void SimpleGraphicsEngine::render()
 {
   updateTransforms();
@@ -74,6 +74,7 @@ void SimpleGraphicsEngine::render()
   // Check for errors
   checkForErrors();
 }
+*/
 
 void SimpleGraphicsEngine::checkForErrors()
 {

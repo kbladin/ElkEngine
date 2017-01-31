@@ -10,7 +10,7 @@ RenderableGrid::RenderableGrid()
   _mesh = CreateMesh::grid(20);
 }
 
-void RenderableGrid::execute()
+void RenderableGrid::render()
 {
   _program->pushUsage();
   

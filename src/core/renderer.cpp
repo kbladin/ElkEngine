@@ -1,7 +1,7 @@
 #include "SGE/core/renderer.h"
 
 namespace sge { namespace core {
-
+/*
 Renderer::Renderer(ShaderProgram& program) :
   _program(program)
 {
@@ -28,5 +28,5 @@ void Renderer::checkForErrors()
     fprintf(stderr, "OpenGL ERROR : %s\n", gluErrorString(error_code));
   }
 }
-
+*/
 } }
