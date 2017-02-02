@@ -14,15 +14,15 @@ namespace sge { namespace core {
 
 class DeferredShadingRenderer;
 
-class LightSource : public Object3D
+class PointLightSource : public Object3D
 {
 public:
-  LightSource(glm::vec3 color, float intensity);
-  ~LightSource() {};
+  PointLightSource(glm::vec3 color, float radiant_flux);
+  ~PointLightSource() {};
   virtual void submit(DeferredShadingRenderer& renderer) override;
   virtual void render(const PerspectiveCamera& camera);
 
-  void setIntensity(float intensity);
+  void setRadiantFlux(float radiant_flux);
   void setColor(glm::vec3 color);
 private:
   void renderQuad(const PerspectiveCamera& camera);
@@ -32,9 +32,29 @@ private:
   std::shared_ptr<NewMesh> _quad_mesh;
   std::shared_ptr<NewMesh> _sphere_mesh;
 
-  glm::vec3 _color;
-  float _intensity;
   float _sphere_scale;
+
+  glm::vec3 _color;
+  float     _radiant_flux;
+};
+
+class DirectionalLightSource : public Object3D
+{
+public:
+  DirectionalLightSource(glm::vec3 color, float radiance);
+  ~DirectionalLightSource() {};
+  virtual void submit(DeferredShadingRenderer& renderer) override;
+  virtual void render(const PerspectiveCamera& camera);
+
+  void setRadiance(float radiance);
+  void setColor(glm::vec3 color);
+private:
+  void setupLightSourceUniforms(const PerspectiveCamera& camera);
+
+  std::shared_ptr<NewMesh> _quad_mesh;
+  
+  glm::vec3 _color;
+  float     _radiance;
 };
 
 } }

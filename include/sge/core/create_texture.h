@@ -12,8 +12,9 @@ public:
   CreateTexture() {};
   ~CreateTexture() {};
   
-  //static std::shared_ptr<Texture> load(const char* path);
+  static std::shared_ptr<Texture> load(const char* path);
   static std::shared_ptr<Texture> white(int width, int height);
+  static std::shared_ptr<Texture> black(int width, int height);
 private:
 };
 

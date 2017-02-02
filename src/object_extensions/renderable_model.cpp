@@ -3,23 +3,24 @@
 #include "sge/core/create_texture.h"
 #include "sge/core/texture_unit.h"
 #include "sge/core/shader_program.h"
+#include "sge/core/debug_input.h"
 
 namespace sge { namespace core {
 
 RenderableModel::RenderableModel(const char* mesh_path)
 {
   _new_mesh = CreateMesh::load(mesh_path);
-  _tex = CreateTexture::white(100, 100);
-  _tex->uploadTexture();
+  _material = std::make_unique<Material>(
+    CreateTexture::load("../../data/textures/albedo.png"),
+    CreateTexture::load("../../data/textures/roughness.png"));
 }
 
 void RenderableModel::render()
 {
-  TextureUnit tex_unit;
-  tex_unit.activate();
-  _tex->bind();
+  _material->use(ShaderProgram::currentProgramId());
 
-  glUniform1i(glGetUniformLocation(ShaderProgram::currentProgramId(), "tex"), 0);
+  glUniform1f(glGetUniformLocation(ShaderProgram::currentProgramId(), "roughness"), DebugInput::value("roughness"));
+  glUniform1f(glGetUniformLocation(ShaderProgram::currentProgramId(), "IOR"), DebugInput::value("IOR"));
 
   glUniformMatrix4fv(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "M"),

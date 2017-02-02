@@ -10,7 +10,12 @@ void Object3D::addChild(Renderable& child)
   _children.push_back(&child);
 }
 
-void Object3D::addChild(LightSource& child)
+void Object3D::addChild(PointLightSource& child)
+{
+  _children.push_back(&child);
+}
+
+void Object3D::addChild(DirectionalLightSource& child)
 {
   _children.push_back(&child);
 }

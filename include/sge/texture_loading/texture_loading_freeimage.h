@@ -6,6 +6,6 @@
 
 namespace sge { namespace core {
 
-std::shared_ptr<Texture> loadTexture_devil(const char* path);
+std::shared_ptr<Texture> loadTexture_freeimage(const char* path);
   
 } }

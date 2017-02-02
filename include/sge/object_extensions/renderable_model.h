@@ -3,6 +3,7 @@
 #include "sge/core/object_3d.h"
 #include "sge/core/new_mesh.h"
 #include "sge/core/texture.h"
+#include "sge/core/material.h"
 
 namespace sge { namespace core {
 
@@ -14,7 +15,7 @@ public:
     virtual void render() override;
 private:
     std::shared_ptr<NewMesh> _new_mesh;
-    std::shared_ptr<Texture> _tex;
+    std::unique_ptr<Material> _material;
 };
 
 } }

@@ -9,15 +9,24 @@ in vec2 fs_texture_coordinate;
 layout(location = 0) out vec4 albedo;
 layout(location = 1) out vec3 position;
 layout(location = 2) out vec3 normal;
-layout(location = 3) out float roughness;
+layout(location = 3) out vec2 material;
 
 // Uniforms
-uniform sampler2D tex;
+uniform sampler2D albedo_texture;
+uniform sampler2D roughness_texture;
+uniform sampler2D IOR_texture;
+uniform sampler2D metalness_texture;
+
+uniform float roughness;
+uniform float IOR;
 
 void main()
 {
-  albedo = vec4(1,1,1, 1.0f);
   position = vertex_position_viewspace.xyz;
   normal = vertex_normal_viewspace;
-  roughness = 0.01;
+
+  albedo = texture(albedo_texture, fs_texture_coordinate);
+  float _roughness = texture(roughness_texture, fs_texture_coordinate).r;
+  float _IOR = 2;//texture(IOR_texture, fs_texture_coordinate).r;
+  material = vec2(_roughness, _IOR);
 }

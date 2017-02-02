@@ -2,9 +2,9 @@
 
 struct PointLightSource
 {
-  vec3 position;
-  vec3 color;
-  float intensity;
+  vec3  position;
+  vec3  color; // Works as a filter
+  float radiant_flux; // Given in Watt [M * L^2 * T^-3]
 };
 
 // Out data
@@ -16,9 +16,9 @@ uniform sampler2D tex1; // Position
 uniform sampler2D tex2; // Normal
 uniform sampler2D tex3; // Roughness
 
-uniform ivec2 window_size;
-
 uniform PointLightSource light_source;
+
+uniform ivec2 window_size;
 
 #define PI 3.1415
 float gaussian(float x, float sigma, float mu)
@@ -35,19 +35,78 @@ float schlick(float n1, float n2, float cos_theta)
   return R;
 }
 
+// Approximation of error function with maximum error: 2.5×10^−5
+float erf(float x)
+{
+  float p = 0.47047;
+  float a1 = 0.3480242;
+  float a2 = -0.0958798;
+  float a3 = 0.7478556;
+  float t = 1.0 / (1.0 + p * x);
+  
+  return 1 - (a1 * t + a2 * pow(t,2) + a3 * pow(t,3)) * exp(-pow(x,2));
+}
+
+float roughSchlick(float n1, float n2, float cos_theta, float roughness)
+{
+  float x = cos_theta;
+  float R0 = pow((n1 - n2) / (n1 + n2), 2);
+  float a = 1.0f / (roughness * sqrt(2.0f * PI));
+  float c = roughness;
+  float sqrt_2 = sqrt(2);
+  float sqrt_pi = sqrt(PI);
+  float s2c = sqrt_2 * c;
+
+  float b = 1.0f / s2c;
+
+  // Integration from 0 to 1
+  float I1 = a * R0 * 1.0f / 2.0f * sqrt_pi * s2c * erf(1.0f / s2c);
+  float I2 = (a * (1.0f-R0)) * s2c * (-1.0f) / (8.0f * pow(b, 5.0f)) * (exp(-pow(b,2.0f)) * (sqrt_pi * b * exp(pow(b,2.0f)) * (x - 1.0f) * erf(b) * ( 4.0f * pow(b,4.0f) * pow(x-1.0f, 4.0f) + 20.0f * pow(b,2.0f) * pow(x-1.0f, 2.0f) + 15.0f) - 2.0f * (2.0f*pow(b,4.0f) * (5.0f*pow(x,4.0f) - 10.0f*pow(x,3.0f) + 10.0f*pow(x,2.0f) - 5.0f*x + 1.0f ) + pow(b,2.0f) * (20.0f*pow(x,2.0f) -25.0f*x + 9.0f) + 4.0f )) + 2.0f * (10.0f*pow(b,4.0f) * pow(x-1.0f,4.0f) + 20.0f*pow(b,2.0f)*pow(x-1.0f,2.0f) + 4.0f ) );
+
+
+  // Integration from -inf to inf
+  //float I1 = a * c * R0 * sqrt_2 * sqrt_pi;
+  //float I2 = a * (1 - R0) * s2c * 1/4.0 * sqrt_pi * (1 - x) * (15 * pow(s2c, 4) + 20 * pow(s2c, 2) * pow(1 - x, 2) + 4 * pow(1 - x, 4) );
+
+  return I1 + I2;
+}
+
+
+float roughSchlick2(float n1, float n2, float cos_theta, float roughness)
+{
+  float R0 = pow((n1 - n2) / (n1 + n2), 2);
+  float area_under_curve = 1.0 / 6.0 * (5.0 * R0 + 1.0);
+  float new_area_under_curve = 1.0 / (6.0 * roughness + 6.0) * (5.0 * R0 + 1.0);
+
+  return schlick(n1, n2, cos_theta) / (1 + roughness) + (area_under_curve - new_area_under_curve);
+}
+
+
+
+
 vec3 environment(vec3 dir)
 {
-  return vec3(0.1, 0.1, 0.1);
+  vec3 color = vec3(0.2, 0.2, 0.9);
+  return color;
+}
+
+vec3 gammaCorrection(vec3 v, float gamma)
+{
+  return vec3(pow(v.x, gamma), pow(v.y, gamma), pow(v.z, gamma));
 }
 
 void main()
 {
-  vec3 albedo = texture(tex0, vec2(gl_FragCoord.x / (window_size.x), gl_FragCoord.y / (window_size.y))).rgb;
-  vec3 position = texture(tex1, vec2(gl_FragCoord.x / (window_size.x), gl_FragCoord.y / (window_size.y))).xyz;
-  vec3 normal = texture(tex2, vec2(gl_FragCoord.x / (window_size.x), gl_FragCoord.y / (window_size.y))).xyz;
-  float roughness = texture(tex3, vec2(gl_FragCoord.x / (window_size.x), gl_FragCoord.y / (window_size.y))).x;
-  float index_of_refraction = 2;
-    
+  vec2 sample_point_texture_space = gl_FragCoord.xy / window_size;
+  
+  // Material properties
+  vec3 albedo =     texture(tex0, sample_point_texture_space).rgb;
+  vec3 position =   texture(tex1, sample_point_texture_space).xyz;
+  vec3 normal =     texture(tex2, sample_point_texture_space).xyz;
+  float roughness = texture(tex3, sample_point_texture_space).x;
+  float index_of_refraction = texture(tex3, sample_point_texture_space).y;
+
+  // Useful vectors
   vec3 n = normalize(normal);
   vec3 light_to_point = position - light_source.position;
   float inv_dist_square = 1.0f / pow(length(light_to_point), 2.0f);
@@ -55,15 +114,39 @@ void main()
   vec3 v = normalize(position - vec3(0.0f));
   vec3 r = reflect(v, n);
   
-  float cos_alpha = max(dot(n, -l), 0.0f);
-  float cos_beta = gaussian(1 - max(dot(r, -l), 0.0f), roughness, 0.0f);
-  float cos_theta = max(dot(-v, n), 0.0f);
+  if (position == vec3(0,0,0))
+  {
+    color = vec4(gammaCorrection(environment(-v), 1 / 2.2f), 1.0f);
+    return;
+  }
+
+  // Form factors
+  float cos_theta = max(dot(n, -l), 0.0f);
+  float cos_beta =  max(dot(r, -l), 0.0f);
+  float cos_alpha = max(dot(-v, n), 0.0f);
 
   // Fresnel term
-  float R = schlick(1, index_of_refraction, cos_theta);
+  //float R = schlick(1, index_of_refraction, cos_alpha);
+  float R = roughSchlick2(1, index_of_refraction, cos_alpha, roughness);
 
-  vec3 diffuse = albedo * (1.0f - R) * light_source.color * light_source.intensity * cos_alpha * inv_dist_square;
-  vec3 specular = R * (light_source.color * light_source.intensity * cos_beta) * inv_dist_square;
+  // BRDFs
+  float BRDF_diffuse = 1.0;
+  float BRDF_specular_times_cos_theta = gaussian(1 - cos_beta, roughness, 0.0f);
+  float BRDF_specular_times_cos_theta_at_reflection = 1.0f;
 
-  color = vec4(diffuse + specular, 1.0f);
+  // Irradiance measured in Watts per square meter
+  // [M * L^2 * T^-3] * [Sr^-1] * [L^-2] = [M * Sr^-1 * T^-3]
+  // Rendering equation over whole hemisphere
+  float light_source_radiance = light_source.radiant_flux * inv_dist_square;
+  float irradiance_diffuse =  light_source_radiance * BRDF_diffuse      * cos_theta * 2 * PI;
+  float irradiance_specular = light_source_radiance * BRDF_specular_times_cos_theta * 2 * PI;
+  float irradiance_specular_environment = 1.0f * BRDF_specular_times_cos_theta_at_reflection;
+
+  // Filter radiance through colors and material
+  vec3 diffuse_radiance = albedo * (1.0f - R) * light_source.color * irradiance_diffuse;
+  vec3 specular_radiance =                 R  * light_source.color * irradiance_specular;
+  vec3 specular_radiance_env =                 R  * environment(r) * irradiance_specular_environment;
+
+  // Add to final radiance
+  color = vec4(gammaCorrection(diffuse_radiance + specular_radiance + specular_radiance_env, 1 / 2.2f), 1.0f);
 }

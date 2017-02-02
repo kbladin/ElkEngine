@@ -16,6 +16,7 @@
 #include "sge/object_extensions/framebuffer_quad.h"
 #include "sge/object_extensions/renderable_grid.h"
 #include "sge/object_extensions/light_source.h"
+#include "sge/core/debug_input.h"
 
 #include <functional>
 #include <memory>
@@ -34,27 +35,22 @@ public:
 private:
   DeferredShadingRenderer _renderer;
   RenderableModel _monkey;
-  LightSource _lamp;
-  LightSource _lamp2;
-  LightSource _lamp3;
+  PointLightSource _lamp;
+  DirectionalLightSource _lamp2;
 };
 
 MyEngine::MyEngine() :
   SimpleGraphicsEngine(),
   _renderer(perspective_camera, 720 * 2, 480 * 2),
-  _monkey("../../data/meshes/suzanne.obj"),
-  _lamp(glm::vec3(1,1,1), 4),
-  _lamp2(glm::vec3(0.5,0.5,1), 4),
-  _lamp3(glm::vec3(1.0,0.5,1), 4)
+  _monkey("../../data/meshes/suzanne_highres.obj"),
+  _lamp(glm::vec3(1.0,0.8,0.6), 1.5),
+  _lamp2(glm::vec3(1.0,1.0,1.0), 0.1)
 {
-  _lamp.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f)));
-  _lamp2.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(-2.0f, -2.0f, 2.0f)));
-  _lamp3.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 4.0f, 0.0f)));
-
+  _lamp.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 4.0f, 3.0f)));
+  
   scene.addChild(_monkey);
   scene.addChild(_lamp);
-  scene.addChild(_lamp2);
-  scene.addChild(_lamp3);
+  //scene.addChild(_lamp2);
 }
 
 MyEngine::~MyEngine()
@@ -69,14 +65,60 @@ void MyEngine::update()
   _renderer.render(scene);
 }
 
+
+class DebugInputController : public Controller
+{
+public:
+  DebugInputController();
+  ~DebugInputController(){};
+
+  virtual void step(float dt) override;
+};
+
+DebugInputController::DebugInputController()
+{
+  DebugInput::value("roughness") = 1.0;
+  DebugInput::value("IOR") = 2.0;
+}
+
+void DebugInputController::step(float dt)
+{
+  if (_keys_pressed.count(Key::KEY_O))
+  {
+    DebugInput::value("roughness") *= (1.0 - dt * 5.0);
+    std::cout << "roughness = " << DebugInput::value("roughness") << std::endl;
+  }
+  if (_keys_pressed.count(Key::KEY_P))
+  {
+    DebugInput::value("roughness") *= (1.0 + dt * 5.0);
+    std::cout << "roughness = " << DebugInput::value("roughness") << std::endl;
+  }
+  
+  if (_keys_pressed.count(Key::KEY_K))
+  {
+    DebugInput::value("IOR") *= (1.0 - dt);
+    std::cout << "IOR = " << DebugInput::value("IOR") << std::endl;
+  }
+  if (_keys_pressed.count(Key::KEY_L))
+  {
+    DebugInput::value("IOR") *= (1.0 + dt);
+    std::cout << "IOR = " << DebugInput::value("IOR") << std::endl;
+  }
+  
+  DebugInput::value("roughness") = glm::clamp(DebugInput::value("roughness"), 0.01f, 50.0f);
+  DebugInput::value("IOR") = glm::clamp(DebugInput::value("IOR"), 1.5f, 4.0f);
+}
+
 int main(int argc, char const *argv[])
 {
   ApplicationWindowGLFW window(720, 480);
   MyEngine e;
   SphericalController controller(e.camera());
   WindowSizeController window_controller(e.renderer());
+  DebugInputController debug_controller;
   window.addController(controller);
   window.addController(window_controller);
+  window.addController(debug_controller);
   std::function<void(void)> loop = [&]()
   {
     e.update();

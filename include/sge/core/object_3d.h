@@ -9,7 +9,8 @@
 namespace sge { namespace core {
 
 class Renderable;
-class LightSource;
+class PointLightSource;
+class DirectionalLightSource;
 class DeferredShadingRenderer;
 
 //! An object positioned in 3D space.
@@ -30,7 +31,8 @@ public:
 
   //! Adds a child node
   void addChild(Renderable& child);
-  void addChild(LightSource& child);
+  void addChild(PointLightSource& child);
+  void addChild(DirectionalLightSource& child);
   //! Removes a child from the list of pointers
   /*!
     The call is recursive so if the parameter \param child is found among

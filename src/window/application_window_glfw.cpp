@@ -72,7 +72,7 @@ void ApplicationWindowGLFW::run(std::function<void(void)> f)
     
     for (auto&& controller : _controllers)
     {
-      controller->step(0);
+      controller->step(time_since_last);
     }
 
     f();

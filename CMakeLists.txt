@@ -55,6 +55,7 @@ option(${PROJECT_NAME}_BUILD_EXAMPLES "Build all examples." OFF)
 option(${PROJECT_NAME}_USE_GLFW "Use GLFW." OFF)
 option(${PROJECT_NAME}_USE_ASSIMP "Use Assimp." OFF)
 option(${PROJECT_NAME}_USE_DEVIL "Use DevIL." OFF)
+option(${PROJECT_NAME}_USE_FREEIMAGE "Use Freeimage." OFF)
 
 ######################
 # External Libraries #
@@ -86,6 +87,16 @@ if (${PROJECT_NAME}_USE_DEVIL)
   target_sources(${PROJECT_NAME} PUBLIC
     ${PROJECT_SOURCE_DIR}/include/sge/texture_loading/texture_loading_devil.h
     ${PROJECT_SOURCE_DIR}/src/texture_loading/texture_loading_devil.cpp)
+endif()
+
+if (${PROJECT_NAME}_USE_FREEIMAGE)
+  find_package(FREEIMAGE REQUIRED)
+  include_directories(${FREEIMAGE_INCLUDE_DIRS})
+  target_link_libraries(${PROJECT_NAME} ${FREEIMAGE_LIBRARIES})
+  target_sources(${PROJECT_NAME} PUBLIC
+    ${PROJECT_SOURCE_DIR}/include/sge/texture_loading/texture_loading_freeimage.h
+    ${PROJECT_SOURCE_DIR}/src/texture_loading/texture_loading_freeimage.cpp)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_USE_FREEIMAGE)
 endif()
 
 ############
