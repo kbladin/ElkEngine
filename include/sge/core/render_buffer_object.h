@@ -7,7 +7,7 @@ namespace sge { namespace core {
 class RenderBufferObject
 {
 public:
-  RenderBufferObject(GLsizei width, GLsizei height);
+  RenderBufferObject(GLsizei width, GLsizei height, GLenum internalformat);
   ~RenderBufferObject();
 
   inline void bind() { glBindRenderbuffer(GL_RENDERBUFFER, _id); };

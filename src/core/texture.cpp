@@ -208,7 +208,7 @@ void Texture::calculateBytesPerPixel()
   _bytes_per_pixel = static_cast<GLubyte>(sz_type * num_channels);
 }
 
-void Texture::uploadTexture()
+void Texture::upload()
 {
   bind();
 

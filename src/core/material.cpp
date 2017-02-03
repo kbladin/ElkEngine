@@ -16,10 +16,10 @@ Material::Material(
   _IOR        = IOR       ? IOR       : CreateTexture::white(100,100);
   _metalness  = metalness ? metalness : CreateTexture::black(100,100);
 
-  _albedo->uploadTexture();
-  _roughness->uploadTexture();
-  _IOR->uploadTexture();
-  _metalness->uploadTexture();
+  _albedo->upload();
+  _roughness->upload();
+  _IOR->upload();
+  _metalness->upload();
 }
 
 Material::~Material()

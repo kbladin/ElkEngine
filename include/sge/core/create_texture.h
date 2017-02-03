@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sge/core/texture.h"
+#include "sge/core/cube_map_texture.h"
 
 #include <memory>
 
@@ -13,6 +14,10 @@ public:
   ~CreateTexture() {};
   
   static std::shared_ptr<Texture> load(const char* path);
+  static std::shared_ptr<CubeMapTexture> loadCubeMap(
+    const char* path_positive_x, const char* path_negative_x,
+    const char* path_positive_y, const char* path_negative_y,
+    const char* path_positive_z, const char* path_negative_z);
   static std::shared_ptr<Texture> white(int width, int height);
   static std::shared_ptr<Texture> black(int width, int height);
 private:

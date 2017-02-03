@@ -4,7 +4,9 @@
 #include "sge/core/camera.h"
 #include "sge/core/shader_program.h"
 #include "sge/core/renderer.h"
+#include "sge/core/cube_map_texture.h"
 #include "sge/object_extensions/framebuffer_quad.h"
+#include "sge/object_extensions/renderable_cube_map.h"
 
 #include <memory>
 #include <vector>
@@ -30,6 +32,7 @@ private:
   void renderGeometryBuffer(Object3D& scene);
   void renderPointLights();
   void renderDirectionalLights();
+  void renderEnvironmentLights();
   void checkForErrors();
 
   int _window_width, _window_height;
@@ -37,8 +40,11 @@ private:
   std::shared_ptr<ShaderProgram> _gbuffer_program;
   std::shared_ptr<ShaderProgram> _shading_program_point_lights;
   std::shared_ptr<ShaderProgram> _shading_program_directional_lights;
+  std::shared_ptr<ShaderProgram> _shading_program_environment;
+  std::shared_ptr<ShaderProgram> _cube_map_program;
 
   std::unique_ptr<FrameBufferQuad> _fbo_quad;
+  std::unique_ptr<RenderableCubeMap> _cube_map;
 
   PerspectiveCamera& _camera;
 

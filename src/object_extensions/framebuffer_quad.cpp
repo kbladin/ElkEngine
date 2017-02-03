@@ -9,7 +9,7 @@ namespace sge { namespace core {
 FrameBufferQuad::FrameBufferQuad(int width, int height, int n_color_attachments) :
   _width(width),
   _height(height),
-  _depth_buffer(width, height)
+  _depth_buffer(width, height, GL_DEPTH_COMPONENT)
 {
   std::vector<GLuint> color_attachments;
   _quad = CreateMesh::quad();
@@ -21,12 +21,13 @@ FrameBufferQuad::FrameBufferQuad(int width, int height, int n_color_attachments)
         Texture::WrappingMode::ClampToEdge));
     color_attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
     
-    _render_textures.back()->uploadTexture();
+    _render_textures.back()->upload();
     _fbo.attach2DTexture(_render_textures.back()->id(), color_attachments.back(), 0);
   }
   _fbo.bind();
   glDrawBuffers(n_color_attachments, &color_attachments[0]);
   _fbo.unbind();
+
   _fbo.attachRenderBuffer(_depth_buffer.id(), GL_DEPTH_ATTACHMENT);
 }
 
@@ -37,14 +38,19 @@ FrameBufferQuad::~FrameBufferQuad()
 
 void FrameBufferQuad::bindTextures()
 {
-  std::vector<TextureUnit> tex_units(_render_textures.size());
+  _texture_units_in_use = std::vector<TextureUnit>(_render_textures.size());
   for (int i = 0; i < _render_textures.size(); ++i)
   {
-    tex_units[i].activate();
+    _texture_units_in_use[i].activate();
     _render_textures[i]->bind();
     const char* texure_uniform_name = (std::string("tex") + std::to_string(i)).c_str();
-    glUniform1i(glGetUniformLocation(ShaderProgram::currentProgramId(), texure_uniform_name), tex_units[i]);
+    glUniform1i(glGetUniformLocation(ShaderProgram::currentProgramId(), texure_uniform_name), _texture_units_in_use[i]);
   }
+}
+
+void FrameBufferQuad::freeTextureUnits()
+{
+  _texture_units_in_use = std::vector<TextureUnit>();
 }
 
 void FrameBufferQuad::render()

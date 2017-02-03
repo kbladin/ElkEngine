@@ -44,13 +44,14 @@ MyEngine::MyEngine() :
   _renderer(perspective_camera, 720 * 2, 480 * 2),
   _monkey("../../data/meshes/suzanne_highres.obj"),
   _lamp(glm::vec3(1.0,0.8,0.6), 1.5),
-  _lamp2(glm::vec3(1.0,1.0,1.0), 0.1)
+  _lamp2(glm::vec3(1.0,0.7,0.5), 0.15)
 {
-  _lamp.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 4.0f, 3.0f)));
+  _lamp.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 5.0f)));
+  _lamp2.setTransform(glm::rotate(float(M_PI) / 2.2f, glm::vec3(-1.0f, 0.0f, -0.6f)));
   
   scene.addChild(_monkey);
-  scene.addChild(_lamp);
-  //scene.addChild(_lamp2);
+  //scene.addChild(_lamp);
+  scene.addChild(_lamp2);
 }
 
 MyEngine::~MyEngine()
@@ -105,8 +106,8 @@ void DebugInputController::step(float dt)
     std::cout << "IOR = " << DebugInput::value("IOR") << std::endl;
   }
   
-  DebugInput::value("roughness") = glm::clamp(DebugInput::value("roughness"), 0.01f, 50.0f);
-  DebugInput::value("IOR") = glm::clamp(DebugInput::value("IOR"), 1.5f, 4.0f);
+  DebugInput::value("roughness") = glm::clamp(DebugInput::value("roughness"), 0.0005f, 50.0f);
+  DebugInput::value("IOR") = glm::clamp(DebugInput::value("IOR"), 1.1f, 4.0f);
 }
 
 int main(int argc, char const *argv[])

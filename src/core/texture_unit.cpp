@@ -75,7 +75,7 @@ void TextureUnit::assignUnit() {
 }
 
 void TextureUnit::initialize() {
-    _maxTexUnits = 8;
+    _maxTexUnits = 16;
     _busyUnits = std::vector<bool>(_maxTexUnits, false);
     _initialized = true;
 }

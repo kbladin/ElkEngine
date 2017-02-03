@@ -5,7 +5,7 @@
 
 namespace sge { namespace core {
 
-class Texture
+class CubeMapTexture
 {
 public:
   enum class Format {
@@ -19,6 +19,7 @@ public:
   enum class FilterMode {
     Nearest,
     Linear,
+    LinearMipMap,
     AnisotropicMipMap
   };
 
@@ -31,17 +32,19 @@ public:
 
   static int numberOfChannels(Format format);
   
-  Texture(glm::uvec3 dimensions, Format format = Format::RGBA,
-          GLint internalFormat = GL_RGBA, GLenum dataType = GL_UNSIGNED_BYTE,
-          FilterMode filter = FilterMode::Linear,
-          WrappingMode wrapping = WrappingMode::Repeat);
+  CubeMapTexture(
+    int side, Format format = Format::RGBA, GLint internalFormat = GL_RGBA,
+    GLenum dataType = GL_UNSIGNED_BYTE, FilterMode filter = FilterMode::Linear,
+    WrappingMode wrapping = WrappingMode::Repeat);
 
-  Texture(void* data, glm::uvec3 dimensions, Format format = Format::RGBA,
-          GLint internalFormat = GL_RGBA, GLenum dataType = GL_UNSIGNED_BYTE,
-          FilterMode filter = FilterMode::Linear,
-          WrappingMode wrapping = WrappingMode::Repeat);
+  CubeMapTexture(
+    void* data_positive_x, void* data_negative_x, void* data_positive_y,
+    void* data_negative_y, void* data_positive_z, void* data_negative_z,
+    int side, Format format = Format::RGBA, GLint internalFormat = GL_RGBA,
+    GLenum dataType = GL_UNSIGNED_BYTE, FilterMode filter = FilterMode::Linear,
+    WrappingMode wrapping = WrappingMode::Repeat);
 
-  ~Texture();
+  ~CubeMapTexture();
 
   void enable() const;
   void disable() const;
@@ -50,7 +53,6 @@ public:
 
   int numberOfChannels() const;
   void upload();
-  void downloadTexture();
 
   inline GLuint id() const {return _id;};
   
@@ -66,10 +68,8 @@ protected:
   void applySwizzleMask();
   void calculateBytesPerPixel();
 
-  void determineTextureType();
-
 private:
-  glm::uvec3 _dimensions;
+  int _side;
 
   Format _format;
   GLint _internal_format;
@@ -78,14 +78,19 @@ private:
   WrappingMode _wrapping;
 
   GLuint _id;
-  GLenum _type;
+  const GLenum _type;
   GLubyte _bytes_per_pixel;
 
   int _mip_map_level;
   float _anisotropy_level;
   bool _has_ownership_of_data;
 
-  void* _pixel_data;
+  void* _pixel_data_positive_x;
+  void* _pixel_data_negative_x;
+  void* _pixel_data_positive_y;
+  void* _pixel_data_negative_y;
+  void* _pixel_data_positive_z;
+  void* _pixel_data_negative_z;
 };
 
 } }

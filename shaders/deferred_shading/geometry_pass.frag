@@ -28,5 +28,5 @@ void main()
   albedo = texture(albedo_texture, fs_texture_coordinate);
   float _roughness = texture(roughness_texture, fs_texture_coordinate).r;
   float _IOR = 2;//texture(IOR_texture, fs_texture_coordinate).r;
-  material = vec2(_roughness, _IOR);
+  material = vec2(_roughness + 0.001, IOR);
 }

@@ -1,12 +1,5 @@
 #version 410 core
 
-struct DirectionalLightSource
-{
-  vec3  direction;
-  vec3  color;
-  float radiance; // W * Sr^−1 * m^−2 [M * T^-3]
-};
-
 // Out data
 layout(location = 0) out vec4 color;
 
@@ -16,9 +9,9 @@ uniform sampler2D tex1; // Position
 uniform sampler2D tex2; // Normal
 uniform sampler2D tex3; // Roughness
 
-uniform DirectionalLightSource light_source;
-
 uniform ivec2 window_size;
+uniform samplerCube cube_map;
+uniform mat3 V_inv;
 
 #define PI 3.1415
 float gaussian(float x, float sigma, float mu)
@@ -44,9 +37,17 @@ float roughSchlick2(float n1, float n2, float cos_theta, float roughness)
   return schlick(n1, n2, cos_theta) / (1 + roughness) + (area_under_curve - new_area_under_curve);
 }
 
-vec3 environment(vec3 dir)
+vec3 environment(vec3 dir_view_space, float roughness)
 {
-  return vec3(0.1, 0.1, 0.1);
+  //vec3 color = texture(cube_map, dir).rgb;
+  vec3 dir_world_space = V_inv * dir_view_space;
+  vec3 color = textureLod(cube_map, dir_world_space, pow(roughness, 0.3) * 15).rgb;
+  return color;
+}
+
+vec3 gammaCorrection(vec3 v, float gamma)
+{
+  return vec3(pow(v.x, gamma), pow(v.y, gamma), pow(v.z, gamma));
 }
 
 void main()
@@ -58,36 +59,32 @@ void main()
   vec3 position =   texture(tex1, sample_point_texture_space).xyz;
   vec3 normal =     texture(tex2, sample_point_texture_space).xyz;
   float roughness = texture(tex3, sample_point_texture_space).x;
-  float index_of_refraction = 2;
-  
+  float index_of_refraction = texture(tex3, sample_point_texture_space).y;
+
   // Useful vectors
   vec3 n = normalize(normal);
-  vec3 l = normalize(light_source.direction);
   vec3 v = normalize(position - vec3(0.0f));
   vec3 r = reflect(v, n);
-  
+
   // Form factors
-  float cos_theta = max(dot(n, -l), 0.0f);
-  float cos_beta =  max(dot(r, -l), 0.0f);
   float cos_alpha = max(dot(-v, n), 0.0f);
 
   // Fresnel term
+  //float R = schlick(1, index_of_refraction, cos_alpha);
   float R = roughSchlick2(1, index_of_refraction, cos_alpha, roughness);
 
   // BRDFs
-  float BRDF_diffuse = 1.0;
-  float BRDF_specular_times_cos_theta = gaussian(1 - cos_beta, roughness, 0.0f);
+  float BRDF_specular_times_cos_theta_at_reflection = 1.0f;
 
   // Irradiance measured in Watts per square meter
   // [M * L^2 * T^-3] * [Sr^-1] * [L^-2] = [M * Sr^-1 * T^-3]
   // Rendering equation over whole hemisphere
-  float irradiance_diffuse =  light_source.radiance * BRDF_diffuse      * cos_theta * 2 * PI;
-  float irradiance_specular = light_source.radiance * BRDF_specular_times_cos_theta * 2 * PI;
+  float irradiance_specular_environment = 1.0f * BRDF_specular_times_cos_theta_at_reflection;
 
   // Filter radiance through colors and material
-  vec3 diffuse_radiance = albedo.rgb * (1.0f - R) * light_source.color * irradiance_diffuse;
-  vec3 specular_radiance =                 R  * light_source.color * irradiance_specular;
+  vec3 specular_radiance_env =              R  * environment(r, roughness) * irradiance_specular_environment;
+  vec3 diffuse_radiance_env = albedo.rgb * (1 - R) * environment(n, 0.5)        * 1.0f;
 
   // Add to final radiance
-  color = vec4((diffuse_radiance + specular_radiance) * albedo.a, 1.0f);
+  color = vec4((specular_radiance_env + diffuse_radiance_env) * albedo.a, 1.0f);
 }

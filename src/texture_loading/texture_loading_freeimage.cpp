@@ -12,7 +12,7 @@
 
 namespace sge { namespace core {
 
-std::shared_ptr<Texture> loadTexture_freeimage(const char* path)
+std::pair<void*, glm::uvec2> loadTexture_freeimage(const char* path)
 {
   FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(path,0);//Automatocally detects the format(from over 20 formats!)
   FIBITMAP* imagen = FreeImage_Load(formato, path);
@@ -35,19 +35,14 @@ std::shared_ptr<Texture> loadTexture_freeimage(const char* path)
       int idx_read = x + (h - 1 - y) * w;
       int idx_write = x + y * w;
 
-      textura[idx_write*4+0]= pixeles[idx_read*4+2];
-      textura[idx_write*4+1]= pixeles[idx_read*4+1];
-      textura[idx_write*4+2]= pixeles[idx_read*4+0];
-      textura[idx_write*4+3]= pixeles[idx_read*4+3];
+      textura[idx_write*4+0] = pixeles[idx_read*4+2];
+      textura[idx_write*4+1] = pixeles[idx_read*4+1];
+      textura[idx_write*4+2] = pixeles[idx_read*4+0];
+      textura[idx_write*4+3] = pixeles[idx_read*4+3];
     }
   }
   
-  std::shared_ptr<Texture> tex = std::make_shared<Texture>(textura, glm::uvec3(w,h,1), Texture::Format::RGBA,
-          GL_RGBA, GL_UNSIGNED_BYTE,
-          Texture::FilterMode::Linear,
-          Texture::WrappingMode::Repeat);
- 
-  return tex;
+  return {textura, glm::uvec2(w,h)};
 }
 
 } }

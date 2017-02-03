@@ -5,6 +5,7 @@
 #include "sge/core/texture.h"
 #include "sge/core/frame_buffer_object.h"
 #include "sge/core/render_buffer_object.h"
+#include "sge/core/texture_unit.h"
 
 #include <vector>
 
@@ -17,6 +18,7 @@ public:
     int width, int height, int n_color_attachments = 1);
   ~FrameBufferQuad();
   void bindTextures();
+  void freeTextureUnits();
   virtual void render() override;
   inline void bindFBO() { _fbo.bind(); };
   inline void unbindFBO() { _fbo.unbind(); };
@@ -26,8 +28,9 @@ private:
   int _width, _height;
   std::shared_ptr<NewMesh> _quad;
   FrameBufferObject _fbo;
-  std::vector<std::shared_ptr<Texture> >  _render_textures;
+  std::vector<std::shared_ptr<Texture> > _render_textures;
   RenderBufferObject _depth_buffer;
+  std::vector<TextureUnit> _texture_units_in_use;
 };
 
 } }

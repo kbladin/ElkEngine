@@ -6,6 +6,6 @@
 
 namespace sge { namespace core {
 
-std::shared_ptr<Texture> loadTexture_freeimage(const char* path);
+std::pair<void*, glm::uvec2> loadTexture_freeimage(const char* path);
   
 } }

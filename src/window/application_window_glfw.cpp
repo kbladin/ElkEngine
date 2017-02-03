@@ -17,7 +17,7 @@ ApplicationWindowGLFW::ApplicationWindowGLFW(int width, int height)
   {
     std::cout << "ERROR : Failed to initialize OpenGL" << std::endl;
   }
-  glfwSwapInterval(1);
+  glfwSwapInterval(0);
   // Set callback functions
   glfwSetCursorPosCallback(_window, mousePosCallback);
   glfwSetMouseButtonCallback(_window, mouseButtonCallback);
