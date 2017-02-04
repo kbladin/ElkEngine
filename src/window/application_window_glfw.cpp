@@ -55,7 +55,7 @@ bool ApplicationWindowGLFW::initOpenGLContext(int width, int height)
 }
 
 //! Starts the main loop
-void ApplicationWindowGLFW::run(std::function<void(void)> f)
+void ApplicationWindowGLFW::run(std::function<void(double)> f)
 {
   while (!glfwWindowShouldClose(_window))
   {
@@ -75,7 +75,7 @@ void ApplicationWindowGLFW::run(std::function<void(void)> f)
       controller->step(time_since_last);
     }
 
-    f();
+    f(time_since_last);
     
     _time = glfwGetTime();
     _frame_counter++;
@@ -88,7 +88,7 @@ void ApplicationWindowGLFW::run(std::function<void(void)> f)
 void ApplicationWindowGLFW::addController(Controller& controller)
 {
   _controllers.push_back(&controller);
-    windowSizeCallback(_window, 0, 0);
+  windowSizeCallback(_window, 0, 0);
 }
 
 void ApplicationWindowGLFW::mousePosCallback(

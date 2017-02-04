@@ -18,7 +18,7 @@ public:
   ApplicationWindowGLFW(int width, int height);
   ~ApplicationWindowGLFW();
 
-  void run(std::function<void(void)> f);
+  void run(std::function<void(double)> f);
   void addController(Controller& controller);
 private:
   // Functions

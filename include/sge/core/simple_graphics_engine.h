@@ -30,10 +30,8 @@ public:
   OrthoCamera& viewSpaceCamera();
 
 protected:
-  //! Update the transforms of all objects in the scene and renders them
-  void updateTransforms();
-  //void render();
-  void checkForErrors();
+  //! Update all objects
+  void update(double dt);
 
   // Add children to these objects
   Object3D scene;

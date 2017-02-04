@@ -7,22 +7,20 @@
 
 namespace sge { namespace core {
 
-RenderableModel::RenderableModel(const char* mesh_path)
-{
-  _new_mesh = CreateMesh::load(mesh_path);
-  _material = std::make_unique<Material>(
-    CreateTexture::load("../../data/textures/albedo.png"),
-    CreateTexture::load("../../data/textures/roughness.png"));
-}
+RenderableModel::RenderableModel(
+      std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material) :
+  _mesh(mesh),
+  _material(material)
+{ }
 
 void RenderableModel::render()
 {
-  //setTransform( glm::rotate(0.01f, glm::vec3(0.0f, 1.0f, 0.0f)) * relativeTransform() );
-
   _material->use(ShaderProgram::currentProgramId());
 
-  glUniform1f(glGetUniformLocation(ShaderProgram::currentProgramId(), "roughness"), DebugInput::value("roughness"));
-  glUniform1f(glGetUniformLocation(ShaderProgram::currentProgramId(), "IOR"), DebugInput::value("IOR"));
+  glUniform1f(glGetUniformLocation(ShaderProgram::currentProgramId(),
+    "roughness"), DebugInput::value("roughness"));
+  glUniform1f(glGetUniformLocation(ShaderProgram::currentProgramId(),
+    "IOR"), DebugInput::value("IOR"));
 
   glUniformMatrix4fv(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "M"),
@@ -30,7 +28,14 @@ void RenderableModel::render()
     GL_FALSE,
     &absoluteTransform()[0][0]);
 
-  _new_mesh->render();
+  _mesh->render();
+}
+
+void RenderableModel::update(double dt)
+{
+  Object3D::update(dt);
+  setTransform(
+    relativeTransform() * glm::rotate(float(dt), glm::vec3(0.0f, 1.0f, 0.0f)) );
 }
 
 } }

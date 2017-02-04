@@ -2,13 +2,6 @@
 
 namespace sge { namespace core {
 
-BoundingBox::BoundingBox(const AbstractMesh& template_mesh) :
-  _min(template_mesh.computeMinPosition()),
-  _max(template_mesh.computeMaxPosition())
-{
-
-}
-
 BoundingBox::BoundingBox(glm::vec3 min, glm::vec3 max) :
   _min(min),
   _max(max)

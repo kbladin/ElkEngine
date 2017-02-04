@@ -28,61 +28,23 @@ bool SimpleGraphicsEngine::_initializeGL()
   // Call glGetError to flush first error code that appears due to an error in glew
   glGetError();
 
-  // Enable depth test
-  glEnable(GL_DEPTH_TEST);
-  // Accept fragment if it closer to the camera than the former one
-  glDepthFunc(GL_LESS);
-  // Cull triangles which normal is not towards the camera
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
-  // Enable blending
-  //glEnable(GL_BLEND);
-  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
   return true;
 }
 
-void SimpleGraphicsEngine::updateTransforms()
+void SimpleGraphicsEngine::update(double dt)
 {
+  // Call update for all objects
+  scene.update(dt);
+  view_space.update(dt);
+  background_space.update(dt);
+
+  // Update all transforms
   perspective_camera.updateTransform(glm::mat4());
   viewspace_ortho_camera.updateTransform(glm::mat4());
 
   scene.updateTransform(glm::mat4());
   view_space.updateTransform(glm::mat4());
   background_space.updateTransform(glm::mat4());
-}
-
-/*
-void SimpleGraphicsEngine::render()
-{
-  updateTransforms();
-
-  // Then render
-  glClearColor(0.0, 0.0, 0.0, 1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glDisable(GL_DEPTH_TEST);
-  viewspace_ortho_camera.execute();
-  background_space.execute();
-  glEnable(GL_DEPTH_TEST);
-  perspective_camera.execute();
-  scene.execute();
-  glDisable(GL_DEPTH_TEST);
-  viewspace_ortho_camera.execute();
-  view_space.execute();
-
-  // Check for errors
-  checkForErrors();
-}
-*/
-
-void SimpleGraphicsEngine::checkForErrors()
-{
-  GLenum error_code = glGetError();
-  if (error_code != GL_NO_ERROR)
-  {
-    fprintf(stderr, "OpenGL ERROR : %s\n", gluErrorString(error_code));
-  }
 }
 
 PerspectiveCamera& SimpleGraphicsEngine::camera()

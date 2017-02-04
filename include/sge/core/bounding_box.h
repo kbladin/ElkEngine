@@ -9,7 +9,6 @@ namespace sge { namespace core {
 //! An axis aligned bounding box.
 class BoundingBox {
 public:
-  BoundingBox(const AbstractMesh& template_mesh);
   BoundingBox(glm::vec3 min, glm::vec3 max);
   ~BoundingBox();
   inline glm::vec3 min() const {return _min;}

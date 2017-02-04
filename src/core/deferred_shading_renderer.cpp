@@ -54,9 +54,12 @@ DeferredShadingRenderer::DeferredShadingRenderer(
     "../../shaders/deferred_shading/cube_map.frag");
 
   _gbuffer_program = ShaderManager::instance().getShader("gbuffer_program");
-  _shading_program_point_lights = ShaderManager::instance().getShader("shading_program_point_lights");
-  _shading_program_directional_lights = ShaderManager::instance().getShader("shading_program_directional_lights");
-  _shading_program_environment = ShaderManager::instance().getShader("shading_program_environment");
+  _shading_program_point_lights =
+    ShaderManager::instance().getShader("shading_program_point_lights");
+  _shading_program_directional_lights =
+    ShaderManager::instance().getShader("shading_program_directional_lights");
+  _shading_program_environment =
+    ShaderManager::instance().getShader("shading_program_environment");
   _cube_map_program = ShaderManager::instance().getShader("cube_map_program");
 
   _camera.addToShader(_gbuffer_program->id());
@@ -65,7 +68,6 @@ DeferredShadingRenderer::DeferredShadingRenderer(
   _camera.addToShader(_cube_map_program->id());
 
   _fbo_quad = std::make_unique<FrameBufferQuad>(_window_width, _window_height, 4);
-  _cube_map = std::make_unique<RenderableCubeMap>();
 }
 
 DeferredShadingRenderer::~DeferredShadingRenderer()
@@ -73,26 +75,16 @@ DeferredShadingRenderer::~DeferredShadingRenderer()
 
 }
 
-void DeferredShadingRenderer::submitRenderable(Renderable& renderable)
-{
-  _renderables_to_render.push_back(&renderable);
-}
-
-void DeferredShadingRenderer::submitPointLightSource(PointLightSource& light_source)
-{
-  _point_light_sources_to_render.push_back(&light_source);
-}
-
-void DeferredShadingRenderer::submitDirectionalLightSource(DirectionalLightSource& light_source)
-{
-  _directional_light_sources_to_render.push_back(&light_source);
-}
-
 void DeferredShadingRenderer::setWindowResolution(int width, int height)
 {
   _window_width = width;
   _window_height = height;
   _camera.setAspectRatio( static_cast<float>(width) / height);
+}
+
+void DeferredShadingRenderer::setSkyBox(std::shared_ptr<RenderableCubeMap> sky_box)
+{
+  _sky_box = sky_box;
 }
 
 void DeferredShadingRenderer::render(Object3D& scene)
@@ -114,7 +106,6 @@ void DeferredShadingRenderer::render(Object3D& scene)
   renderGeometryBuffer(scene);
   _fbo_quad->unbindFBO();
 
-
   // Setup for rendering light sources to the default frame buffer
   glViewport(0,0, _window_width, _window_height);
   glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -124,19 +115,14 @@ void DeferredShadingRenderer::render(Object3D& scene)
   glEnable(GL_BLEND);
   
   // Render light sources
-  renderEnvironmentLights();
   renderPointLights();
   renderDirectionalLights();
 
-  _cube_map_program->pushUsage();
-  glUniform2i(
-    glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
-    _window_width, _window_height);
-  _fbo_quad->bindTextures();
-  glDisable(GL_CULL_FACE);
-  _cube_map->render();
-  glEnable(GL_CULL_FACE);
-  _cube_map_program->popUsage();
+  if (_sky_box)
+  {
+    renderEnvironmentLights();
+    renderSkyBox();
+  }
 
   checkForErrors();
 }
@@ -212,18 +198,22 @@ void DeferredShadingRenderer::renderEnvironmentLights()
     &_camera.projectionTransform()[0][0]);
 
   _fbo_quad->bindTextures();
-  _cube_map->render();
+  _sky_box->render();
 
   _shading_program_environment->popUsage();
 }
 
-void DeferredShadingRenderer::checkForErrors()
+void DeferredShadingRenderer::renderSkyBox()
 {
-  GLenum error_code = glGetError();
-  if (error_code != GL_NO_ERROR)
-  {
-    fprintf(stderr, "OpenGL ERROR : %s\n", gluErrorString(error_code));
-  }
+  _cube_map_program->pushUsage();
+  glUniform2i(
+    glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
+    _window_width, _window_height);
+  _fbo_quad->bindTextures();
+  glDisable(GL_CULL_FACE);
+  _sky_box->render();
+  glEnable(GL_CULL_FACE);
+  _cube_map_program->popUsage();
 }
 
 } }

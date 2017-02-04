@@ -4,13 +4,14 @@
 #include <SGE/core/simple_graphics_engine.h>
 #include <SGE/window/application_window_glfw.h>
 #include <SGE/core/shader_manager.h>
-#include <SGE/core/new_mesh.h>
+#include <SGE/core/mesh.h>
 #include "sge/core/create_mesh.h"
 #include "sge/core/create_texture.h"
 #include "sge/core/texture_unit.h"
 #include "sge/core/frame_buffer_object.h"
 #include "sge/core/render_buffer_object.h"
 #include "sge/core/renderer.h"
+#include "sge/object_extensions/renderable_cube_map.h"
 #include "sge/core/deferred_shading_renderer.h"
 #include "sge/object_extensions/renderable_model.h"
 #include "sge/object_extensions/framebuffer_quad.h"
@@ -30,7 +31,7 @@ public:
   MyEngine();
   ~MyEngine();
 
-  void update();
+  void update(double dt);
   DeferredShadingRenderer& renderer() { return _renderer; };
 private:
   DeferredShadingRenderer _renderer;
@@ -42,10 +43,23 @@ private:
 MyEngine::MyEngine() :
   SimpleGraphicsEngine(),
   _renderer(perspective_camera, 720 * 2, 480 * 2),
-  _monkey("../../data/meshes/suzanne_highres.obj"),
+  _monkey(CreateMesh::load("../../data/meshes/suzanne_highres.obj"),
+    std::make_shared<Material>(
+      CreateTexture::load("../../data/textures/albedo.png"),
+      CreateTexture::load("../../data/textures/roughness.png"))
+),
   _lamp(glm::vec3(1.0,0.8,0.6), 1.5),
   _lamp2(glm::vec3(1.0,0.8,0.7), 0.15)
 {
+  _renderer.setSkyBox(
+    std::make_shared<RenderableCubeMap>(CreateTexture::loadCubeMap(
+      "../../data/textures/envmap_miramar/miramar_rt.tga",
+      "../../data/textures/envmap_miramar/miramar_lf.tga",
+      "../../data/textures/envmap_miramar/miramar_up.tga",
+      "../../data/textures/envmap_miramar/miramar_dn.tga",
+      "../../data/textures/envmap_miramar/miramar_bk.tga",
+      "../../data/textures/envmap_miramar/miramar_ft.tga")));
+
   _lamp.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f)));
   _lamp2.setTransform(glm::rotate(float(M_PI) * 0.15f, glm::vec3(-1.0f, 0.0f, -1.0f)));
   //_monkey.setTransform(glm::rotate(float(M_PI), glm::vec3(0.0f, 1.0f, 0.0f)));
@@ -61,9 +75,9 @@ MyEngine::~MyEngine()
   
 }
 
-void MyEngine::update()
+void MyEngine::update(double dt)
 {
-  updateTransforms();
+  SimpleGraphicsEngine::update(dt);
 
   _renderer.render(scene);
 }
@@ -112,7 +126,6 @@ void DebugInputController::step(float dt)
     std::cout << "IOR = " << DebugInput::value("IOR") << std::endl;
   }
 
-
   if (_keys_pressed.count(Key::KEY_N))
   {
     DebugInput::value("FOV") += 0.001;
@@ -132,15 +145,20 @@ int main(int argc, char const *argv[])
 {
   ApplicationWindowGLFW window(720, 480);
   MyEngine e;
+  
+  // Controllers
   SphericalController controller(e.camera());
   WindowSizeController window_controller(e.renderer());
   DebugInputController debug_controller(e.camera());
+  
+  // Add controllers
   window.addController(controller);
   window.addController(window_controller);
   window.addController(debug_controller);
-  std::function<void(void)> loop = [&]()
+  
+  std::function<void(double)> loop = [&](double dt)
   {
-    e.update();
+    e.update(dt);
   };
   
   window.run(loop);

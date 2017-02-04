@@ -1,6 +1,7 @@
 #pragma once
 
-#include <vector>
+#include "sge/core/array_buffer.h"
+#include "sge/core/vertex_array.h"
 
 #include <gl/glew.h>
 
@@ -8,133 +9,50 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-namespace sge { namespace core {
-//! This class serves as a base for the mesh classes
-/*!
-  All meshes have a list of vertices but depending of type it can have different
-  connectivity information.
-*/
-class AbstractMesh {
-public:
-  AbstractMesh();
-  ~AbstractMesh();
+#include <vector>
 
-  virtual void render() = 0;
+namespace sge { namespace core {
+
+class Mesh
+{
+public:
+  Mesh(
+    std::vector<unsigned short>* elements,
+    std::vector<glm::vec3>* positions,
+    std::vector<glm::vec3>* normals = nullptr,
+    std::vector<glm::vec2>* texture_coordinates = nullptr,
+    std::vector<glm::vec3>* tangents = nullptr,
+    std::vector<glm::vec4>* colors = nullptr,
+    GLenum render_mode = GL_TRIANGLES,
+    GLenum render_method = GL_STATIC_DRAW);
+  ~Mesh();
+
+  virtual void render();
   glm::vec3 computeMinPosition() const;
   glm::vec3 computeMaxPosition() const;
-  
+
 protected:
-  virtual void initialize() = 0;
+  VertexArray _vao;
+private:
+  std::unique_ptr<ElementArrayBuffer> _element_buffer;
 
-  // OpenGL handles  
-  GLuint _vertex_array_ID;
-  GLuint _vertex_buffer;
-
-  // Data
-  std::vector<glm::vec3> _vertices;
+  // Mesh has ownership of this data!
+  std::vector<unsigned short>* _elements;
+  std::vector<glm::vec3>* _positions;
+  std::vector<glm::vec3>* _normals;
+  std::vector<glm::vec2>* _texture_coordinates;
+  std::vector<glm::vec3>* _tangents;
+  std::vector<glm::vec4>* _colors;
 };
 
-//! This class extends AbstractMesh and renders triangles
-  /*!
-   The TriangleMesh also has a list of normals and elements.
-  */
-class TriangleMesh : public AbstractMesh{
+class CPUPointCloud : public Mesh
+{
 public:
-  TriangleMesh(
-    std::vector<glm::vec3> vertices,
-    std::vector<glm::vec3> normals,
-    std::vector<unsigned short> elements);
-  TriangleMesh();
-  ~TriangleMesh();
-  
-  // Initialization functions
-  void initPlane(
-    glm::vec3 normal,
-    glm::vec3 scale);
-  void initBox(
-    glm::vec3 max,
-    glm::vec3 min);
-  void initCone(
-    glm::vec3 direction,
-    glm::vec3 scale,
-    int divisions);
-  void initCylinder(
-    glm::vec3 direction,
-    glm::vec3 scale,
-    int divisions);
+  CPUPointCloud(std::vector<glm::vec3>* positions);
 
+  void update(std::vector<glm::vec3>& positions);
   virtual void render();
 private:
-  void initialize();
-
-  // OpenGL handles
-  GLuint _element_buffer;
-  GLuint _normal_buffer;
-
-  // Data
-  // Maximum around 60000 vertices for unsigned short.
-  std::vector<unsigned short> _elements;
-  std::vector<glm::vec3>      _normals;
-};
-
-//! This class extends AbstractMesh and renders lines
-/*!
-  Currently, this mesh can not be loaded from file.
-*/
-class LineMesh : public AbstractMesh {
-public:
-  LineMesh();
-  ~LineMesh();
-
-  // Initialization functions
-  void initLine(
-    glm::vec3 start,
-    glm::vec3 end);
-  void initGridPlane(
-    glm::vec3 normal,
-    glm::vec3 scale,
-    unsigned int divisions);
-  void initCircle(
-    glm::vec3 normal,
-    glm::vec3 scale,
-    unsigned int divisions);
-  
-  virtual void render();
-private:
-  void initialize();
-
-  // OpenGL handles
-  GLuint _element_buffer;
-
-  // Data
-  // Maximum around 60000 vertices for unsigned short.
-  std::vector<unsigned short> _elements;
-};
-
-//! This class extends AbstractMesh
-class GPUPointCloudMesh : public AbstractMesh {
-public:
-  GPUPointCloudMesh(int size);
-  ~GPUPointCloudMesh();
-
-  virtual void render();
-private:
-  void initialize();
-  
-  const int size_;
-  GLuint _index_buffer;
-};
-
-//! This class extends AbstractMesh
-class CPUPointCloudMesh : public AbstractMesh{
-public:
-  CPUPointCloudMesh();
-  ~CPUPointCloudMesh();
-
-  void update(const std::vector<glm::vec3>& vertices);
-  virtual void render();
-protected:
-  virtual void initialize();
 };
 
 } }

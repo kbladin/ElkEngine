@@ -6,9 +6,9 @@
 
 namespace sge { namespace core {
 
-std::shared_ptr<NewMesh> CreateMesh::load(const char* path)
+std::shared_ptr<Mesh> CreateMesh::load(const char* path)
 {
-  std::shared_ptr<NewMesh> result;
+  std::shared_ptr<Mesh> result;
 
 #ifdef SGE_USE_ASSIMP
   std::vector<unsigned short>* elements = new std::vector<unsigned short>;
@@ -23,8 +23,8 @@ std::shared_ptr<NewMesh> CreateMesh::load(const char* path)
   }
   else
   {
-    // NewMesh takes ownership of the data!
-    result = std::make_shared<NewMesh>(elements, positions, normals, texture_coordinates);  
+    // Mesh takes ownership of the data!
+    result = std::make_shared<Mesh>(elements, positions, normals, texture_coordinates);  
   }
 #else
   printf("ERROR : Unable to read mesh without Assimp library\n");
@@ -34,7 +34,7 @@ std::shared_ptr<NewMesh> CreateMesh::load(const char* path)
   return result;
 }
 
-std::shared_ptr<NewMesh> CreateMesh::quad()
+std::shared_ptr<Mesh> CreateMesh::quad()
 {
   std::vector<unsigned short>* elements = new std::vector<unsigned short>(6);
   std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(4);
@@ -67,11 +67,11 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
   (*elements)[4] = 3;
   (*elements)[5] = 2;
 
-  // NewMesh takes ownership of the data!
-  return std::make_shared<NewMesh>(elements, positions, normals, texture_coordinates);
+  // Mesh takes ownership of the data!
+  return std::make_shared<Mesh>(elements, positions, normals, texture_coordinates);
 }
 
- std::shared_ptr<NewMesh> CreateMesh::box(glm::vec3 min, glm::vec3 max)
+ std::shared_ptr<Mesh> CreateMesh::box(glm::vec3 min, glm::vec3 max)
 {
   std::vector<unsigned short>* elements = new std::vector<unsigned short>(36);
   std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(24);
@@ -188,11 +188,11 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
   (*elements)[34] = 23;
   (*elements)[35] = 20;
   
-  // NewMesh takes ownership of the data!
-  return std::make_shared<NewMesh>(elements, positions, normals);
+  // Mesh takes ownership of the data!
+  return std::make_shared<Mesh>(elements, positions, normals);
 }
 
- std::shared_ptr<NewMesh> CreateMesh::cone(int segments)
+ std::shared_ptr<Mesh> CreateMesh::cone(int segments)
 {  
   std::vector<unsigned short>* elements = new std::vector<unsigned short>(segments * 6);
   std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(segments + 2);
@@ -229,11 +229,11 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
   (*elements)[segments*6 - 1 - 1] = 0;
   (*elements)[segments*6 - 1 - 0] = segments + 1;
   
-  // NewMesh takes ownership of the data!
-  return std::make_shared<NewMesh>(elements, positions, normals);
+  // Mesh takes ownership of the data!
+  return std::make_shared<Mesh>(elements, positions, normals);
 }
 
- std::shared_ptr<NewMesh> CreateMesh::cylinder(int segments)
+ std::shared_ptr<Mesh> CreateMesh::cylinder(int segments)
 {
   std::vector<unsigned short>* elements = new std::vector<unsigned short>(segments * 12);
   std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(segments * 2 + (segments + 1) * 2);
@@ -296,11 +296,11 @@ std::shared_ptr<NewMesh> CreateMesh::quad()
   (*elements)[segments*12 - 1 - 1] = segments*2 + segments - 1 + segments;
   (*elements)[segments*12 - 1 - 0] = positions->size() - 1;
   
-  // NewMesh takes ownership of the data!
-  return std::make_shared<NewMesh>(elements, positions, normals);
+  // Mesh takes ownership of the data!
+  return std::make_shared<Mesh>(elements, positions, normals);
 }
 
-std::shared_ptr<NewMesh> CreateMesh::lonLatSphere(int lon_segments, int lat_segments)
+std::shared_ptr<Mesh> CreateMesh::lonLatSphere(int lon_segments, int lat_segments)
 {
   auto grid_plane = createGridPlane(lon_segments, lat_segments);
   std::vector<unsigned short>* elements = new std::vector<unsigned short>(grid_plane.first);
@@ -322,11 +322,11 @@ std::shared_ptr<NewMesh> CreateMesh::lonLatSphere(int lon_segments, int lat_segm
     (*texture_coordinates)[i] = grid_plane.second[i];
   }
 
-  return std::make_shared<NewMesh>(
+  return std::make_shared<Mesh>(
     elements, positions, normals, texture_coordinates);
 }
 
-std::shared_ptr<NewMesh> CreateMesh::line(glm::vec3 start, glm::vec3 end)
+std::shared_ptr<Mesh> CreateMesh::line(glm::vec3 start, glm::vec3 end)
 {
   std::vector<unsigned short>* elements = new std::vector<unsigned short>;
   std::vector<glm::vec3>* positions = new std::vector<glm::vec3>;
@@ -337,12 +337,12 @@ std::shared_ptr<NewMesh> CreateMesh::line(glm::vec3 start, glm::vec3 end)
   elements->push_back(0);
   elements->push_back(1);
   
-  // NewMesh takes ownership of the data!
-  return std::make_shared<NewMesh>(
+  // Mesh takes ownership of the data!
+  return std::make_shared<Mesh>(
     elements, positions, nullptr, nullptr, nullptr, nullptr, GL_LINES);
 }
 
- std::shared_ptr<NewMesh> CreateMesh::grid(unsigned int segments)
+ std::shared_ptr<Mesh> CreateMesh::grid(unsigned int segments)
 {
   std::vector<unsigned short>* elements = new std::vector<unsigned short>((segments + 1) * 4);
   std::vector<glm::vec3>* positions = new std::vector<glm::vec3>((segments + 1) * 4);
@@ -368,12 +368,12 @@ std::shared_ptr<NewMesh> CreateMesh::line(glm::vec3 start, glm::vec3 end)
     (*elements)[i] = i/2 + (segments + 1) * 2;
   }
   
-  // NewMesh takes ownership of the data!
-  return std::make_shared<NewMesh>(
+  // Mesh takes ownership of the data!
+  return std::make_shared<Mesh>(
     elements, positions, nullptr, nullptr, nullptr, nullptr, GL_LINES);
 }
 
- std::shared_ptr<NewMesh> CreateMesh::circle(unsigned int segments)
+ std::shared_ptr<Mesh> CreateMesh::circle(unsigned int segments)
 {
   std::vector<unsigned short>* elements = new std::vector<unsigned short>(segments * 2);
   std::vector<glm::vec3>* positions = new std::vector<glm::vec3>(segments);
@@ -388,8 +388,8 @@ std::shared_ptr<NewMesh> CreateMesh::line(glm::vec3 start, glm::vec3 end)
   }
   (*elements)[segments*2 - 1] = 0;
   
-  // NewMesh takes ownership of the data!
-  return std::make_shared<NewMesh>(
+  // Mesh takes ownership of the data!
+  return std::make_shared<Mesh>(
     elements, positions, nullptr, nullptr, nullptr, nullptr, GL_LINES);
 }
 

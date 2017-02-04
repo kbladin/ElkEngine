@@ -1,23 +1,27 @@
 #include "SGE/core/renderer.h"
 
 namespace sge { namespace core {
-/*
-Renderer::Renderer(ShaderProgram& program) :
-  _program(program)
-{
 
-}
+
+Renderer::Renderer()
+{ }
 
 Renderer::~Renderer()
-{
+{ }
 
+void Renderer::submitRenderable(Renderable& renderable)
+{
+  _renderables_to_render.push_back(&renderable);
 }
 
-void Renderer::render(Object3D& scene)
+void Renderer::submitPointLightSource(PointLightSource& light_source)
 {
-  _program.pushUsage();
-  scene.execute();
-  _program.popUsage();
+  _point_light_sources_to_render.push_back(&light_source);
+}
+
+void Renderer::submitDirectionalLightSource(DirectionalLightSource& light_source)
+{
+  _directional_light_sources_to_render.push_back(&light_source);
 }
 
 void Renderer::checkForErrors()
@@ -28,5 +32,5 @@ void Renderer::checkForErrors()
     fprintf(stderr, "OpenGL ERROR : %s\n", gluErrorString(error_code));
   }
 }
-*/
+
 } }

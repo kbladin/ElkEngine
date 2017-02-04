@@ -1,7 +1,5 @@
 #pragma once
 
-#include "sge/core/new_mesh.h"
-
 #include <vector>
 #include <memory>
 
@@ -25,6 +23,4 @@ bool loadMesh_assimp(
   std::vector<glm::vec2>* 		  out_uvs, 
   std::vector<glm::vec3>* 		  out_normals);
 
-std::shared_ptr<NewMesh> loadMesh(const char* path);
-  
 } }

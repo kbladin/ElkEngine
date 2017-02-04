@@ -15,25 +15,23 @@ namespace sge { namespace core {
 
 class Renderable;
 class PointLightSource;
+class DirectionalLightSource;
 
-class DeferredShadingRenderer {
+class DeferredShadingRenderer : public Renderer {
 public:
   DeferredShadingRenderer(
     PerspectiveCamera& camera, int framebuffer_width, int framebuffer_height);
   ~DeferredShadingRenderer();
   
-  void submitRenderable(Renderable& renderable);
-  void submitPointLightSource(PointLightSource& light_source);
-  void submitDirectionalLightSource(DirectionalLightSource& light_source);
-
   void setWindowResolution(int width, int height);
-  void render(Object3D& scene);
+  void setSkyBox(std::shared_ptr<RenderableCubeMap> sky_box);
+  virtual void render(Object3D& scene) override;
 private:
   void renderGeometryBuffer(Object3D& scene);
   void renderPointLights();
   void renderDirectionalLights();
   void renderEnvironmentLights();
-  void checkForErrors();
+  void renderSkyBox();
 
   int _window_width, _window_height;
 
@@ -43,14 +41,11 @@ private:
   std::shared_ptr<ShaderProgram> _shading_program_environment;
   std::shared_ptr<ShaderProgram> _cube_map_program;
 
+  std::shared_ptr<RenderableCubeMap> _sky_box;
+
   std::unique_ptr<FrameBufferQuad> _fbo_quad;
-  std::unique_ptr<RenderableCubeMap> _cube_map;
 
   PerspectiveCamera& _camera;
-
-  std::vector<Renderable*> _renderables_to_render;
-  std::vector<PointLightSource*> _point_light_sources_to_render;
-  std::vector<DirectionalLightSource*> _directional_light_sources_to_render;
 };
 
 } }

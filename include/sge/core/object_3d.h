@@ -11,7 +11,7 @@ namespace sge { namespace core {
 class Renderable;
 class PointLightSource;
 class DirectionalLightSource;
-class DeferredShadingRenderer;
+class Renderer;
 class PerspectiveCamera;
 
 //! An object positioned in 3D space.
@@ -39,7 +39,8 @@ public:
   */
   void removeChild(Object3D& child);
   void updateTransform(const glm::mat4& stacked_transform);
-  virtual void submit(DeferredShadingRenderer& renderer);
+  virtual void submit(Renderer& renderer);
+  virtual void update(double dt);
 
   const glm::mat4& relativeTransform() const;
   const glm::mat4& absoluteTransform() const;
@@ -55,7 +56,7 @@ class Renderable : public Object3D
 public:
   Renderable() : Object3D() {};
   ~Renderable() {};
-  virtual void submit(DeferredShadingRenderer& renderer) override;
+  virtual void submit(Renderer& renderer) override;
   virtual void render() = 0;
 };
 
