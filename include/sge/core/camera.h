@@ -78,6 +78,7 @@ public:
   void setFarClippingPlane(float far);
   void setAspectRatio(float aspect);
 private:
+  void updateProjectionTransform();
   // Data
   float _fov;
   float _aspect;

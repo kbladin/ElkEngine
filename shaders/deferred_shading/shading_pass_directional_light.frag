@@ -111,5 +111,5 @@ void main()
   vec3 specular_radiance =                 R  * light_source.color * irradiance_specular;
 
   // Add to final radiance
-  color = vec4((diffuse_radiance + specular_radiance) * albedo.a * castShadowRay(position + n * 0.01f, -l), 1.0f);
+  color = vec4(dot(normalize(position), vec3(0,0,-1)) * (diffuse_radiance + specular_radiance) * albedo.a * castShadowRay(position + n * 0.01f, -l), 1.0f);
 }

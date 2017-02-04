@@ -88,33 +88,42 @@ PerspectiveCamera::PerspectiveCamera(
   _near(near),
   _far(far)
 {
-  _projection_transform = glm::perspective(_fov, _aspect, _near, _far);
+  updateProjectionTransform();
 }
 
 void PerspectiveCamera::execute()
 {
-  _projection_transform = glm::perspective(_fov, _aspect, _near, _far);
+  updateProjectionTransform();
   AbstractCamera::updateAllShaderUniforms();
 }
 
 void PerspectiveCamera::setFOV(float fov)
 {
   _fov = fov;
+  updateProjectionTransform();
 }
 
 void PerspectiveCamera::setNearClippingPlane(float near)
 {
   _near = near;
+  updateProjectionTransform();
 }
 
 void PerspectiveCamera::setFarClippingPlane(float far)
 {
   _far = far;
+  updateProjectionTransform();
 }
 
 void PerspectiveCamera::setAspectRatio(float aspect)
 {
   _aspect = aspect;
+  updateProjectionTransform();
+}
+
+void PerspectiveCamera::updateProjectionTransform()
+{
+  _projection_transform = glm::perspective(_fov, _aspect, _near, _far); 
 }
 
 OrthoCamera::OrthoCamera(

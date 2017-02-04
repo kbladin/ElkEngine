@@ -5,6 +5,7 @@ layout(location = 0) in vec3 position;
 
 // Out data
 out vec3 vertex_position_worldspace;
+out vec3 vertex_position_viewspace;
 
 // Uniform data
 // Transform matrices
@@ -15,6 +16,6 @@ void main()
 {
   // Only do rotation
   vertex_position_worldspace = position;
-  vec3 vertex_position_viewspace = mat3(V) * position;  
+  vertex_position_viewspace = mat3(V) * position;  
   gl_Position = P * vec4(vertex_position_viewspace, 1.0f);
 }

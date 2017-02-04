@@ -113,5 +113,5 @@ void main()
   vec3 diffuse_radiance_env = albedo.rgb * (1 - R) * environment(n, 0.5)        * 1.0f;
 
   // Add to final radiance
-  color = vec4((specular_radiance_env + diffuse_radiance_env) * albedo.a, 1.0f);
+  color = vec4(dot(normalize(position), vec3(0,0,-1)) * (specular_radiance_env + diffuse_radiance_env) * albedo.a, 1.0f);
 }

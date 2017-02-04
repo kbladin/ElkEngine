@@ -72,16 +72,20 @@ void MyEngine::update()
 class DebugInputController : public Controller
 {
 public:
-  DebugInputController();
+  DebugInputController(PerspectiveCamera& camera);
   ~DebugInputController(){};
 
   virtual void step(float dt) override;
+private:
+  PerspectiveCamera& _camera;
 };
 
-DebugInputController::DebugInputController()
+DebugInputController::DebugInputController(PerspectiveCamera& camera) :
+  _camera(camera)
 {
   DebugInput::value("roughness") = 1.0;
   DebugInput::value("IOR") = 2.0;
+  DebugInput::value("FOV") = 45.0;
 }
 
 void DebugInputController::step(float dt)
@@ -107,9 +111,21 @@ void DebugInputController::step(float dt)
     DebugInput::value("IOR") *= (1.0 + dt);
     std::cout << "IOR = " << DebugInput::value("IOR") << std::endl;
   }
+
+
+  if (_keys_pressed.count(Key::KEY_N))
+  {
+    DebugInput::value("FOV") += 0.001;
+  }
+  if (_keys_pressed.count(Key::KEY_M))
+  {
+    DebugInput::value("FOV") -= 0.001;
+  }
   
   DebugInput::value("roughness") = glm::clamp(DebugInput::value("roughness"), 0.0005f, 50.0f);
   DebugInput::value("IOR") = glm::clamp(DebugInput::value("IOR"), 1.1f, 4.0f);
+
+  _camera.setFOV(DebugInput::value("FOV"));
 }
 
 int main(int argc, char const *argv[])
@@ -118,7 +134,7 @@ int main(int argc, char const *argv[])
   MyEngine e;
   SphericalController controller(e.camera());
   WindowSizeController window_controller(e.renderer());
-  DebugInputController debug_controller;
+  DebugInputController debug_controller(e.camera());
   window.addController(controller);
   window.addController(window_controller);
   window.addController(debug_controller);
