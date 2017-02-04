@@ -11,12 +11,12 @@ RenderableCubeMap::RenderableCubeMap()
 {
   _cube = CreateMesh::box(glm::vec3(-1.0f), glm::vec3(1.0f));
   _cube_map = CreateTexture::loadCubeMap(
-    "../../data/textures/mp_marvelous/bloody-marvelous_rt.tga",
-    "../../data/textures/mp_marvelous/bloody-marvelous_lf.tga",
-    "../../data/textures/mp_marvelous/bloody-marvelous_up.tga",
-    "../../data/textures/mp_marvelous/bloody-marvelous_dn.tga",
-    "../../data/textures/mp_marvelous/bloody-marvelous_bk.tga",
-    "../../data/textures/mp_marvelous/bloody-marvelous_ft.tga");
+    "../../data/textures/envmap_miramar/miramar_rt.tga",
+    "../../data/textures/envmap_miramar/miramar_lf.tga",
+    "../../data/textures/envmap_miramar/miramar_up.tga",
+    "../../data/textures/envmap_miramar/miramar_dn.tga",
+    "../../data/textures/envmap_miramar/miramar_bk.tga",
+    "../../data/textures/envmap_miramar/miramar_ft.tga");
   _cube_map->upload();
 }
 

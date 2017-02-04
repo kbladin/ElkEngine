@@ -19,6 +19,7 @@ uniform sampler2D tex3; // Roughness
 uniform PointLightSource light_source;
 
 uniform ivec2 window_size;
+uniform mat4 P_frag;
 
 uniform samplerCube cube_map;
 
@@ -88,6 +89,27 @@ vec3 gammaCorrection(vec3 v, float gamma)
   return vec3(pow(v.x, gamma), pow(v.y, gamma), pow(v.z, gamma));
 }
 
+float castShadowRay(vec3 origin, vec3 direction)
+{
+  float hit = 0.0f;
+  float step = 0.1f;
+  float t = 0.0f;
+  for (int i = 0; i < 10; i++)
+  {
+    vec3 position_view_space = origin + t * direction;
+    vec4 position_screen_space = P_frag * vec4(position_view_space, 1.0f);
+    position_screen_space /= position_screen_space.w;
+    vec2 position_texture_space = position_screen_space.xy * 0.5f + vec2(0.5f);
+    vec3 position = texture(tex1, position_texture_space).xyz;
+    float alpha = texture(tex0, position_texture_space).a;
+
+    hit += (position.z > position_view_space.z ? 1.0f : 0.0f) * alpha;
+      
+    t += step;
+  }
+  return 1.0f - clamp(hit, 0.0f, 1.0f);
+}
+
 void main()
 {
   vec2 sample_point_texture_space = gl_FragCoord.xy / window_size;
@@ -132,5 +154,5 @@ void main()
   vec3 specular_radiance =                 R  * light_source.color * irradiance_specular;
 
   // Add to final radiance
-  color = vec4((diffuse_radiance + specular_radiance) * albedo.a, 1.0f);
+  color = vec4((diffuse_radiance + specular_radiance) * albedo.a * castShadowRay(position + n * 0.01f, -l), 1.0f);
 }

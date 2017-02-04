@@ -17,6 +17,8 @@ RenderableModel::RenderableModel(const char* mesh_path)
 
 void RenderableModel::render()
 {
+  //setTransform( glm::rotate(0.01f, glm::vec3(0.0f, 1.0f, 0.0f)) * relativeTransform() );
+
   _material->use(ShaderProgram::currentProgramId());
 
   glUniform1f(glGetUniformLocation(ShaderProgram::currentProgramId(), "roughness"), DebugInput::value("roughness"));

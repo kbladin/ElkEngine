@@ -2,20 +2,11 @@
 
 #include "sge/core/deferred_shading_renderer.h"
 #include "sge/object_extensions/light_source.h"
+#include "sge/core/camera.h"
 
 namespace sge { namespace core {
 
-void Object3D::addChild(Renderable& child)
-{
-  _children.push_back(&child);
-}
-
-void Object3D::addChild(PointLightSource& child)
-{
-  _children.push_back(&child);
-}
-
-void Object3D::addChild(DirectionalLightSource& child)
+void Object3D::addChild(Object3D& child)
 {
   _children.push_back(&child);
 }

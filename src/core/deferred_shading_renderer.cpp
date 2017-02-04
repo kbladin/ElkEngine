@@ -160,6 +160,10 @@ void DeferredShadingRenderer::renderPointLights()
   glUniform2i(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
     _window_width, _window_height);
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(ShaderProgram::currentProgramId(), "P_frag"), 1, GL_FALSE,
+    &_camera.projectionTransform()[0][0]);
   
   _fbo_quad->bindTextures();
   for (auto it : _point_light_sources_to_render)
@@ -176,6 +180,10 @@ void DeferredShadingRenderer::renderDirectionalLights()
   glUniform2i(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
     _window_width, _window_height);
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(ShaderProgram::currentProgramId(), "P_frag"), 1, GL_FALSE,
+    &_camera.projectionTransform()[0][0]);
   _fbo_quad->bindTextures();
   for (auto it : _directional_light_sources_to_render)
   {
@@ -198,6 +206,10 @@ void DeferredShadingRenderer::renderEnvironmentLights()
     1,
     GL_FALSE,
     &V_inv[0][0]);
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(ShaderProgram::currentProgramId(), "P_frag"), 1, GL_FALSE,
+    &_camera.projectionTransform()[0][0]);
 
   _fbo_quad->bindTextures();
   _cube_map->render();

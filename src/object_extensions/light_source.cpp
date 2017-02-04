@@ -2,6 +2,7 @@
 
 #include "sge/core/deferred_shading_renderer.h"
 #include "sge/core/create_mesh.h"
+#include <glm/gtx/matrix_decompose.hpp>
 
 namespace sge { namespace core {
 
@@ -27,7 +28,16 @@ void PointLightSource::render(const PerspectiveCamera& camera)
   glm::vec4 position_world_space = glm::vec4(absoluteTransform()[3]);
   glm::vec3 position_view_space = glm::vec3(camera.viewTransform() * position_world_space);
   float distance_to_light_source = glm::length(position_view_space);
-  if (distance_to_light_source < _sphere_scale * absoluteTransform()[0][0])
+  
+  // Probably not the best way of handling rescaled light sources..
+  glm::vec3 scale;
+  glm::quat rotation;
+  glm::vec3 translation;
+  glm::vec3 skew;
+  glm::vec4 perspective;
+  glm::decompose(absoluteTransform(), scale, rotation, translation, skew,perspective);
+  float transform_scale = scale.x;
+  if (distance_to_light_source < _sphere_scale * transform_scale)
     renderQuad(camera);
   else
     renderSphere(camera);

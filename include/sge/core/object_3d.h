@@ -12,6 +12,7 @@ class Renderable;
 class PointLightSource;
 class DirectionalLightSource;
 class DeferredShadingRenderer;
+class PerspectiveCamera;
 
 //! An object positioned in 3D space.
 /*!
@@ -30,9 +31,7 @@ public:
   virtual ~Object3D() {};
 
   //! Adds a child node
-  void addChild(Renderable& child);
-  void addChild(PointLightSource& child);
-  void addChild(DirectionalLightSource& child);
+  void addChild(Object3D& child);
   //! Removes a child from the list of pointers
   /*!
     The call is recursive so if the parameter \param child is found among

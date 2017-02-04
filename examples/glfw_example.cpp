@@ -44,13 +44,15 @@ MyEngine::MyEngine() :
   _renderer(perspective_camera, 720 * 2, 480 * 2),
   _monkey("../../data/meshes/suzanne_highres.obj"),
   _lamp(glm::vec3(1.0,0.8,0.6), 1.5),
-  _lamp2(glm::vec3(1.0,0.7,0.5), 0.15)
+  _lamp2(glm::vec3(1.0,0.8,0.7), 0.15)
 {
-  _lamp.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 5.0f)));
-  _lamp2.setTransform(glm::rotate(float(M_PI) / 2.2f, glm::vec3(-1.0f, 0.0f, -0.6f)));
+  _lamp.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f)));
+  _lamp2.setTransform(glm::rotate(float(M_PI) * 0.15f, glm::vec3(-1.0f, 0.0f, -1.0f)));
+  //_monkey.setTransform(glm::rotate(float(M_PI), glm::vec3(0.0f, 1.0f, 0.0f)));
   
   scene.addChild(_monkey);
-  //scene.addChild(_lamp);
+  scene.addChild(camera());
+  //camera().addChild(_lamp);
   scene.addChild(_lamp2);
 }
 
