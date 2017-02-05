@@ -32,7 +32,7 @@ std::pair<void*, glm::uvec2> loadTexture_freeimage(const char* path)
   {
     for (int x = 0; x < w; ++x)
     {
-      int idx_read = x + (h - 1 - y) * w;
+      int idx_read = x + y * w;
       int idx_write = x + y * w;
 
       textura[idx_write*4+0] = pixeles[idx_read*4+2];
@@ -41,7 +41,6 @@ std::pair<void*, glm::uvec2> loadTexture_freeimage(const char* path)
       textura[idx_write*4+3] = pixeles[idx_read*4+3];
     }
   }
-  
   return {textura, glm::uvec2(w,h)};
 }
 

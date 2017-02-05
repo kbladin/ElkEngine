@@ -34,8 +34,8 @@ void RenderableModel::render()
 void RenderableModel::update(double dt)
 {
   Object3D::update(dt);
-  setTransform(
-    relativeTransform() * glm::rotate(float(dt), glm::vec3(0.0f, 1.0f, 0.0f)) );
+  //setTransform(
+  //  relativeTransform() * glm::rotate(float(dt) * 0.1f, glm::vec3(0.0f, 1.0f, 0.0f)) );
 }
 
 } }

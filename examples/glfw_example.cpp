@@ -33,9 +33,10 @@ public:
 
   void update(double dt);
   DeferredShadingRenderer& renderer() { return _renderer; };
-private:
+//private:
   DeferredShadingRenderer _renderer;
   RenderableModel _monkey;
+  RenderableModel _plane;
   PointLightSource _lamp;
   DirectionalLightSource _lamp2;
 };
@@ -43,30 +44,37 @@ private:
 MyEngine::MyEngine() :
   SimpleGraphicsEngine(),
   _renderer(perspective_camera, 720 * 2, 480 * 2),
-  _monkey(CreateMesh::load("../../data/meshes/suzanne_highres.obj"),
+  _monkey(CreateMesh::lonLatSphere(64, 32),
     std::make_shared<Material>(
-      CreateTexture::load("../../data/textures/albedo.png"),
-      CreateTexture::load("../../data/textures/roughness.png"))
-),
+      CreateTexture::load("../../data/textures/earth-albedo.jpg"),
+      CreateTexture::load("../../data/textures/earth-roughness.jpg"))),
+  _plane(CreateMesh::quad(),
+    std::make_shared<Material>(
+      CreateTexture::white(100,100),
+      CreateTexture::white(100,100))),
   _lamp(glm::vec3(1.0,0.8,0.6), 1.5),
   _lamp2(glm::vec3(1.0,0.8,0.7), 0.15)
 {
   _renderer.setSkyBox(
     std::make_shared<RenderableCubeMap>(CreateTexture::loadCubeMap(
-      "../../data/textures/envmap_miramar/miramar_rt.tga",
-      "../../data/textures/envmap_miramar/miramar_lf.tga",
-      "../../data/textures/envmap_miramar/miramar_up.tga",
-      "../../data/textures/envmap_miramar/miramar_dn.tga",
-      "../../data/textures/envmap_miramar/miramar_bk.tga",
-      "../../data/textures/envmap_miramar/miramar_ft.tga")));
+        "../../data/textures/Lycksele3/posx.jpg",
+        "../../data/textures/Lycksele3/negx.jpg",
+        "../../data/textures/Lycksele3/posy.jpg",
+        "../../data/textures/Lycksele3/negy.jpg",
+        "../../data/textures/Lycksele3/posz.jpg",
+        "../../data/textures/Lycksele3/negz.jpg")));
 
-  _lamp.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 0.0f)));
+  _lamp.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
   _lamp2.setTransform(glm::rotate(float(M_PI) * 0.15f, glm::vec3(-1.0f, 0.0f, -1.0f)));
   //_monkey.setTransform(glm::rotate(float(M_PI), glm::vec3(0.0f, 1.0f, 0.0f)));
+  _plane.setTransform(glm::scale(glm::vec3(4.0f, 4.0f, 4.0f)));
+  _plane.setTransform(glm::rotate(-float(M_PI / 2), glm::vec3(1.0f, 0.0f, 0.0f)) * _plane.relativeTransform());
+  _plane.setTransform(glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * _plane.relativeTransform());
   
   scene.addChild(_monkey);
+  //scene.addChild(_plane);
   scene.addChild(camera());
-  //camera().addChild(_lamp);
+  camera().addChild(_lamp);
   scene.addChild(_lamp2);
 }
 
@@ -86,16 +94,16 @@ void MyEngine::update(double dt)
 class DebugInputController : public Controller
 {
 public:
-  DebugInputController(PerspectiveCamera& camera);
+  DebugInputController(MyEngine& engine);
   ~DebugInputController(){};
 
   virtual void step(float dt) override;
 private:
-  PerspectiveCamera& _camera;
+  MyEngine& _engine;
 };
 
-DebugInputController::DebugInputController(PerspectiveCamera& camera) :
-  _camera(camera)
+DebugInputController::DebugInputController(MyEngine& engine) :
+  _engine(engine)
 {
   DebugInput::value("roughness") = 1.0;
   DebugInput::value("IOR") = 2.0;
@@ -104,6 +112,64 @@ DebugInputController::DebugInputController(PerspectiveCamera& camera) :
 
 void DebugInputController::step(float dt)
 {
+  if (_keys_pressed.count(Key::KEY_1))
+  {
+    _engine._renderer.setSkyBox(
+      std::make_shared<RenderableCubeMap>(CreateTexture::loadCubeMap(
+        "../../data/textures/Lycksele3/posx.jpg",
+        "../../data/textures/Lycksele3/negx.jpg",
+        "../../data/textures/Lycksele3/posy.jpg",
+        "../../data/textures/Lycksele3/negy.jpg",
+        "../../data/textures/Lycksele3/posz.jpg",
+        "../../data/textures/Lycksele3/negz.jpg")));
+  }
+  else if (_keys_pressed.count(Key::KEY_2))
+  {
+    _engine._renderer.setSkyBox(
+      std::make_shared<RenderableCubeMap>(CreateTexture::loadCubeMap(
+        "../../data/textures/Yokohama2/posx.jpg",
+        "../../data/textures/Yokohama2/negx.jpg",
+        "../../data/textures/Yokohama2/posy.jpg",
+        "../../data/textures/Yokohama2/negy.jpg",
+        "../../data/textures/Yokohama2/posz.jpg",
+        "../../data/textures/Yokohama2/negz.jpg")));
+  }
+  else if (_keys_pressed.count(Key::KEY_3))
+  {
+    _engine._renderer.setSkyBox(
+      std::make_shared<RenderableCubeMap>(CreateTexture::loadCubeMap(
+        "../../data/textures/Yokohama3/posx.jpg",
+        "../../data/textures/Yokohama3/negx.jpg",
+        "../../data/textures/Yokohama3/posy.jpg",
+        "../../data/textures/Yokohama3/negy.jpg",
+        "../../data/textures/Yokohama3/posz.jpg",
+        "../../data/textures/Yokohama3/negz.jpg")));
+  }
+  else if (_keys_pressed.count(Key::KEY_4))
+  {
+    _engine._renderer.setSkyBox(
+      std::make_shared<RenderableCubeMap>(CreateTexture::loadCubeMap(
+        "../../data/textures/mp_marvelous/bloody-marvelous_rt.tga",
+        "../../data/textures/mp_marvelous/bloody-marvelous_lf.tga",
+        "../../data/textures/mp_marvelous/bloody-marvelous_up.tga",
+        "../../data/textures/mp_marvelous/bloody-marvelous_dn.tga",
+        "../../data/textures/mp_marvelous/bloody-marvelous_bk.tga",
+        "../../data/textures/mp_marvelous/bloody-marvelous_ft.tga")));
+  }
+  else if (_keys_pressed.count(Key::KEY_6))
+  {
+    _engine._renderer.setSkyBox(
+      std::make_shared<RenderableCubeMap>(CreateTexture::loadCubeMap(
+        "../../data/textures/mp_alpha/alpha-island_rt.tga",
+        "../../data/textures/mp_alpha/alpha-island_lf.tga",
+        "../../data/textures/mp_alpha/alpha-island_up.tga",
+        "../../data/textures/mp_alpha/alpha-island_dn.tga",
+        "../../data/textures/mp_alpha/alpha-island_bk.tga",
+        "../../data/textures/mp_alpha/alpha-island_ft.tga")));
+  }
+
+
+
   if (_keys_pressed.count(Key::KEY_O))
   {
     DebugInput::value("roughness") *= (1.0 - dt * 5.0);
@@ -138,7 +204,7 @@ void DebugInputController::step(float dt)
   DebugInput::value("roughness") = glm::clamp(DebugInput::value("roughness"), 0.0005f, 50.0f);
   DebugInput::value("IOR") = glm::clamp(DebugInput::value("IOR"), 1.1f, 4.0f);
 
-  _camera.setFOV(DebugInput::value("FOV"));
+  _engine.camera().setFOV(DebugInput::value("FOV"));
 }
 
 int main(int argc, char const *argv[])
@@ -149,7 +215,7 @@ int main(int argc, char const *argv[])
   // Controllers
   SphericalController controller(e.camera());
   WindowSizeController window_controller(e.renderer());
-  DebugInputController debug_controller(e.camera());
+  DebugInputController debug_controller(e);
   
   // Add controllers
   window.addController(controller);
