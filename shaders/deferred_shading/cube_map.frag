@@ -8,7 +8,7 @@ in vec3 vertex_position_viewspace;
 layout(location = 0) out vec4 color;
 
 // Uniforms
-uniform sampler2D tex0; // Albedo
+uniform sampler2D albedo_buffer; // Albedo
 uniform ivec2 window_size;
 
 uniform samplerCube cube_map;
@@ -16,8 +16,8 @@ uniform samplerCube cube_map;
 void main()
 {
   vec2 sample_point_texture_space = gl_FragCoord.xy / window_size;
-  float alpha = texture(tex0, sample_point_texture_space).a;
+  float alpha = texture(albedo_buffer, sample_point_texture_space).a;
   vec3 texture_sample = texture(cube_map, vertex_position_worldspace).rgb;
 
-  color = vec4(dot(normalize(vertex_position_viewspace), vec3(0,0,-1)) * texture_sample * (1 - alpha), 1.0);
+  color = vec4(texture_sample * (1 - alpha), 1.0);
 }

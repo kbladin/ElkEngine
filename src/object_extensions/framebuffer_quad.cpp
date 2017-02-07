@@ -6,27 +6,23 @@
 
 namespace sge { namespace core {
 
-FrameBufferQuad::FrameBufferQuad(int width, int height, int n_color_attachments) :
+FrameBufferQuad::FrameBufferQuad(int width, int height, std::vector<RenderTexture> render_textures) :
   _width(width),
   _height(height),
+  _render_textures(render_textures),
   _depth_buffer(width, height, GL_DEPTH_COMPONENT)
 {
-  std::vector<GLuint> color_attachments;
   _quad = CreateMesh::quad();
-  for (int i = 0; i < n_color_attachments; ++i)
+  
+  for (auto render_texture : _render_textures)
   {
-    _render_textures.push_back(
-      std::make_shared<Texture>(glm::uvec3(width, height, 1), Texture::Format::RGBA,
-        GL_RGBA, GL_FLOAT, Texture::FilterMode::Nearest,
-        Texture::WrappingMode::ClampToEdge));
-    color_attachments.push_back(GL_COLOR_ATTACHMENT0 + i);
+    auto texture = std::get<std::shared_ptr<Texture>>(render_texture);
+    auto attachment = std::get<GLenum>(render_texture);
     
-    _render_textures.back()->upload();
-    _fbo.attach2DTexture(_render_textures.back()->id(), color_attachments.back(), 0);
+    _color_attachments.push_back(attachment);
+    texture->upload();
+    _fbo.attach2DTexture(texture->id(), attachment, 0);
   }
-  _fbo.bind();
-  glDrawBuffers(n_color_attachments, &color_attachments[0]);
-  _fbo.unbind();
 
   _fbo.attachRenderBuffer(_depth_buffer.id(), GL_DEPTH_ATTACHMENT);
 }
@@ -39,12 +35,31 @@ FrameBufferQuad::~FrameBufferQuad()
 void FrameBufferQuad::bindTextures()
 {
   _texture_units_in_use = std::vector<TextureUnit>(_render_textures.size());
+  
   for (int i = 0; i < _render_textures.size(); ++i)
   {
+    auto texture = std::get<std::shared_ptr<Texture>>(_render_textures[i]);
+    auto name = std::get<std::string>(_render_textures[i]);
+    
     _texture_units_in_use[i].activate();
-    _render_textures[i]->bind();
-    const char* texure_uniform_name = (std::string("tex") + std::to_string(i)).c_str();
-    glUniform1i(glGetUniformLocation(ShaderProgram::currentProgramId(), texure_uniform_name), _texture_units_in_use[i]);
+    texture->bind();
+    glUniform1i(glGetUniformLocation(ShaderProgram::currentProgramId(), &name[0]), _texture_units_in_use[i]);
+  }
+}
+
+void FrameBufferQuad::bindFBO()
+{
+  _fbo.bind();
+  // Prepair the buffers to draw to
+  glDrawBuffers(_color_attachments.size(), &_color_attachments[0]);
+}
+
+void FrameBufferQuad::generateMipMaps()
+{
+  for (auto render_texture : _render_textures)
+  {
+    auto texture = std::get<std::shared_ptr<Texture>>(render_texture);
+    texture->generateMipMap(); 
   }
 }
 

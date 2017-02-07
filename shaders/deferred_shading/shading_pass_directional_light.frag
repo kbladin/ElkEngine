@@ -11,10 +11,10 @@ struct DirectionalLightSource
 layout(location = 0) out vec4 color;
 
 // Uniforms
-uniform sampler2D tex0; // Albedo
-uniform sampler2D tex1; // Position
-uniform sampler2D tex2; // Normal
-uniform sampler2D tex3; // Roughness
+uniform sampler2D albedo_buffer; // Albedo
+uniform sampler2D position_buffer; // Position
+uniform sampler2D normal_buffer; // Normal
+uniform sampler2D material_buffer; // Roughness, Dielectric Fresnel term, metalness
 
 uniform DirectionalLightSource light_source;
 
@@ -29,87 +29,90 @@ float gaussian(float x, float sigma, float mu)
   return a * exp(-(x_minus_b * x_minus_b) / (2.0f * sigma * sigma));
 }
 
-float schlick(float n1, float n2, float cos_theta)
-{
-  float R0 = pow((n1 - n2) / (n1 + n2), 2);
-  float R = R0 + (1 - R0) * pow((1 - cos_theta), 5);
-  return R;
-}
-
-float roughSchlick2(float n1, float n2, float cos_theta, float roughness)
-{
-  float R0 = pow((n1 - n2) / (n1 + n2), 2);
-  float area_under_curve = 1.0 / 6.0 * (5.0 * R0 + 1.0);
-  float new_area_under_curve = 1.0 / (6.0 * roughness + 6.0) * (5.0 * R0 + 1.0);
-
-  return schlick(n1, n2, cos_theta) / (1 + roughness) + (area_under_curve - new_area_under_curve);
-}
-
-vec3 environment(vec3 dir)
-{
-  return vec3(0.1, 0.1, 0.1);
-}
-
 float castShadowRay(vec3 origin, vec3 direction)
 {
-  float hit = 0.0f;
   float step = 0.1;
   float t = 0.0f;
-  for (int i = 0; i < 10; i++)
-  {
-    vec3 position_view_space = origin + t * direction;
-    vec4 position_screen_space = P_frag * vec4(position_view_space, 1.0f);
-    position_screen_space /= position_screen_space.w;
-    vec2 position_texture_space = position_screen_space.xy * 0.5f + vec2(0.5f);
-    vec3 position = texture(tex1, position_texture_space).xyz;
-    float alpha = texture(tex0, position_texture_space).a;
+  vec3 position_view_space = vec3(0.0f,0.0f,0.0f);
 
-    hit += (position.z > position_view_space.z ? 1.0f : 0.0f) * alpha;
-      
+  for (int i = 0; i < 50; i++)
+  {
+    vec3 position_view_space_prev = position_view_space;
+    position_view_space = origin + t * direction;
+    vec4 position_clip_space = P_frag * vec4(position_view_space, 1.0f);
+    vec3 position_screen_space = position_clip_space.xyz / position_clip_space.w;
+    vec2 position_texture_space = position_screen_space.xy * 0.5f + vec2(0.5f);
+    vec3 position = texture(position_buffer, position_texture_space).xyz;
+    float alpha = texture(albedo_buffer, position_texture_space).a;
+
+    if (position_texture_space.x < 0 || position_texture_space.x > 1 ||
+        position_texture_space.y < 0 || position_texture_space.y > 1)
+    {
+      return 0.0f;
+    }
+    if (position.z > position_view_space.z && (position.z - position_view_space_prev.z) < 0.2 && alpha != 0.0f)
+    {
+      return 1.0f;
+    }
     t += step;
   }
-  return 1.0f - clamp(hit, 0.0f, 1.0f);
+  return 0.0f;
 }
 
 void main()
 {
+  vec3 total_radiance;
   vec2 sample_point_texture_space = gl_FragCoord.xy / window_size;
   
   // Material properties
-  vec4 albedo =     texture(tex0, sample_point_texture_space);
-  vec3 position =   texture(tex1, sample_point_texture_space).xyz;
-  vec3 normal =     texture(tex2, sample_point_texture_space).xyz;
-  float roughness = texture(tex3, sample_point_texture_space).x;
-  float index_of_refraction = 2;
-  
-  // Useful vectors
-  vec3 n = normalize(normal);
-  vec3 l = normalize(light_source.direction);
-  vec3 v = normalize(position - vec3(0.0f));
-  vec3 r = reflect(v, n);
-  
-  // Form factors
-  float cos_theta = max(dot(n, -l), 0.0f);
-  float cos_beta =  max(dot(r, -l), 0.0f);
-  float cos_alpha = max(dot(-v, n), 0.0f);
+  vec4 albedo =     texture(albedo_buffer,   sample_point_texture_space);
+  if (albedo.a != 0.0)
+  {
+    vec3 position =   texture(position_buffer, sample_point_texture_space).xyz;
+    vec3 normal =     texture(normal_buffer,   sample_point_texture_space).xyz;
+    float roughness = texture(material_buffer, sample_point_texture_space).x;
+    float R =         texture(material_buffer, sample_point_texture_space).y; // Dielectric Fresnel term
+    float metalness = texture(material_buffer, sample_point_texture_space).z; // Metalness
 
-  // Fresnel term
-  float R = roughSchlick2(1, index_of_refraction, cos_alpha, roughness);
+    // Useful vectors
+    vec3 n = normalize(normal);
 
-  // BRDFs
-  float BRDF_diffuse = 1.0;
-  float BRDF_specular_times_cos_theta = gaussian(1 - cos_beta, roughness, 0.0f);
 
-  // Irradiance measured in Watts per square meter
-  // [M * L^2 * T^-3] * [Sr^-1] * [L^-2] = [M * Sr^-1 * T^-3]
-  // Rendering equation over whole hemisphere
-  float irradiance_diffuse =  light_source.radiance * BRDF_diffuse      * cos_theta * 2 * PI;
-  float irradiance_specular = light_source.radiance * BRDF_specular_times_cos_theta * 2 * PI;
+    vec3 l = normalize(light_source.direction);
+    vec3 v = normalize(position - vec3(0.0f));
+    vec3 r = reflect(v, n);
+    
+    // Form factors
+    float cos_theta = max(dot(n, -l), 0.0f);
+    float cos_beta =  max(dot(r, -l), 0.0f);
+    float cos_alpha = max(dot(-v, n), 0.0f);
 
-  // Filter radiance through colors and material
-  vec3 diffuse_radiance = albedo.rgb * (1.0f - R) * light_source.color * irradiance_diffuse;
-  vec3 specular_radiance =                 R  * light_source.color * irradiance_specular;
+    // BRDFs
+    float BRDF_diffuse = 1.0;
+    float BRDF_specular_times_cos_theta = gaussian(1 - cos_beta, roughness, 0.0f);
 
+    // Irradiance measured in Watts per square meter
+    // [M * L^2 * T^-3] * [Sr^-1] * [L^-2] = [M * Sr^-1 * T^-3]
+    // Rendering equation over whole hemisphere
+
+    float irradiance_diffuse =  light_source.radiance * BRDF_diffuse      * cos_theta * 2 * PI;
+    float irradiance_specular = light_source.radiance * BRDF_specular_times_cos_theta * 2 * PI;
+
+    float hit = castShadowRay(position + n * 0.01f, -l);
+
+    // Different Frenel depending on if the material is metal or dielectric
+    vec3  R_metal = (albedo.rgb + (vec3(1.0f) - albedo.rgb) * vec3(R));
+    vec3  R_diffuse = vec3((1.0f - R) * (1.0f - metalness));
+    vec3  R_specular = vec3(R * (1.0f - metalness)) + R_metal * metalness;
+
+    // Filter radiance through colors and material
+    vec3 diffuse_radiance = albedo.rgb * R_diffuse  * light_source.color * irradiance_diffuse * (1 - hit);
+    vec3 specular_radiance =             R_specular * light_source.color * irradiance_specular * (1 - hit);
+
+    // Hack to avoid hard edge
+    specular_radiance *= pow(cos_theta, 0.5);
+    total_radiance = diffuse_radiance + specular_radiance;
+  }
   // Add to final radiance
-  color = vec4(dot(normalize(position), vec3(0,0,-1)) * (diffuse_radiance + specular_radiance) * albedo.a * castShadowRay(position + n * 0.01f, -l), 1.0f);
+  color = vec4(total_radiance, 1.0f);
 }

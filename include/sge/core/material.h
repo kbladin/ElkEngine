@@ -13,7 +13,8 @@ public:
     std::shared_ptr<Texture> albedo     = nullptr,
     std::shared_ptr<Texture> roughness  = nullptr,
     std::shared_ptr<Texture> IOR        = nullptr,
-    std::shared_ptr<Texture> metalness  = nullptr);
+    std::shared_ptr<Texture> metalness  = nullptr,
+    std::shared_ptr<Texture> normal     = nullptr);
   ~Material();
 
   void use(GLuint programId);
@@ -23,6 +24,7 @@ private:
   std::shared_ptr<Texture> _roughness;
   std::shared_ptr<Texture> _IOR;
   std::shared_ptr<Texture> _metalness;
+  std::shared_ptr<Texture> _normal;
 };
 
 } }

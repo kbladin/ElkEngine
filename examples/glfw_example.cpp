@@ -33,9 +33,16 @@ public:
 
   void update(double dt);
   DeferredShadingRenderer& renderer() { return _renderer; };
-//private:
+
   DeferredShadingRenderer _renderer;
+private:
   RenderableModel _monkey;
+  RenderableModel _earth;
+  RenderableModel _gold_ball;
+  RenderableModel _granite_ball;
+  RenderableModel _greasy_metal_ball;
+  RenderableModel _rusted_iron_ball;
+  RenderableModel _worn_painted_ball;
   RenderableModel _plane;
   PointLightSource _lamp;
   DirectionalLightSource _lamp2;
@@ -44,10 +51,51 @@ public:
 MyEngine::MyEngine() :
   SimpleGraphicsEngine(),
   _renderer(perspective_camera, 720 * 2, 480 * 2),
-  _monkey(CreateMesh::lonLatSphere(64, 32),
+  _monkey(CreateMesh::load("../../data/meshes/suzanne_highres.obj"),
     std::make_shared<Material>(
-      CreateTexture::load("../../data/textures/earth-albedo.jpg"),
-      CreateTexture::load("../../data/textures/earth-roughness.jpg"))),
+      CreateTexture::white(100,100),
+      CreateTexture::load("../../data/textures/roughness.png"),
+      nullptr,
+      CreateTexture::white(100,100))),
+  _earth(CreateMesh::lonLatSphere(64,32),
+    std::make_shared<Material>(
+      CreateTexture::load("../../data/textures/earth-albedo-highres.jpg"),
+      CreateTexture::load("../../data/textures/earth-roughness-highres.png"))),
+  _gold_ball(CreateMesh::lonLatSphere(64,32),
+    std::make_shared<Material>(
+      CreateTexture::load("../../data/textures/gold-scuffed-Unreal-Engine/gold-scuffed_basecolor.png"),
+      CreateTexture::load("../../data/textures/gold-scuffed-Unreal-Engine/gold-scuffed_roughness.png"),
+      CreateTexture::white(100,100),
+      CreateTexture::load("../../data/textures/gold-scuffed-Unreal-Engine/gold-scuffed_metallic.png"),
+      nullptr)),
+  _granite_ball(CreateMesh::lonLatSphere(64,32),
+    std::make_shared<Material>(
+      CreateTexture::load("../../data/textures/granitesmooth1-Unreal-Engine/granitesmooth1-albedo.png"),
+      CreateTexture::load("../../data/textures/granitesmooth1-Unreal-Engine/granitesmooth1-roughness3.png"),
+      CreateTexture::white(100,100),
+      CreateTexture::load("../../data/textures/granitesmooth1-Unreal-Engine/granitesmooth1-metalness.png"),
+      nullptr)),
+  _greasy_metal_ball(CreateMesh::lonLatSphere(64,32),
+    std::make_shared<Material>(
+      CreateTexture::load("../../data/textures/greasy-metal-pan1-Unreal-Engine/greasy-metal-pan1-albedo.png"),
+      CreateTexture::load("../../data/textures/greasy-metal-pan1-Unreal-Engine/greasy-metal-pan1-roughness.png"),
+      CreateTexture::white(100,100),
+      CreateTexture::load("../../data/textures/greasy-metal-pan1-Unreal-Engine/greasy-metal-pan1-metal.png"),
+      nullptr)),
+  _rusted_iron_ball(CreateMesh::lonLatSphere(64,32),
+    std::make_shared<Material>(
+      CreateTexture::load("../../data/textures/rustediron1-alt2-Unreal-Engine/rustediron2_basecolor.png"),
+      CreateTexture::load("../../data/textures/rustediron1-alt2-Unreal-Engine/rustediron2_roughness.png"),
+      CreateTexture::white(100,100),
+      CreateTexture::load("../../data/textures/rustediron1-alt2-Unreal-Engine/rustediron2_metallic.png"),
+      nullptr)),
+  _worn_painted_ball(CreateMesh::lonLatSphere(64,32),
+    std::make_shared<Material>(
+      CreateTexture::load("../../data/textures/wornpaintedcement-Unreal_Engine/wornpaintedcement-albedo.png"),
+      CreateTexture::load("../../data/textures/wornpaintedcement-Unreal_Engine/wornpaintedcement-roughness.png"),
+      CreateTexture::white(100,100),
+      CreateTexture::load("../../data/textures/wornpaintedcement-Unreal_Engine/wornpaintedcement-metalness.png"),
+      nullptr)),
   _plane(CreateMesh::quad(),
     std::make_shared<Material>(
       CreateTexture::white(100,100),
@@ -57,24 +105,40 @@ MyEngine::MyEngine() :
 {
   _renderer.setSkyBox(
     std::make_shared<RenderableCubeMap>(CreateTexture::loadCubeMap(
-        "../../data/textures/Lycksele3/posx.jpg",
-        "../../data/textures/Lycksele3/negx.jpg",
-        "../../data/textures/Lycksele3/posy.jpg",
-        "../../data/textures/Lycksele3/negy.jpg",
-        "../../data/textures/Lycksele3/posz.jpg",
-        "../../data/textures/Lycksele3/negz.jpg")));
+      "../../data/textures/mp_marvelous/bloody-marvelous_rt.tga",
+      "../../data/textures/mp_marvelous/bloody-marvelous_lf.tga",
+      "../../data/textures/mp_marvelous/bloody-marvelous_up.tga",
+      "../../data/textures/mp_marvelous/bloody-marvelous_dn.tga",
+      "../../data/textures/mp_marvelous/bloody-marvelous_bk.tga",
+      "../../data/textures/mp_marvelous/bloody-marvelous_ft.tga")));
 
   _lamp.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
   _lamp2.setTransform(glm::rotate(float(M_PI) * 0.15f, glm::vec3(-1.0f, 0.0f, -1.0f)));
-  //_monkey.setTransform(glm::rotate(float(M_PI), glm::vec3(0.0f, 1.0f, 0.0f)));
+  _monkey.setTransform(glm::translate(glm::vec3(1.5f, 0.0f, 0.0f)));
+  _earth.setTransform(glm::translate(glm::vec3(-1.5f, 0.0f, 0.0f)));
   _plane.setTransform(glm::scale(glm::vec3(4.0f, 4.0f, 4.0f)));
   _plane.setTransform(glm::rotate(-float(M_PI / 2), glm::vec3(1.0f, 0.0f, 0.0f)) * _plane.relativeTransform());
   _plane.setTransform(glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * _plane.relativeTransform());
   
-  scene.addChild(_monkey);
+
+  _gold_ball.setTransform(glm::translate(glm::vec3(-4.0f, 0.0f, 0.0f)));
+  _granite_ball.setTransform(glm::translate(glm::vec3(-2.0f, 0.0f, 0.0f)));
+  _greasy_metal_ball.setTransform(glm::translate(glm::vec3(0.0f, 0.0f, 0.0f)));
+  _rusted_iron_ball.setTransform(glm::translate(glm::vec3(2.0f, 0.0f, 0.0f)));
+  _worn_painted_ball.setTransform(glm::translate(glm::vec3(4.0f, 0.0f, 0.0f)));
+
+  //scene.addChild(_monkey);
+  //scene.addChild(_earth);
+  
+  scene.addChild(_gold_ball);
+  scene.addChild(_granite_ball);
+  scene.addChild(_greasy_metal_ball);
+  scene.addChild(_rusted_iron_ball);
+  scene.addChild(_worn_painted_ball);
+  
   //scene.addChild(_plane);
   scene.addChild(camera());
-  camera().addChild(_lamp);
+  //camera().addChild(_lamp);
   scene.addChild(_lamp2);
 }
 
@@ -167,8 +231,6 @@ void DebugInputController::step(float dt)
         "../../data/textures/mp_alpha/alpha-island_bk.tga",
         "../../data/textures/mp_alpha/alpha-island_ft.tga")));
   }
-
-
 
   if (_keys_pressed.count(Key::KEY_O))
   {

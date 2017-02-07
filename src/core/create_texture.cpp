@@ -19,7 +19,7 @@ auto texture_data = loadTexture_freeimage(path);
 std::shared_ptr<Texture> tex = std::make_shared<Texture>(
   texture_data.first, glm::uvec3(texture_data.second,1),
   Texture::Format::RGBA, GL_RGBA, GL_UNSIGNED_BYTE,
-  Texture::FilterMode::Linear, Texture::WrappingMode::Repeat);
+  Texture::FilterMode::LinearMipMap, Texture::WrappingMode::Repeat);
 
 return tex;
 #else
@@ -69,8 +69,13 @@ std::shared_ptr<Texture> CreateTexture::black(int width, int height)
 {
   unsigned int array_size = width * height * 4 * 1;
   GLubyte* pixel_data = new GLubyte[array_size];
-  std::memset(pixel_data, 0, array_size);
-
+  for (int i = 0; i < width * height; ++i)
+  {
+    pixel_data[i*4 + 0] = 0;
+    pixel_data[i*4 + 1] = 0;
+    pixel_data[i*4 + 2] = 0;
+    pixel_data[i*4 + 3] = 255;
+  }
   return std::make_shared<Texture>(pixel_data, glm::uvec3(width, height, 1));
 }
 

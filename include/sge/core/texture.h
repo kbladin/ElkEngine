@@ -19,6 +19,8 @@ public:
   enum class FilterMode {
     Nearest,
     Linear,
+    LinearMipMap,
+    NearestLinearMipMap,
     AnisotropicMipMap
   };
 
@@ -51,6 +53,7 @@ public:
   int numberOfChannels() const;
   void upload();
   void downloadTexture();
+  void generateMipMap();
 
   inline GLuint id() const {return _id;};
   

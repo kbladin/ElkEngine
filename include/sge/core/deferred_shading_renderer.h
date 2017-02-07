@@ -30,20 +30,39 @@ private:
   void renderGeometryBuffer(Object3D& scene);
   void renderPointLights();
   void renderDirectionalLights();
-  void renderEnvironmentLights();
+  void renderDiffuseEnvironmentLights();
   void renderSkyBox();
+  void renderScreenSpaceReflections();
+  void renderIrradiance();
 
   int _window_width, _window_height;
 
   std::shared_ptr<ShaderProgram> _gbuffer_program;
   std::shared_ptr<ShaderProgram> _shading_program_point_lights;
   std::shared_ptr<ShaderProgram> _shading_program_directional_lights;
-  std::shared_ptr<ShaderProgram> _shading_program_environment;
+  std::shared_ptr<ShaderProgram> _shading_program_environment_diffuse;
+  std::shared_ptr<ShaderProgram> _shading_program_reflections;
+  std::shared_ptr<ShaderProgram> _shading_program_irradiance;
   std::shared_ptr<ShaderProgram> _cube_map_program;
+  
+  std::shared_ptr<ShaderProgram> _output_highlights_program;
+  std::shared_ptr<ShaderProgram> _post_process_program;
+  std::shared_ptr<ShaderProgram> _final_pass_through_program;
 
   std::shared_ptr<RenderableCubeMap> _sky_box;
 
-  std::unique_ptr<FrameBufferQuad> _fbo_quad;
+  // Framebuffer object to where where geometry is rendered
+  std::unique_ptr<FrameBufferQuad> _geometry_fbo_quad;
+  // Framebuffer object to where irradiance is rendered
+  std::unique_ptr<FrameBufferQuad> _light_fbo_quad;
+
+
+  std::unique_ptr<FrameBufferQuad> _final_irradiance_fbo_quad;
+  // Need two due to ping ponging  
+  std::unique_ptr<FrameBufferQuad> _post_process_fbo_quad1;
+  std::unique_ptr<FrameBufferQuad> _post_process_fbo_quad2;
+
+  std::unique_ptr<FrameBufferQuad> _final_pass_through_fbo_quad;
 
   PerspectiveCamera& _camera;
 };

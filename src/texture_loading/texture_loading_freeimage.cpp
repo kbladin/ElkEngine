@@ -14,18 +14,18 @@ namespace sge { namespace core {
 
 std::pair<void*, glm::uvec2> loadTexture_freeimage(const char* path)
 {
-  FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(path,0);//Automatocally detects the format(from over 20 formats!)
-  FIBITMAP* imagen = FreeImage_Load(formato, path);
+  FREE_IMAGE_FORMAT format = FreeImage_GetFileType(path,0);
+  FIBITMAP* image = FreeImage_Load(format, path);
  
-  FIBITMAP* temp = imagen;
-  imagen = FreeImage_ConvertTo32Bits(imagen);
+  FIBITMAP* temp = image;
+  image = FreeImage_ConvertTo32Bits(image);
   FreeImage_Unload(temp);
  
-  int w = FreeImage_GetWidth(imagen);
-  int h = FreeImage_GetHeight(imagen);
+  int w = FreeImage_GetWidth(image);
+  int h = FreeImage_GetHeight(image);
  
-  GLubyte* textura = new GLubyte[4*w*h];
-  char* pixeles = (char*)FreeImage_GetBits(imagen);
+  GLubyte* texture_data = new GLubyte[4*w*h];
+  char* image_pixels = (char*)FreeImage_GetBits(image);
 
   //FreeImage loads in BGR format, so you need to swap some bytes(Or use GL_BGR). 
   for (int y = 0; y < h; ++y)
@@ -35,13 +35,14 @@ std::pair<void*, glm::uvec2> loadTexture_freeimage(const char* path)
       int idx_read = x + y * w;
       int idx_write = x + y * w;
 
-      textura[idx_write*4+0] = pixeles[idx_read*4+2];
-      textura[idx_write*4+1] = pixeles[idx_read*4+1];
-      textura[idx_write*4+2] = pixeles[idx_read*4+0];
-      textura[idx_write*4+3] = pixeles[idx_read*4+3];
+      texture_data[idx_write*4+0] = image_pixels[idx_read*4+2];
+      texture_data[idx_write*4+1] = image_pixels[idx_read*4+1];
+      texture_data[idx_write*4+2] = image_pixels[idx_read*4+0];
+      texture_data[idx_write*4+3] = image_pixels[idx_read*4+3];
     }
   }
-  return {textura, glm::uvec2(w,h)};
+  FreeImage_Unload(image);
+  return {texture_data, glm::uvec2(w,h)};
 }
 
 } }

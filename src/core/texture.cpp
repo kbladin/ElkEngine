@@ -97,6 +97,7 @@ void Texture::bind() const
 void Texture::applyFilter()
 {
   bind();
+  glTexParameteri(_type, GL_TEXTURE_MAX_LEVEL, _mip_map_level - 1);
 
   switch (_filter) {
     case FilterMode::Nearest:
@@ -106,6 +107,18 @@ void Texture::applyFilter()
     case FilterMode::Linear:
       glTexParameteri(_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      break;
+    case FilterMode::LinearMipMap:
+      glTexParameteri(_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+      upload();
+      glGenerateMipmap(_type);
+      break;
+    case FilterMode::NearestLinearMipMap:
+      glTexParameteri(_type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameteri(_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+      upload();
+      glGenerateMipmap(_type);
       break;
     case FilterMode::AnisotropicMipMap:
     {
@@ -128,6 +141,12 @@ void Texture::applyFilter()
     default:
       assert(false);
   }
+}
+
+void Texture::generateMipMap()
+{
+  bind();
+  glGenerateMipmap(_type);
 }
 
 int Texture::numberOfChannels() const
@@ -185,6 +204,7 @@ void Texture::calculateBytesPerPixel()
       break;
     case GL_UNSIGNED_SHORT:
     case GL_SHORT:
+    case GL_HALF_FLOAT:
     case GL_UNSIGNED_SHORT_5_6_5:
     case GL_UNSIGNED_SHORT_5_6_5_REV:
     case GL_UNSIGNED_SHORT_4_4_4_4:
