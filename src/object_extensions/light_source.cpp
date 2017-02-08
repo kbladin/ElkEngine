@@ -21,6 +21,13 @@ void PointLightSource::submit(Renderer& renderer)
   renderer.submitPointLightSource(*this);
 }
 
+void PointLightSource::update(double dt)
+{
+  Object3D::update(dt);
+  //setTransform(
+  //  relativeTransform() * glm::rotate(float(dt) * 0.1f, glm::vec3(1.0f, 1.0f, 0.0f)) );
+}
+
 void PointLightSource::render(const PerspectiveCamera& camera)
 {
   // If we are inside the sphere affected by the light source, render a full
@@ -124,6 +131,13 @@ void DirectionalLightSource::submit(Renderer& renderer)
 {
   Object3D::submit(renderer);
   renderer.submitDirectionalLightSource(*this);
+}
+
+void DirectionalLightSource::update(double dt)
+{
+  Object3D::update(dt);
+  //setTransform(
+  //  relativeTransform() * glm::rotate(float(dt) * 0.5f, glm::vec3(1.0f, 1.0f, 0.0f)) );
 }
 
 void DirectionalLightSource::render(const PerspectiveCamera& camera)

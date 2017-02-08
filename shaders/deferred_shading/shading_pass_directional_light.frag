@@ -18,7 +18,6 @@ uniform sampler2D material_buffer;  // Roughness, Dielectric Fresnel term, metal
 
 uniform DirectionalLightSource light_source;
 
-uniform ivec2 window_size;
 uniform mat4 P_frag;
 
 #define PI 3.1415
@@ -42,8 +41,8 @@ float castShadowRay(vec3 origin, vec3 direction)
     vec4 position_clip_space = P_frag * vec4(position_view_space, 1.0f);
     vec3 position_screen_space = position_clip_space.xyz / position_clip_space.w;
     vec2 position_texture_space = position_screen_space.xy * 0.5f + vec2(0.5f);
-    vec3 position = texture(position_buffer, position_texture_space).xyz;
-    float alpha = texture(albedo_buffer, position_texture_space).a;
+    vec3 position = textureLod(position_buffer, position_texture_space, 0).xyz;
+    float alpha = textureLod(albedo_buffer, position_texture_space, 0).a;
 
     if (position_texture_space.x < 0 || position_texture_space.x > 1 ||
         position_texture_space.y < 0 || position_texture_space.y > 1)
@@ -62,17 +61,17 @@ float castShadowRay(vec3 origin, vec3 direction)
 void main()
 {
   vec3 total_radiance;
-  vec2 sample_point_texture_space = gl_FragCoord.xy / window_size;
+  ivec2 raster_coord = ivec2(gl_FragCoord.xy);
   
   // Material properties
-  vec4 albedo = texture(albedo_buffer, sample_point_texture_space);
+  vec4 albedo = texelFetch(albedo_buffer, raster_coord, 0);
   if (albedo.a != 0.0)
   {
-    vec3 position =   texture(position_buffer, sample_point_texture_space).xyz;
-    vec3 normal =     texture(normal_buffer,   sample_point_texture_space).xyz;
-    float roughness = texture(material_buffer, sample_point_texture_space).x;
-    float R =         texture(material_buffer, sample_point_texture_space).y;
-    float metalness = texture(material_buffer, sample_point_texture_space).z;
+    vec3 position =   texelFetch(position_buffer, raster_coord, 0).xyz;
+    vec3 normal =     texelFetch(normal_buffer,   raster_coord, 0).xyz;
+    float roughness = texelFetch(material_buffer, raster_coord, 0).x;
+    float R =         texelFetch(material_buffer, raster_coord, 0).y;
+    float metalness = texelFetch(material_buffer, raster_coord, 0).z;
 
     // Useful vectors
     vec3 n = normalize(normal);
@@ -97,7 +96,7 @@ void main()
     float irradiance_diffuse =  light_source.radiance * BRDF_diffuse      * cos_theta * 2 * PI;
     float irradiance_specular = light_source.radiance * BRDF_specular_times_cos_theta * 2 * PI;
 
-    float hit = castShadowRay(position + n * 0.01f, -l);
+    float hit = 0;// castShadowRay(position + n * 0.01f, -l);
 
     // Different Frenel depending on if the material is metal or dielectric
     vec3  R_metal = (albedo.rgb + (vec3(1.0f) - albedo.rgb) * vec3(R));

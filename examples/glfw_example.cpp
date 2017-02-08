@@ -181,6 +181,8 @@ private:
 DebugInputController::DebugInputController(MyEngine& engine) :
   _engine(engine)
 {
+  DebugInput::value("focus") = 2;
+  DebugInput::value("aperture") = 1;
 }
 
 void DebugInputController::step(float dt)
@@ -239,6 +241,25 @@ void DebugInputController::step(float dt)
         "../../data/textures/mp_alpha/alpha-island_dn.tga",
         "../../data/textures/mp_alpha/alpha-island_bk.tga",
         "../../data/textures/mp_alpha/alpha-island_ft.tga")));
+  }
+
+  if (_keys_pressed.count(Key::KEY_N))
+  {
+    DebugInput::value("aperture") *= 0.99;
+  }
+  if (_keys_pressed.count(Key::KEY_M))
+  {
+    DebugInput::value("aperture") *= 1.01;
+  }
+
+
+  if (_keys_pressed.count(Key::KEY_V))
+  {
+    DebugInput::value("focus") *= 0.99;
+  }
+  if (_keys_pressed.count(Key::KEY_B))
+  {
+    DebugInput::value("focus") *= 1.01;
   }
 }
 

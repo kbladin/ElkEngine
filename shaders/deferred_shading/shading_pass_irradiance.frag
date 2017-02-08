@@ -6,13 +6,11 @@ layout(location = 0) out vec4 color;
 // Uniforms
 uniform sampler2D irradiance_buffer; // Irradiance
 
-uniform ivec2 window_size;
-
 void main()
 {
-  vec2 sample_point_texture_space = gl_FragCoord.xy / window_size;
+  ivec2 raster_coord = ivec2(gl_FragCoord.xy);
  
   // Material properties
-  vec3 irradiance = texture(irradiance_buffer,  sample_point_texture_space).rgb;
+  vec3 irradiance = texelFetch(irradiance_buffer, raster_coord, 0).rgb;
   color = vec4(irradiance, 1.0f);
 }

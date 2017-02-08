@@ -10,7 +10,6 @@ uniform sampler2D normal_buffer; // Normal
 uniform sampler2D material_buffer; // Roughness, Dielectric Fresnel term, metalness
 uniform sampler2D irradiance_buffer; // Irradiance
 
-uniform ivec2 window_size;
 uniform mat4 P_frag;
 
 uniform samplerCube cube_map;
@@ -58,19 +57,19 @@ vec3 environment(vec3 dir_view_space, float roughness)
 void main()
 {
   vec3 specular_radiance_env;
-  vec2 sample_point_texture_space = gl_FragCoord.xy / window_size;
+  ivec2 raster_coord = ivec2(gl_FragCoord.xy);
  
   // Material properties
-  vec3 irradiance = texture(irradiance_buffer,  sample_point_texture_space).rgb;
-  vec3 position =   texture(position_buffer,  sample_point_texture_space).xyz;
-  vec4 albedo =     texture(albedo_buffer,    sample_point_texture_space);
+  vec3 irradiance = texelFetch(irradiance_buffer, raster_coord, 0).rgb;
+  vec3 position =   texelFetch(position_buffer,   raster_coord, 0).xyz;
+  vec4 albedo =     texelFetch(albedo_buffer,     raster_coord, 0);
   
   if (albedo.a > 0.5)
   {
-    vec3 normal =     texture(normal_buffer,    sample_point_texture_space).xyz;
-    float roughness = texture(material_buffer,  sample_point_texture_space).x;
-    float R =         texture(material_buffer,  sample_point_texture_space).y;
-    float metalness = texture(material_buffer,  sample_point_texture_space).z;
+    vec3 normal =     texelFetch(normal_buffer,   raster_coord, 0).xyz;
+    float roughness = texelFetch(material_buffer, raster_coord, 0).x;
+    float R =         texelFetch(material_buffer, raster_coord, 0).y;
+    float metalness = texelFetch(material_buffer, raster_coord, 0).z;
 
     // Useful vectors
     vec3 n = normalize(normal);
@@ -89,7 +88,7 @@ void main()
     float irradiance_specular_environment = 1.0f * BRDF_specular_times_cos_theta_at_reflection;
 
     vec3 radiance_reflection = vec3(0);
-    float hit = castReflectionRay(position + n * 0.01f, r, radiance_reflection, roughness);
+    float hit = 0;//castReflectionRay(position + n * 0.01f, r, radiance_reflection, roughness);
 
 
     // Different Frenel depending on if the material is metal or dielectric

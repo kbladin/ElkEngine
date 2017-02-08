@@ -28,12 +28,12 @@ public:
   virtual void render(Object3D& scene) override;
 private:
   void renderGeometryBuffer(Object3D& scene);
-  void renderPointLights(             int framebuffer_width, int framebuffer_height);
-  void renderDirectionalLights(       int framebuffer_width, int framebuffer_height);
-  void renderDiffuseEnvironmentLights(int framebuffer_width, int framebuffer_height);
-  void renderSkyBox(                  int framebuffer_width, int framebuffer_height);
-  void renderScreenSpaceReflections(  int framebuffer_width, int framebuffer_height);
-  void renderIrradiance(              int framebuffer_width, int framebuffer_height);
+  void renderPointLights();
+  void renderDirectionalLights();
+  void renderDiffuseEnvironmentLights();
+  void renderSkyBox();
+  void renderScreenSpaceReflections();
+  void renderIrradiance();
 
   int _window_width, _window_height;
 

@@ -20,6 +20,7 @@ public:
   PointLightSource(glm::vec3 color, float radiant_flux);
   ~PointLightSource() {};
   virtual void submit(Renderer& renderer) override;
+  virtual void update(double dt) override;
   void render(const PerspectiveCamera& camera);
 
   void setRadiantFlux(float radiant_flux);
@@ -44,6 +45,7 @@ public:
   DirectionalLightSource(glm::vec3 color, float radiance);
   ~DirectionalLightSource() {};
   virtual void submit(Renderer& renderer) override;
+  virtual void update(double dt) override;
   void render(const PerspectiveCamera& camera);
 
   void setRadiance(float radiance);
