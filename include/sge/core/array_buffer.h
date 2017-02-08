@@ -14,7 +14,7 @@ public:
   struct InitData
   {
     void* data;
-    size_t data_size;
+    GLsizei data_size;
     GLuint n_elements;
     GLenum type;
     GLenum buffer_type;

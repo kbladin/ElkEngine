@@ -38,11 +38,14 @@ public:
 private:
   RenderableModel _monkey;
   RenderableModel _earth;
+
   RenderableModel _gold_ball;
   RenderableModel _granite_ball;
   RenderableModel _greasy_metal_ball;
   RenderableModel _rusted_iron_ball;
   RenderableModel _worn_painted_ball;
+  RenderableModel _cave_ball;
+
   RenderableModel _plane;
   PointLightSource _lamp;
   DirectionalLightSource _lamp2;
@@ -81,7 +84,7 @@ MyEngine::MyEngine() :
       CreateTexture::load("../../data/textures/greasy-metal-pan1-Unreal-Engine/greasy-metal-pan1-roughness.png"),
       CreateTexture::white(100,100),
       CreateTexture::load("../../data/textures/greasy-metal-pan1-Unreal-Engine/greasy-metal-pan1-metal.png"),
-      nullptr)),
+      CreateTexture::load("../../data/textures/greasy-metal-pan1-Unreal-Engine/greasy-metal-pan1-normal.png"))),
   _rusted_iron_ball(CreateMesh::lonLatSphere(64,32),
     std::make_shared<Material>(
       CreateTexture::load("../../data/textures/rustediron1-alt2-Unreal-Engine/rustediron2_basecolor.png"),
@@ -95,7 +98,14 @@ MyEngine::MyEngine() :
       CreateTexture::load("../../data/textures/wornpaintedcement-Unreal_Engine/wornpaintedcement-roughness.png"),
       CreateTexture::white(100,100),
       CreateTexture::load("../../data/textures/wornpaintedcement-Unreal_Engine/wornpaintedcement-metalness.png"),
-      nullptr)),
+      CreateTexture::load("../../data/textures/wornpaintedcement-Unreal_Engine/wornpaintedcement-norrmal.png"))),
+  _cave_ball(CreateMesh::lonLatSphere(64,32),
+    std::make_shared<Material>(
+      CreateTexture::load("../../data/textures/cavefloor1-Unreal-Engine/cavefloor1_Base_Color.png"),
+      CreateTexture::load("../../data/textures/cavefloor1-Unreal-Engine/cavefloor1_Roughness.png"),
+      CreateTexture::white(100,100),
+      CreateTexture::load("../../data/textures/cavefloor1-Unreal-Engine/cavefloor1_Metallic.png"),
+      CreateTexture::load("../../data/textures/cavefloor1-Unreal-Engine/cavefloor1_Normal.png"))),
   _plane(CreateMesh::quad(),
     std::make_shared<Material>(
       CreateTexture::white(100,100),
@@ -113,9 +123,9 @@ MyEngine::MyEngine() :
       "../../data/textures/mp_marvelous/bloody-marvelous_ft.tga")));
 
   _lamp.setTransform(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, 0.0f)));
-  _lamp2.setTransform(glm::rotate(float(M_PI) * 0.15f, glm::vec3(-1.0f, 0.0f, -1.0f)));
+  _lamp2.setTransform(glm::rotate(float(M_PI) * 0.4f, glm::vec3(1.0f, 0.0f, -0.65f)));
   _monkey.setTransform(glm::translate(glm::vec3(1.5f, 0.0f, 0.0f)));
-  _earth.setTransform(glm::translate(glm::vec3(-1.5f, 0.0f, 0.0f)));
+  _earth.setTransform(glm::translate(glm::vec3(0.0f, 2.0f, 0.0f)));
   _plane.setTransform(glm::scale(glm::vec3(4.0f, 4.0f, 4.0f)));
   _plane.setTransform(glm::rotate(-float(M_PI / 2), glm::vec3(1.0f, 0.0f, 0.0f)) * _plane.relativeTransform());
   _plane.setTransform(glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * _plane.relativeTransform());
@@ -126,15 +136,17 @@ MyEngine::MyEngine() :
   _greasy_metal_ball.setTransform(glm::translate(glm::vec3(0.0f, 0.0f, 0.0f)));
   _rusted_iron_ball.setTransform(glm::translate(glm::vec3(2.0f, 0.0f, 0.0f)));
   _worn_painted_ball.setTransform(glm::translate(glm::vec3(4.0f, 0.0f, 0.0f)));
+  _cave_ball.setTransform(glm::translate(glm::vec3(6.0f, 0.0f, 0.0f)));
 
   //scene.addChild(_monkey);
-  //scene.addChild(_earth);
+  scene.addChild(_earth);
   
   scene.addChild(_gold_ball);
   scene.addChild(_granite_ball);
   scene.addChild(_greasy_metal_ball);
   scene.addChild(_rusted_iron_ball);
   scene.addChild(_worn_painted_ball);
+  scene.addChild(_cave_ball);
   
   //scene.addChild(_plane);
   scene.addChild(camera());
@@ -169,9 +181,6 @@ private:
 DebugInputController::DebugInputController(MyEngine& engine) :
   _engine(engine)
 {
-  DebugInput::value("roughness") = 1.0;
-  DebugInput::value("IOR") = 2.0;
-  DebugInput::value("FOV") = 45.0;
 }
 
 void DebugInputController::step(float dt)
@@ -231,42 +240,6 @@ void DebugInputController::step(float dt)
         "../../data/textures/mp_alpha/alpha-island_bk.tga",
         "../../data/textures/mp_alpha/alpha-island_ft.tga")));
   }
-
-  if (_keys_pressed.count(Key::KEY_O))
-  {
-    DebugInput::value("roughness") *= (1.0 - dt * 5.0);
-    std::cout << "roughness = " << DebugInput::value("roughness") << std::endl;
-  }
-  if (_keys_pressed.count(Key::KEY_P))
-  {
-    DebugInput::value("roughness") *= (1.0 + dt * 5.0);
-    std::cout << "roughness = " << DebugInput::value("roughness") << std::endl;
-  }
-  
-  if (_keys_pressed.count(Key::KEY_K))
-  {
-    DebugInput::value("IOR") *= (1.0 - dt);
-    std::cout << "IOR = " << DebugInput::value("IOR") << std::endl;
-  }
-  if (_keys_pressed.count(Key::KEY_L))
-  {
-    DebugInput::value("IOR") *= (1.0 + dt);
-    std::cout << "IOR = " << DebugInput::value("IOR") << std::endl;
-  }
-
-  if (_keys_pressed.count(Key::KEY_N))
-  {
-    DebugInput::value("FOV") += 0.001;
-  }
-  if (_keys_pressed.count(Key::KEY_M))
-  {
-    DebugInput::value("FOV") -= 0.001;
-  }
-  
-  DebugInput::value("roughness") = glm::clamp(DebugInput::value("roughness"), 0.0005f, 50.0f);
-  DebugInput::value("IOR") = glm::clamp(DebugInput::value("IOR"), 1.1f, 4.0f);
-
-  _engine.camera().setFOV(DebugInput::value("FOV"));
 }
 
 int main(int argc, char const *argv[])

@@ -27,7 +27,7 @@ std::pair<void*, glm::uvec2> loadTexture_freeimage(const char* path)
   GLubyte* texture_data = new GLubyte[4*w*h];
   char* image_pixels = (char*)FreeImage_GetBits(image);
 
-  //FreeImage loads in BGR format, so you need to swap some bytes(Or use GL_BGR). 
+  //FreeImage loads in BGR format, swap the bytes. 
   for (int y = 0; y < h; ++y)
   {
     for (int x = 0; x < w; ++x)

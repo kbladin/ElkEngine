@@ -2,19 +2,19 @@
 
 struct DirectionalLightSource
 {
-  vec3  direction;
-  vec3  color;
-  float radiance; // W * Sr^−1 * m^−2 [M * T^-3]
+  vec3  direction;  // Direction in view space
+  vec3  color;      // Works as a filter
+  float radiance;   // W * Sr^−1 * m^−2 [M * T^-3]
 };
 
 // Out data
-layout(location = 0) out vec4 color;
+layout(location = 0) out vec4 radiance;
 
 // Uniforms
-uniform sampler2D albedo_buffer; // Albedo
-uniform sampler2D position_buffer; // Position
-uniform sampler2D normal_buffer; // Normal
-uniform sampler2D material_buffer; // Roughness, Dielectric Fresnel term, metalness
+uniform sampler2D albedo_buffer;    // Albedo
+uniform sampler2D position_buffer;  // Position
+uniform sampler2D normal_buffer;    // Normal
+uniform sampler2D material_buffer;  // Roughness, Dielectric Fresnel term, metalness
 
 uniform DirectionalLightSource light_source;
 
@@ -65,18 +65,17 @@ void main()
   vec2 sample_point_texture_space = gl_FragCoord.xy / window_size;
   
   // Material properties
-  vec4 albedo =     texture(albedo_buffer,   sample_point_texture_space);
+  vec4 albedo = texture(albedo_buffer, sample_point_texture_space);
   if (albedo.a != 0.0)
   {
     vec3 position =   texture(position_buffer, sample_point_texture_space).xyz;
     vec3 normal =     texture(normal_buffer,   sample_point_texture_space).xyz;
     float roughness = texture(material_buffer, sample_point_texture_space).x;
-    float R =         texture(material_buffer, sample_point_texture_space).y; // Dielectric Fresnel term
-    float metalness = texture(material_buffer, sample_point_texture_space).z; // Metalness
+    float R =         texture(material_buffer, sample_point_texture_space).y;
+    float metalness = texture(material_buffer, sample_point_texture_space).z;
 
     // Useful vectors
     vec3 n = normalize(normal);
-
 
     vec3 l = normalize(light_source.direction);
     vec3 v = normalize(position - vec3(0.0f));
@@ -114,5 +113,5 @@ void main()
     total_radiance = diffuse_radiance + specular_radiance;
   }
   // Add to final radiance
-  color = vec4(total_radiance, 1.0f);
+  radiance = vec4(total_radiance, 1.0f);
 }

@@ -17,11 +17,6 @@ void RenderableModel::render()
 {
   _material->use(ShaderProgram::currentProgramId());
 
-  glUniform1f(glGetUniformLocation(ShaderProgram::currentProgramId(),
-    "roughness"), DebugInput::value("roughness"));
-  glUniform1f(glGetUniformLocation(ShaderProgram::currentProgramId(),
-    "IOR"), DebugInput::value("IOR"));
-
   glUniformMatrix4fv(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "M"),
     1,

@@ -13,7 +13,8 @@ DeferredShadingRenderer::DeferredShadingRenderer(
   _window_height(framebuffer_height),
   _camera(camera)
 {
-  ShaderManager::instance().loadAndAddShader(
+  auto sm = ShaderManager::instance();
+  sm.loadAndAddShader(
     "gbuffer_program",
     "../../shaders/deferred_shading/geometry_pass.vert",
     nullptr,
@@ -21,7 +22,7 @@ DeferredShadingRenderer::DeferredShadingRenderer(
     nullptr,
     "../../shaders/deferred_shading/geometry_pass.frag");
 
-  ShaderManager::instance().loadAndAddShader(
+  sm.loadAndAddShader(
     "shading_program_point_lights",
     "../../shaders/deferred_shading/shading_pass.vert",
     nullptr,
@@ -29,7 +30,7 @@ DeferredShadingRenderer::DeferredShadingRenderer(
     nullptr,
     "../../shaders/deferred_shading/shading_pass_point_light.frag");
 
-  ShaderManager::instance().loadAndAddShader(
+  sm.loadAndAddShader(
     "shading_program_directional_lights",
     "../../shaders/deferred_shading/shading_pass.vert",
     nullptr,
@@ -37,7 +38,7 @@ DeferredShadingRenderer::DeferredShadingRenderer(
     nullptr,
     "../../shaders/deferred_shading/shading_pass_directional_light.frag");
 
-  ShaderManager::instance().loadAndAddShader(
+  sm.loadAndAddShader(
     "shading_program_environment_diffuse",
     "../../shaders/deferred_shading/shading_pass.vert",
     nullptr,
@@ -45,7 +46,7 @@ DeferredShadingRenderer::DeferredShadingRenderer(
     nullptr,
     "../../shaders/deferred_shading/shading_pass_environment_diffuse.frag");
 
-  ShaderManager::instance().loadAndAddShader(
+  sm.loadAndAddShader(
     "shading_program_reflection",
     "../../shaders/deferred_shading/shading_pass.vert",
     nullptr,
@@ -53,7 +54,7 @@ DeferredShadingRenderer::DeferredShadingRenderer(
     nullptr,
     "../../shaders/deferred_shading/shading_pass_reflection.frag");
 
-  ShaderManager::instance().loadAndAddShader(
+  sm.loadAndAddShader(
     "shading_program_irradiance",
     "../../shaders/deferred_shading/shading_pass.vert",
     nullptr,
@@ -61,7 +62,7 @@ DeferredShadingRenderer::DeferredShadingRenderer(
     nullptr,
     "../../shaders/deferred_shading/shading_pass_irradiance.frag");
 
-  ShaderManager::instance().loadAndAddShader(
+  sm.loadAndAddShader(
     "cube_map_program",
     "../../shaders/deferred_shading/cube_map.vert",
     nullptr,
@@ -69,7 +70,7 @@ DeferredShadingRenderer::DeferredShadingRenderer(
     nullptr,
     "../../shaders/deferred_shading/cube_map.frag");
 
-  ShaderManager::instance().loadAndAddShader(
+  sm.loadAndAddShader(
     "output_highlights_program",
     "../../shaders/deferred_shading/shading_pass.vert",
     nullptr,
@@ -77,7 +78,7 @@ DeferredShadingRenderer::DeferredShadingRenderer(
     nullptr,
     "../../shaders/deferred_shading/shading_pass_output_highlights.frag");
 
-  ShaderManager::instance().loadAndAddShader(
+  sm.loadAndAddShader(
     "post_process_program",
     "../../shaders/deferred_shading/shading_pass.vert",
     nullptr,
@@ -85,7 +86,7 @@ DeferredShadingRenderer::DeferredShadingRenderer(
     nullptr,
     "../../shaders/deferred_shading/shading_pass_post_process.frag");
 
-  ShaderManager::instance().loadAndAddShader(
+  sm.loadAndAddShader(
     "final_pass_through_program",
     "../../shaders/deferred_shading/shading_pass.vert",
     nullptr,
@@ -93,21 +94,16 @@ DeferredShadingRenderer::DeferredShadingRenderer(
     nullptr,
     "../../shaders/deferred_shading/final_pass_through.frag");
 
-  _gbuffer_program = ShaderManager::instance().getShader("gbuffer_program");
-  _shading_program_point_lights =
-    ShaderManager::instance().getShader("shading_program_point_lights");
-  _shading_program_directional_lights =
-    ShaderManager::instance().getShader("shading_program_directional_lights");
-  _shading_program_environment_diffuse =
-    ShaderManager::instance().getShader("shading_program_environment_diffuse");
-  _shading_program_reflections =
-    ShaderManager::instance().getShader("shading_program_reflection");
-  _shading_program_irradiance =
-    ShaderManager::instance().getShader("shading_program_irradiance");
-  _cube_map_program = ShaderManager::instance().getShader("cube_map_program");
-  _output_highlights_program = ShaderManager::instance().getShader("output_highlights_program");
-  _post_process_program = ShaderManager::instance().getShader("post_process_program");
-  _final_pass_through_program = ShaderManager::instance().getShader("final_pass_through_program");
+  _gbuffer_program = sm.getShader("gbuffer_program");
+  _shading_program_point_lights = sm.getShader("shading_program_point_lights");
+  _shading_program_directional_lights = sm.getShader("shading_program_directional_lights");
+  _shading_program_environment_diffuse = sm.getShader("shading_program_environment_diffuse");
+  _shading_program_reflections = sm.getShader("shading_program_reflection");
+  _shading_program_irradiance = sm.getShader("shading_program_irradiance");
+  _cube_map_program = sm.getShader("cube_map_program");
+  _output_highlights_program = sm.getShader("output_highlights_program");
+  _post_process_program = sm.getShader("post_process_program");
+  _final_pass_through_program = sm.getShader("final_pass_through_program");
 
   _camera.addToShader(_gbuffer_program->id());
   _camera.addToShader(_shading_program_point_lights->id());
@@ -199,13 +195,11 @@ DeferredShadingRenderer::DeferredShadingRenderer(
 
   _post_process_fbo_quad1 = std::make_unique<FrameBufferQuad>(
     framebuffer_width, framebuffer_height / 2,
-    std::vector<FrameBufferQuad::RenderTexture>{
-      bloom_render_tex});
+    std::vector<FrameBufferQuad::RenderTexture>{bloom_render_tex});
 
   _final_pass_through_fbo_quad = std::make_unique<FrameBufferQuad>(
     framebuffer_width, framebuffer_height,
-    std::vector<FrameBufferQuad::RenderTexture>{
-      final_color_tex});
+    std::vector<FrameBufferQuad::RenderTexture>{final_color_tex});
 }
 
 DeferredShadingRenderer::~DeferredShadingRenderer()
@@ -232,116 +226,103 @@ void DeferredShadingRenderer::render(Object3D& scene)
   // Update cameras uniforms for all shaders
   _camera.execute();
 
-  _geometry_fbo_quad->bindFBO();
-  glViewport(0,0, _geometry_fbo_quad->width(), _geometry_fbo_quad->height());
-  glClearColor(0.0, 0.0, 0.0, 0.0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // Render to GBuffer
+  _geometry_fbo_quad->bindFBO(); {
+    glViewport(0,0, _geometry_fbo_quad->width(), _geometry_fbo_quad->height());
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glEnable(GL_DEPTH_TEST);
-  glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
 
-  // Render all GBuffers to the FBO-quads assigned textures
-  renderGeometryBuffer(scene);
-  _geometry_fbo_quad->unbindFBO();
+    // Render all GBuffers to the FBO-quads assigned textures
+    renderGeometryBuffer(scene);
+  } _geometry_fbo_quad->unbindFBO();
 
-  //_geometry_fbo_quad->generateMipMaps();
+  // Render to irradiance buffer
+  _light_fbo_quad->bindFBO(); {
+    // Setup for rendering light sources to the _light_fbo_quad frame buffer
+    glViewport(0,0, _light_fbo_quad->width(), _light_fbo_quad->height());
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glBlendFunc(GL_ONE, GL_ONE);
+    glEnable(GL_BLEND);
+    
+    // Render light sources
+    renderPointLights(_light_fbo_quad->width(), _light_fbo_quad->height());
+    renderDirectionalLights(_light_fbo_quad->width(), _light_fbo_quad->height());
 
-  _light_fbo_quad->bindFBO();
-  // Setup for rendering light sources to the _light_fbo_quad frame buffer
-  glViewport(0,0, _light_fbo_quad->width(), _light_fbo_quad->height());
-  //glClearColor(0.0, 0.0, 0.0, 0.0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glDisable(GL_DEPTH_TEST);
-  glBlendFunc(GL_ONE, GL_ONE);
-  glEnable(GL_BLEND);
-  
-  // Render light sources
-  renderPointLights();
-  renderDirectionalLights();
-
-  if (_sky_box)
-  {
-    renderDiffuseEnvironmentLights();
-    renderSkyBox();
-  }
-  _light_fbo_quad->unbindFBO();
-
+    if (_sky_box)
+    {
+      renderDiffuseEnvironmentLights(_light_fbo_quad->width(), _light_fbo_quad->height());
+      renderSkyBox(_light_fbo_quad->width(), _light_fbo_quad->height());
+    }
+  } _light_fbo_quad->unbindFBO();
 
   // Re-generate mip-map for irradiance texture
   _light_fbo_quad->generateMipMaps();
 
-  _final_irradiance_fbo_quad->bindFBO();
-  // Setup for rendering to the default FBO
-  glViewport(0,0, _final_irradiance_fbo_quad->width(), _final_irradiance_fbo_quad->height());
-  glDisable(GL_BLEND);
-  
-  if (_sky_box)
-  {
-    renderScreenSpaceReflections();
-  }
-  else
-  {
-    renderIrradiance();
-  }
-  _final_irradiance_fbo_quad->unbindFBO();
+  // Render to final irradiance buffer (reflections)
+  _final_irradiance_fbo_quad->bindFBO(); {
+    glViewport(0,0, _final_irradiance_fbo_quad->width(), _final_irradiance_fbo_quad->height());
+    glDisable(GL_BLEND);
+    
+    if (_sky_box)
+      renderScreenSpaceReflections(_final_irradiance_fbo_quad->width(), _final_irradiance_fbo_quad->height());
+    else
+      renderIrradiance(_final_irradiance_fbo_quad->width(), _final_irradiance_fbo_quad->height()); 
+  } _final_irradiance_fbo_quad->unbindFBO();
 
-
-
+  // Free some texture units no longer in use
   _geometry_fbo_quad->freeTextureUnits();
   _light_fbo_quad->freeTextureUnits();
-
 
   // Re-generate mip-maps
   _final_irradiance_fbo_quad->generateMipMaps();
 
+  // Render to highlights buffer
+  _post_process_fbo_quad1->bindFBO(); {
+    glViewport(0,0, _window_width, _window_height);
 
-  _post_process_fbo_quad1->bindFBO();
+    _output_highlights_program->pushUsage();
+    glUniform2i(
+      glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
+      _post_process_fbo_quad1->width(), _post_process_fbo_quad1->height());
+    _final_irradiance_fbo_quad->bindTextures();
+    _final_irradiance_fbo_quad->render();
+    _output_highlights_program->popUsage();
+  }_post_process_fbo_quad1->unbindFBO();
 
-  glViewport(0,0, _window_width, _window_height);
+  // Perform post processing, rendering to final buffer
+  _final_pass_through_fbo_quad->bindFBO(); {
+    glViewport(0,0, _final_pass_through_fbo_quad->width(), _final_pass_through_fbo_quad->height());
+    
+    _post_process_program->pushUsage();
+    glUniform2i(
+      glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
+      _final_pass_through_fbo_quad->width(), _final_pass_through_fbo_quad->height());
+    glUniform2i(
+      glGetUniformLocation(ShaderProgram::currentProgramId(), "bloom_buffer_base_size"),
+      _post_process_fbo_quad1->width(), _post_process_fbo_quad1->height() * 2);
+    _final_irradiance_fbo_quad->bindTextures();
+    _post_process_fbo_quad1->bindTextures();
+    _final_irradiance_fbo_quad->render();
+    _post_process_program->popUsage();
 
-  _output_highlights_program->pushUsage();
-  glUniform2i(
-    glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
-    _post_process_fbo_quad1->width(), _post_process_fbo_quad1->height());
-  _final_irradiance_fbo_quad->bindTextures();
-  _final_irradiance_fbo_quad->render();
-  _output_highlights_program->popUsage();
+  } _final_pass_through_fbo_quad->unbindFBO();
 
-  _post_process_fbo_quad1->unbindFBO();
-
-
-
-
-  _final_pass_through_fbo_quad->bindFBO();
-
-  glViewport(0,0, _final_pass_through_fbo_quad->width(), _final_pass_through_fbo_quad->height());
+  // Finally render to screen (default FBO)
+  {
+    glViewport(0,0, _window_width, _window_height);
+    _final_pass_through_program->pushUsage();
+    glUniform2i(
+      glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
+      _window_width, _window_height);
+    _final_pass_through_fbo_quad->bindTextures();
+    _final_pass_through_fbo_quad->render();
+    _final_pass_through_program->popUsage();
+  }
   
-  _post_process_program->pushUsage();
-  glUniform2i(
-    glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
-    _final_pass_through_fbo_quad->width(), _final_pass_through_fbo_quad->height());
-  glUniform2i(
-    glGetUniformLocation(ShaderProgram::currentProgramId(), "bloom_buffer_base_size"),
-    _post_process_fbo_quad1->width(), _post_process_fbo_quad1->height() * 2);
-  _final_irradiance_fbo_quad->bindTextures();
-  _post_process_fbo_quad1->bindTextures();
-  _final_irradiance_fbo_quad->render();
-  _post_process_program->popUsage();
-
-  _final_pass_through_fbo_quad->unbindFBO();
-
-
-  // Finally render to screen
-  glViewport(0,0, _window_width, _window_height);
-  _final_pass_through_program->pushUsage();
-  glUniform2i(
-    glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
-    _window_width, _window_height);
-  _final_pass_through_fbo_quad->bindTextures();
-  _final_pass_through_fbo_quad->render();
-  _final_pass_through_program->popUsage();
-
-
   checkForErrors();
 }
 
@@ -358,12 +339,12 @@ void DeferredShadingRenderer::renderGeometryBuffer(Object3D& scene)
   _gbuffer_program->popUsage();
 }
 
-void DeferredShadingRenderer::renderPointLights()
+void DeferredShadingRenderer::renderPointLights(int framebuffer_width, int framebuffer_height)
 {
   _shading_program_point_lights->pushUsage();
   glUniform2i(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
-    _light_fbo_quad->width(), _light_fbo_quad->height());
+    framebuffer_width, framebuffer_height);
 
   glUniformMatrix4fv(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "P_frag"), 1, GL_FALSE,
@@ -378,12 +359,12 @@ void DeferredShadingRenderer::renderPointLights()
   _shading_program_point_lights->popUsage();
 }
 
-void DeferredShadingRenderer::renderDirectionalLights()
+void DeferredShadingRenderer::renderDirectionalLights(int framebuffer_width, int framebuffer_height)
 {
   _shading_program_directional_lights->pushUsage();
   glUniform2i(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
-    _light_fbo_quad->width(), _light_fbo_quad->height());
+    framebuffer_width, framebuffer_height);
 
   glUniformMatrix4fv(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "P_frag"), 1, GL_FALSE,
@@ -397,12 +378,12 @@ void DeferredShadingRenderer::renderDirectionalLights()
   _shading_program_directional_lights->popUsage();
 }
 
-void DeferredShadingRenderer::renderDiffuseEnvironmentLights()
+void DeferredShadingRenderer::renderDiffuseEnvironmentLights(int framebuffer_width, int framebuffer_height)
 {
   _shading_program_environment_diffuse->pushUsage();
   glUniform2i(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
-    _light_fbo_quad->width(), _light_fbo_quad->height());
+    framebuffer_width, framebuffer_height);
 
   glm::mat3 V_inv = glm::mat3(_camera.absoluteTransform());
   glUniformMatrix3fv(
@@ -421,12 +402,12 @@ void DeferredShadingRenderer::renderDiffuseEnvironmentLights()
   _shading_program_environment_diffuse->popUsage();
 }
 
-void DeferredShadingRenderer::renderSkyBox()
+void DeferredShadingRenderer::renderSkyBox(int framebuffer_width, int framebuffer_height)
 {
   _cube_map_program->pushUsage();
   glUniform2i(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
-    _light_fbo_quad->width(), _light_fbo_quad->height());
+    framebuffer_width, framebuffer_height);
   _geometry_fbo_quad->bindTextures();
     glDisable(GL_CULL_FACE);
   _sky_box->render();
@@ -434,12 +415,12 @@ void DeferredShadingRenderer::renderSkyBox()
   _cube_map_program->popUsage();
 }
 
-void DeferredShadingRenderer::renderScreenSpaceReflections()
+void DeferredShadingRenderer::renderScreenSpaceReflections(int framebuffer_width, int framebuffer_height)
 {
   _shading_program_reflections->pushUsage();
   glUniform2i(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
-    _final_irradiance_fbo_quad->width(), _final_irradiance_fbo_quad->height());
+    framebuffer_width, framebuffer_height);
 
   glUniformMatrix4fv(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "P_frag"), 1, GL_FALSE,
@@ -458,12 +439,12 @@ void DeferredShadingRenderer::renderScreenSpaceReflections()
   _shading_program_reflections->popUsage();
 }
 
-void DeferredShadingRenderer::renderIrradiance()
+void DeferredShadingRenderer::renderIrradiance(int framebuffer_width, int framebuffer_height)
 {
   _shading_program_irradiance->pushUsage();
   glUniform2i(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
-    _final_irradiance_fbo_quad->width(), _final_irradiance_fbo_quad->height());
+    framebuffer_width, framebuffer_height);
   _light_fbo_quad->bindTextures();
   _light_fbo_quad->render();
   _shading_program_irradiance->popUsage();

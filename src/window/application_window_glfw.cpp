@@ -80,7 +80,7 @@ void ApplicationWindowGLFW::run(std::function<void(double)> f)
     _time = glfwGetTime();
     _frame_counter++;
     
-    //glFlush();
+    glFlush();
     glfwSwapBuffers(_window);
     glfwPollEvents();
   }

@@ -1,8 +1,9 @@
 #version 410 core
 
 // In data
-in vec3 vertex_normal_viewspace;
 in vec4 vertex_position_viewspace;
+in vec3 vertex_normal_viewspace;
+in vec3 vertex_tangent_viewspace;
 in vec2 fs_texture_coordinate;
 
 // Out data
@@ -14,27 +15,32 @@ layout(location = 3) out vec3 material; // Roughness, Fresnel Term, metalness
 // Uniforms
 uniform sampler2D albedo_texture;
 uniform sampler2D roughness_texture;
-uniform sampler2D IOR_texture;
+uniform sampler2D R0_texture;
 uniform sampler2D metalness_texture;
 uniform sampler2D normal_texture;
 
 uniform float roughness;
-uniform float IOR;
+uniform float R0;
 
-float schlick(float n1, float n2, float cos_theta)
+// R0 is calculated from IOR as so:
+// R0 = pow((n1 - n2) / (n1 + n2), 2)
+float schlick(float R0, float cos_theta)
 {
-  float R0 = pow((n1 - n2) / (n1 + n2), 2);
   float R = R0 + (1 - R0) * pow((1 - cos_theta), 5);
   return R;
 }
 
-float roughSchlick2(float n1, float n2, float cos_theta, float roughness)
+float roughSchlick2(float R0, float cos_theta, float roughness)
 {
-  float R0 = pow((n1 - n2) / (n1 + n2), 2);
   float area_under_curve = 1.0 / 6.0 * (5.0 * R0 + 1.0);
   float new_area_under_curve = 1.0 / (6.0 * roughness + 6.0) * (5.0 * R0 + 1.0);
 
-  return schlick(n1, n2, cos_theta) / (1 + roughness) + (area_under_curve - new_area_under_curve);
+  return schlick(R0, cos_theta) / (1 + roughness) + (area_under_curve - new_area_under_curve);
+}
+
+float remapRoughness(float x)
+{
+  return 2.0f * (1.0f / (1.0f - 0.5f + 0.001f) - 1.0f) * (pow(x, 2)) + 0.001f;
 }
 
 void main()
@@ -42,17 +48,26 @@ void main()
   position = vertex_position_viewspace.xyz;
 
   vec3 sampled_normal = texture(normal_texture, fs_texture_coordinate).xyz;
-  normal = length(sampled_normal) == 0.0f ? normalize(vertex_normal_viewspace) : sampled_normal;
+  normal = normalize(vertex_normal_viewspace); 
 
-  albedo =            texture(albedo_texture, fs_texture_coordinate);
-  float _roughness =  texture(roughness_texture, fs_texture_coordinate).r;
-  float _IOR =        texture(IOR_texture, fs_texture_coordinate).r;
-  float metalness =   texture(metalness_texture, fs_texture_coordinate).r;
+  if (length(sampled_normal) != 0.0f)
+  {
+    vec3 tangent = normalize(vertex_tangent_viewspace); 
+    sampled_normal = (2.0f * sampled_normal) - vec3(1.0f);
+    vec3 bitangent = cross(normal, tangent);
+
+    normal = tangent * sampled_normal.x + bitangent * sampled_normal.y + normal * sampled_normal.z;
+  }
+
+        albedo =      texture(albedo_texture,     fs_texture_coordinate);
+  float _roughness =  texture(roughness_texture,  fs_texture_coordinate).r;
+  float _R0 =         0.04;//texture(R0_texture,         fs_texture_coordinate).r;
+  float metalness =   texture(metalness_texture,  fs_texture_coordinate).r;
 
   // Calculate dielctric Fresnel term
   vec3 v = normalize(position);
   float cos_theta = max(dot(-v, normal),  0.0f);
-  float fresnel_term = roughSchlick2(1, IOR, cos_theta, _roughness * roughness + 0.001);
+  float fresnel_term = roughSchlick2(_R0, cos_theta, remapRoughness(_roughness));
 
-  material = vec3(5.0f * (1.0f / (1.0f - pow(_roughness, 0.5) * 0.5f + 0.001f) - 1.0f) * pow(_roughness, 1.5) + 0.001f, fresnel_term, metalness);
+  material = vec3(remapRoughness(_roughness), fresnel_term, metalness);
 }

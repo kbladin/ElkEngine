@@ -1,7 +1,7 @@
 #version 410 core
 
 // Out data
-layout(location = 0) out vec4 color;
+layout(location = 0) out vec4 radiance;
 
 // Uniforms
 uniform sampler2D albedo_buffer; // Albedo
@@ -25,7 +25,6 @@ float gaussian(float x, float sigma, float mu)
 
 vec3 environment(vec3 dir_view_space, float roughness)
 {
-  //vec3 color = texture(cube_map, dir).rgb;
   vec3 dir_world_space = V_inv * dir_view_space;
   vec3 color = textureLod(cube_map, dir_world_space, pow(roughness, 0.3) * 15).rgb;
   return color;
@@ -43,8 +42,8 @@ void main()
     vec3 position =   texture(position_buffer, sample_point_texture_space).xyz;
     vec3 normal =     texture(normal_buffer,   sample_point_texture_space).xyz;
     float roughness = texture(material_buffer, sample_point_texture_space).x;
-    float R =         texture(material_buffer, sample_point_texture_space).y; // Dielectric Fresnel term
-    float metalness = texture(material_buffer, sample_point_texture_space).z; // Metalness
+    float R =         texture(material_buffer, sample_point_texture_space).y;
+    float metalness = texture(material_buffer, sample_point_texture_space).z;
 
     // Useful vectors
     vec3 n = normalize(normal);
@@ -67,8 +66,8 @@ void main()
     float R_diffuse = (1.0f - R) * (1.0f - metalness);
 
     // Filter radiance through colors and material
-    diffuse_radiance_env = albedo.rgb * R_diffuse * environment(n, 0.5)        * 1.0f;
+    diffuse_radiance_env = albedo.rgb * R_diffuse * environment(n, 0.5) * 1.0f;
   }
   // Add to final radiance
-  color = vec4(diffuse_radiance_env, 1.0f);
+  radiance = vec4(diffuse_radiance_env, 1.0f);
 }

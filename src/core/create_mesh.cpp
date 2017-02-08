@@ -303,10 +303,16 @@ std::shared_ptr<Mesh> CreateMesh::quad()
 std::shared_ptr<Mesh> CreateMesh::lonLatSphere(int lon_segments, int lat_segments)
 {
   auto grid_plane = createGridPlane(lon_segments, lat_segments);
-  std::vector<unsigned short>* elements = new std::vector<unsigned short>(grid_plane.first);
-  std::vector<glm::vec3>* positions = new std::vector<glm::vec3>((lon_segments + 1) * (lat_segments + 1));
-  std::vector<glm::vec3>* normals = new std::vector<glm::vec3>((lon_segments + 1) * (lat_segments + 1));
-  std::vector<glm::vec2>* texture_coordinates = new std::vector<glm::vec2>((lon_segments + 1) * (lat_segments + 1));
+  std::vector<unsigned short>* elements =       
+    new std::vector<unsigned short>(grid_plane.first);
+  std::vector<glm::vec3>* positions =           
+    new std::vector<glm::vec3>((lon_segments + 1) * (lat_segments + 1));
+  std::vector<glm::vec3>* normals =             
+    new std::vector<glm::vec3>((lon_segments + 1) * (lat_segments + 1));
+  std::vector<glm::vec2>* texture_coordinates = 
+    new std::vector<glm::vec2>((lon_segments + 1) * (lat_segments + 1));
+  std::vector<glm::vec3>* tangents =
+    new std::vector<glm::vec3>((lon_segments + 1) * (lat_segments + 1));
 
   for (int i = 0; i < grid_plane.second.size(); ++i)
   {
@@ -316,14 +322,20 @@ std::shared_ptr<Mesh> CreateMesh::lonLatSphere(int lon_segments, int lat_segment
     float x = cos(phi) * cos(theta);
     float y = sin(phi);
     float z = -sin(theta) * cos(phi);
+
+    glm::vec3 n = normalize(glm::vec3(x, y, z));
+    glm::vec3 y_vec = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    glm::vec3 tangent = glm::cross(y_vec, n);
     
     (*positions)[i] = glm::vec3(x, y, z);
-    (*normals)[i] = normalize(glm::vec3(x, y, z));
+    (*normals)[i] = n;
     (*texture_coordinates)[i] = grid_plane.second[i];
+    (*tangents)[i] = tangent;
   }
 
   return std::make_shared<Mesh>(
-    elements, positions, normals, texture_coordinates);
+    elements, positions, normals, texture_coordinates, tangents);
 }
 
 std::shared_ptr<Mesh> CreateMesh::line(glm::vec3 start, glm::vec3 end)

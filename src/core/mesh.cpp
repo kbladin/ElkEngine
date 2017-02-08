@@ -22,7 +22,7 @@ Mesh::Mesh(
   if (_elements)
   {
     ArrayBuffer::InitData init_data =
-      {&_elements->at(0), sizeof(unsigned short) * _elements->size(),
+      {&_elements->at(0), static_cast<GLsizei>(sizeof(GLushort) * _elements->size()),
       static_cast<GLuint>(_elements->size()), GL_UNSIGNED_SHORT,
       GL_ELEMENT_ARRAY_BUFFER, render_method, render_mode};
     _element_buffer = std::make_unique<ElementArrayBuffer>(init_data);
@@ -30,7 +30,7 @@ Mesh::Mesh(
   if (_positions)
   {
     ArrayBuffer::InitData init_data =
-      {&_positions->at(0), sizeof(glm::vec3) * _positions->size(),
+      {&_positions->at(0), static_cast<GLsizei>(sizeof(glm::vec3) * _positions->size()),
       static_cast<GLuint>(_positions->size()), GL_FLOAT, GL_ARRAY_BUFFER,
       render_method, render_mode};
     _vao.addBuffer(init_data, 0, 3);
@@ -38,7 +38,7 @@ Mesh::Mesh(
   if (_normals)
   {
     ArrayBuffer::InitData init_data =
-      {&_normals->at(0), sizeof(glm::vec3) * _normals->size(),
+      {&_normals->at(0), static_cast<GLsizei>(sizeof(glm::vec3) * _normals->size()),
       static_cast<GLuint>(_normals->size()), GL_FLOAT, GL_ARRAY_BUFFER,
       render_method, render_mode};
     _vao.addBuffer(init_data, 1, 3);
@@ -46,8 +46,8 @@ Mesh::Mesh(
   if (_texture_coordinates)
   {
     ArrayBuffer::InitData init_data =
-      {&_texture_coordinates->at(0), sizeof(glm::vec2) *
-      _texture_coordinates->size(),
+    {&_texture_coordinates->at(0), static_cast<GLsizei>(sizeof(glm::vec2) *
+                                                        _texture_coordinates->size()),
       static_cast<GLuint>(_texture_coordinates->size()), GL_FLOAT,
       GL_ARRAY_BUFFER, render_method, render_mode};
     _vao.addBuffer(init_data, 2, 2);
@@ -55,7 +55,7 @@ Mesh::Mesh(
   if (_tangents)
   {
     ArrayBuffer::InitData init_data =
-      {&_tangents->at(0), sizeof(glm::vec3) * _tangents->size(),
+      {&_tangents->at(0), static_cast<GLsizei>(sizeof(glm::vec3) * _tangents->size()),
       static_cast<GLuint>(_tangents->size()), GL_FLOAT, GL_ARRAY_BUFFER,
       render_method, render_mode};
     _vao.addBuffer(init_data, 3, 3);
@@ -63,7 +63,7 @@ Mesh::Mesh(
   if (_colors)
   {
     ArrayBuffer::InitData init_data =
-      {&_colors->at(0), sizeof(glm::vec4) * _colors->size(),
+      {&_colors->at(0), static_cast<GLsizei>(sizeof(glm::vec4) * _colors->size()),
       static_cast<GLuint>(_colors->size()), GL_FLOAT, GL_ARRAY_BUFFER,
       render_method, render_mode};
     _vao.addBuffer(init_data, 4, 4);
@@ -130,7 +130,7 @@ void CPUPointCloud::render()
 void CPUPointCloud::update(std::vector<glm::vec3>& positions)
 {
   _vao.getBuffer(0).update(
-    {&positions[0], sizeof(glm::vec3) * positions.size(),
+    {&positions[0], static_cast<GLsizei>(sizeof(glm::vec3) * positions.size()),
     static_cast<GLuint>(positions.size()), GL_FLOAT, GL_ARRAY_BUFFER,
     GL_DYNAMIC_DRAW, GL_POINTS});
 }

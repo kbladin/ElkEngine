@@ -69,8 +69,8 @@ void main()
   {
     vec3 normal =     texture(normal_buffer,    sample_point_texture_space).xyz;
     float roughness = texture(material_buffer,  sample_point_texture_space).x;
-    float R =         texture(material_buffer,  sample_point_texture_space).y; // Dielectric Fresnel term
-    float metalness = texture(material_buffer, sample_point_texture_space).z; // Metalness
+    float R =         texture(material_buffer,  sample_point_texture_space).y;
+    float metalness = texture(material_buffer,  sample_point_texture_space).z;
 
     // Useful vectors
     vec3 n = normalize(normal);
