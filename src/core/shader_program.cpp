@@ -69,12 +69,17 @@ GLuint ShaderProgram::loadShaderProgram(
   std::array<GLenum, 5> types = {{
     GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER,
     GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER}};
+  std::array<std::string, 5> types_names = {{
+    "vertex shader", "tesselation control shader", "tesselation evaluation shader",
+    "geometry shader", "fragment shader"}};
   std::array<GLuint, 5> ids = {{0,0,0,0,0}};
   std::array<std::string, 5> code;
 
   GLint result = 0;
   int info_log_length;
   GLuint program_id = glCreateProgram();
+
+  fprintf(stdout, "Creating shader program '%s'\n", _name.c_str());
 
   for (int i = 0; i < ids.size(); ++i)
   {
@@ -95,7 +100,11 @@ GLuint ShaderProgram::loadShaderProgram(
       std::vector<char> error_message(info_log_length);
       glGetShaderInfoLog(ids[i], info_log_length, NULL, &error_message[0]);
       if (info_log_length > 0)
-        fprintf(stdout, "%s\n", &error_message[0]);
+      {
+        fprintf(stdout,"COMPILATION %s", &error_message[0]);
+        fprintf(stdout, "in file %s \n",
+          paths[i]);
+      }
       glAttachShader(program_id, ids[i]);
       glDeleteShader(ids[i]);
     }
@@ -109,7 +118,9 @@ GLuint ShaderProgram::loadShaderProgram(
   std::vector<char> error_message( std::max(info_log_length, int(1)) );
   glGetProgramInfoLog(program_id, info_log_length, NULL, &error_message[0]);
   if (info_log_length > 0)
-    fprintf(stdout, "%s\n", &error_message[0]);
+  {
+    fprintf(stdout, "LINKING %s\n", &error_message[0]);
+  }
 
   return program_id;
 }
