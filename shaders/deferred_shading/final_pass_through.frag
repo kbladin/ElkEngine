@@ -11,8 +11,6 @@ void main()
 {
   vec2 sample_point_texture_space = gl_FragCoord.xy / window_size;
  
- 	// Right now we don't have acces to the view direction..
-  float vignetting = 1.0;// dot(-v, vec3(0.0f,0.0f,1.0f));
   // Material properties
-  color = vec4(vignetting * texture(color_buffer, sample_point_texture_space).rgb, 1.0f);
+  color = vec4(texture(color_buffer, sample_point_texture_space).rgb, 1.0f);
 }

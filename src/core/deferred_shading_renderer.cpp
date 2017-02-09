@@ -309,6 +309,10 @@ void DeferredShadingRenderer::render(Object3D& scene)
     glUniform2i(
       glGetUniformLocation(ShaderProgram::currentProgramId(), "bloom_buffer_base_size"),
       _post_process_fbo_quad1->width(), _post_process_fbo_quad1->height());
+    glm::mat4 P_inv = glm::inverse(_camera.projectionTransform());
+    glUniformMatrix4fv(
+      glGetUniformLocation(ShaderProgram::currentProgramId(), "P_inv"), 1, GL_FALSE,
+      &P_inv[0][0]);
 
     glUniform1f(
       glGetUniformLocation(ShaderProgram::currentProgramId(), "focus"),

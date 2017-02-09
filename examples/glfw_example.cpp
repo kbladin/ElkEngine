@@ -183,6 +183,7 @@ DebugInputController::DebugInputController(MyEngine& engine) :
 {
   DebugInput::value("focus") = 2;
   DebugInput::value("aperture") = 1;
+  DebugInput::value("FOV") = M_PI / 4.0f;
 }
 
 void DebugInputController::step(float dt)
@@ -253,25 +254,50 @@ void DebugInputController::step(float dt)
       _engine._lamp2.setColor(glm::vec3(1.0,0.9,0.8));
       _engine._lamp2.setRadiance(0.18);
   }
+  else if (_keys_pressed.count(Key::KEY_6))
+  {
+    _engine._renderer.setSkyBox(
+      std::make_shared<RenderableCubeMap>(CreateTexture::loadCubeMap(
+        "../../data/textures/output/panor.png",
+        "../../data/textures/output/panol.png",
+        "../../data/textures/output/panou.png",
+        "../../data/textures/output/panod.png",
+        "../../data/textures/output/panob.png",
+        "../../data/textures/output/panof.png")));
+      _engine._lamp2.setTransform(glm::rotate(float(M_PI) * 0.27f, glm::vec3(1.0f, 0.0f, 0.0f)));
+      _engine._lamp2.setColor(glm::vec3(1.0,0.9,0.8));
+      _engine._lamp2.setRadiance(0.18);
+  }
 
-  if (_keys_pressed.count(Key::KEY_N))
+  if (_keys_pressed.count(Key::KEY_D))
   {
     DebugInput::value("aperture") *= (1.0 - dt * 2);
   }
-  if (_keys_pressed.count(Key::KEY_M))
+  if (_keys_pressed.count(Key::KEY_E))
   {
     DebugInput::value("aperture") *= (1.0 + dt * 2);
   }
 
 
-  if (_keys_pressed.count(Key::KEY_V))
+  if (_keys_pressed.count(Key::KEY_S))
   {
     DebugInput::value("focus") *= (1.0 - dt * 2);
   }
-  if (_keys_pressed.count(Key::KEY_B))
+  if (_keys_pressed.count(Key::KEY_W))
   {
     DebugInput::value("focus") *= (1.0 + dt * 2);
   }
+
+  if (_keys_pressed.count(Key::KEY_Q))
+  {
+    DebugInput::value("FOV") *= (1.0 - dt * 2);
+  }
+  if (_keys_pressed.count(Key::KEY_A))
+  {
+    DebugInput::value("FOV") *= (1.0 + dt * 2);
+  }
+  
+  _engine.camera().setFOV(DebugInput::value("FOV"));
 }
 
 int main(int argc, char const *argv[])
