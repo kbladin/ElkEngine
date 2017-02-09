@@ -6,6 +6,7 @@
 
 #include <functional>
 #include <vector>
+#include <string>
 
 namespace sge { namespace window {
     
@@ -15,7 +16,7 @@ using namespace core;
 class ApplicationWindowGLFW
 {
 public:
-  ApplicationWindowGLFW(int width, int height);
+  ApplicationWindowGLFW(std::string name, int width, int height);
   ~ApplicationWindowGLFW();
 
   void run(std::function<void(double)> f);
@@ -48,6 +49,7 @@ private:
     int height);
 
   // Data
+  std::string _name;
   GLFWwindow* _window;
   static std::vector<Controller*> _controllers;
 

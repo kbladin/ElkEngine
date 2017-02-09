@@ -7,7 +7,8 @@ namespace sge { namespace window {
 
 std::vector<Controller*> ApplicationWindowGLFW::_controllers;
 
-ApplicationWindowGLFW::ApplicationWindowGLFW(int width, int height)
+ApplicationWindowGLFW::ApplicationWindowGLFW(std::string name, int width, int height) :
+  _name(name)
 {
   _frame_counter = 0;
   _delay_counter = 0;
@@ -42,7 +43,7 @@ bool ApplicationWindowGLFW::initOpenGLContext(int width, int height)
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   // Create a windowed mode window and its OpenGL context
-  _window = glfwCreateWindow(width, height, "Window", NULL, NULL);
+  _window = glfwCreateWindow(width, height, _name.c_str(), NULL, NULL);
   if (!_window)
   {
     glfwTerminate();
@@ -64,7 +65,7 @@ void ApplicationWindowGLFW::run(std::function<void(double)> f)
 
     if (_delay_counter >= 1.0) {
       std::stringstream title;
-      title << "Window. " << _frame_counter << " FPS";
+      title << _name << " " << _frame_counter << " FPS";
       glfwSetWindowTitle(_window, title.str().c_str());
       _frame_counter = 0;
       _delay_counter = 0;

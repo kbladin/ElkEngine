@@ -15,28 +15,22 @@ uniform ivec2 bloom_buffer_base_size;
 uniform float aperture;
 uniform float focus;
 
-vec3 sampleBloomMipmap(vec2 texture_coordinate, int level)
+vec3 sampleBloomMipmap(vec2 texture_coordinate, float level)
 {
-	float scale = 1.0f / pow(2, level + 1);
-	float min_pos = 1.0f - scale * 2.0f;
-	vec2 sample_pos = vec2(min_pos + texture_coordinate.x * scale, texture_coordinate.y * scale);
+  vec3 bloom;
 
-	vec3 bloom;
+  bloom += textureLod(bloom_buffer, texture_coordinate, level).rgb * 2.0 / 6.0f;
+  //bloom += textureLod(bloom_buffer, texture_coordinate + pow(2,level) * vec2(0,1.2) / (bloom_buffer_base_size), level).rgb * 2.0 / 16.0f;
+  //bloom += textureLod(bloom_buffer, texture_coordinate - pow(2,level) * vec2(0,1.2) / (bloom_buffer_base_size), level).rgb * 2.0 / 16.0f;
+  //bloom += textureLod(bloom_buffer, texture_coordinate + pow(2,level) * vec2(1.2,0) / (bloom_buffer_base_size), level).rgb * 2.0 / 16.0f;
+  //bloom += textureLod(bloom_buffer, texture_coordinate - pow(2,level) * vec2(1.2,0) / (bloom_buffer_base_size), level).rgb * 2.0 / 16.0f;
 
-	bloom += texture(bloom_buffer, sample_pos).rgb;
-	bloom += texture(bloom_buffer, sample_pos + vec2(0.5,0.5) / (bloom_buffer_base_size)).rgb;
-	bloom += texture(bloom_buffer, sample_pos - vec2(0.5,0.5) / (bloom_buffer_base_size)).rgb;
-	bloom += texture(bloom_buffer, sample_pos + vec2(-0.5,0.5) / (bloom_buffer_base_size)).rgb;
-	bloom += texture(bloom_buffer, sample_pos - vec2(-0.5,0.5) / (bloom_buffer_base_size)).rgb;
-	//bloom += texture(bloom_buffer, sample_pos + vec2(0,0.8) / (bloom_buffer_base_size)).rgb * 2.0f / 16.0f;
-	//bloom += texture(bloom_buffer, sample_pos - vec2(0,0.8) / (bloom_buffer_base_size)).rgb * 2.0f / 16.0f;
+  bloom += textureLod(bloom_buffer, texture_coordinate + pow(2,level) * vec2(0.7,0.7) / (bloom_buffer_base_size), level).rgb / 6.0f;
+  bloom += textureLod(bloom_buffer, texture_coordinate - pow(2,level) * vec2(0.7,0.7) / (bloom_buffer_base_size), level).rgb / 6.0f;
+  bloom += textureLod(bloom_buffer, texture_coordinate + pow(2,level) * vec2(-0.7,0.7) / (bloom_buffer_base_size), level).rgb / 6.0f;
+  bloom += textureLod(bloom_buffer, texture_coordinate - pow(2,level) * vec2(-0.7,0.7) / (bloom_buffer_base_size), level).rgb / 6.0f;
 
-	//bloom += texture(bloom_buffer, sample_pos + vec2(0.6,0.6) / (bloom_buffer_base_size)).rgb * 1.0f / 16.0f;
-	//bloom += texture(bloom_buffer, sample_pos - vec2(0.6,0.6) / (bloom_buffer_base_size)).rgb * 1.0f / 16.0f;
-	//bloom += texture(bloom_buffer, sample_pos + vec2(-0.6,0.6) / (bloom_buffer_base_size)).rgb * 1.0f / 16.0f;
-	//bloom += texture(bloom_buffer, sample_pos + vec2(0.6,-0.6) / (bloom_buffer_base_size)).rgb * 1.0f / 16.0f;
-
-	return bloom / 5.0f;
+  return bloom;
 }
 
 #define PI 3.1415
@@ -57,36 +51,37 @@ void main()
 
   float level;
   if (alpha == 0)
-  	level = level_inf;
+    level = level_inf;
   else
-  	level = abs((level_inf * d / position.z) + level_inf);
+    level = abs((level_inf * d / position.z) + level_inf);
 
-	vec3 irradiance;
-  	irradiance += texture(final_irradiance_buffer, sample_point_texture_space, clamp(level, 0, 15)).rgb;
-  	irradiance += texture(final_irradiance_buffer, sample_point_texture_space + 1 / vec2(window_size) * level * 0.5 * vec2(1,0), clamp(level, 0, 7)).rgb;
-  	irradiance += texture(final_irradiance_buffer, sample_point_texture_space + 1 / vec2(window_size) * level * 0.5 * vec2(0,1), clamp(level, 0, 7)).rgb;
-  	irradiance += texture(final_irradiance_buffer, sample_point_texture_space + 1 / vec2(window_size) * level * 0.5 * vec2(-1,0), clamp(level, 0, 7)).rgb;
-  	irradiance += texture(final_irradiance_buffer, sample_point_texture_space + 1 / vec2(window_size) * level * 0.5 * vec2(0,-1), clamp(level, 0, 7)).rgb;
+  vec3 irradiance;
+    irradiance += texture(final_irradiance_buffer, sample_point_texture_space, clamp(level, 0, 7)).rgb * 2.0f / 6.0f;
 
-  	irradiance += texture(final_irradiance_buffer, sample_point_texture_space + 1 / vec2(window_size) * level * 0.5 * vec2(1,1), clamp(level, 0, 7)).rgb;
-  	irradiance += texture(final_irradiance_buffer, sample_point_texture_space + 1 / vec2(window_size) * level * 0.5 * vec2(1,-1), clamp(level, 0, 7)).rgb;
-  	irradiance += texture(final_irradiance_buffer, sample_point_texture_space + 1 / vec2(window_size) * level * 0.5 * vec2(-1,1), clamp(level, 0, 7)).rgb;
-  	irradiance += texture(final_irradiance_buffer, sample_point_texture_space + 1 / vec2(window_size) * level * 0.5 * vec2(-1,-1), clamp(level, 0, 7)).rgb;
-  	irradiance /= 9.0f;
+    irradiance += textureLod(final_irradiance_buffer, sample_point_texture_space + pow(2,level) * vec2(0.7,0.7) / (window_size), clamp(level, 0, 7)).rgb / 6.0f;
+    irradiance += textureLod(final_irradiance_buffer, sample_point_texture_space - pow(2,level) * vec2(0.7,0.7) / (window_size), clamp(level, 0, 7)).rgb / 6.0f;
+    irradiance += textureLod(final_irradiance_buffer, sample_point_texture_space + pow(2,level) * vec2(-0.7,0.7) / (window_size), clamp(level, 0, 7)).rgb / 6.0f;
+    irradiance += textureLod(final_irradiance_buffer, sample_point_texture_space - pow(2,level) * vec2(-0.7,0.7) / (window_size), clamp(level, 0, 7)).rgb / 6.0f;
 
-	vec3 bloom;
 
-	bloom += sampleBloomMipmap(sample_point_texture_space, clamp(int(level) + 0, 0, 7));
-	bloom += sampleBloomMipmap(sample_point_texture_space, clamp(int(level) + 1, 0, 7));
-	bloom += sampleBloomMipmap(sample_point_texture_space, clamp(int(level) + 2, 0, 7));
-	bloom += sampleBloomMipmap(sample_point_texture_space, clamp(int(level) + 3, 0, 7));
-	bloom += sampleBloomMipmap(sample_point_texture_space, clamp(int(level) + 4, 0, 7));
-	bloom += sampleBloomMipmap(sample_point_texture_space, clamp(int(level) + 5, 0, 7));
-	bloom += sampleBloomMipmap(sample_point_texture_space, clamp(int(level) + 6, 0, 7));
-	bloom += sampleBloomMipmap(sample_point_texture_space, clamp(int(level) + 7, 0, 7));
+  vec3 bloom;
 
-	bloom /= 8.0f;
+  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(0 + level, 0, 7));
+  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(1 + level, 0, 7));
+  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(2 + level, 0, 7));
+  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(3 + level, 0, 7));
+  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(4 + level, 0, 7));
+  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(5 + level, 0, 7));
+
+  bloom /= 6.0f * 2; // Cheat because the blooming effect was really big (cant handle HDR)
+
+  vec3 total_irradiance = irradiance + bloom;
+
+  // Reinhard tone mapping
+  //vec3 mapped = total_irradiance / (total_irradiance + vec3(1.0));
+  // Gamma correction 
+  //mapped = pow(mapped, vec3(1.0 / 1.1));
 
   // Add to final radiance
-  color = vec4(irradiance + bloom, 1.0f);
+  color = vec4(total_irradiance, 1.0f);
 }

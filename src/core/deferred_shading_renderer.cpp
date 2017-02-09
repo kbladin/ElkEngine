@@ -162,7 +162,7 @@ DeferredShadingRenderer::DeferredShadingRenderer(
 
   FrameBufferQuad::RenderTexture bloom_render_tex =
     {
-      std::make_shared<Texture>(glm::uvec3(framebuffer_width, framebuffer_height, 1), Texture::Format::RGB, GL_RGB16F, GL_HALF_FLOAT, Texture::FilterMode::Linear,
+      std::make_shared<Texture>(glm::uvec3(framebuffer_width / 2, framebuffer_height / 2, 1), Texture::Format::RGB, GL_RGB16F, GL_HALF_FLOAT, Texture::FilterMode::LinearMipMap,
         Texture::WrappingMode::ClampToEdge),
         GL_COLOR_ATTACHMENT0,
         "bloom_buffer"
@@ -195,7 +195,7 @@ DeferredShadingRenderer::DeferredShadingRenderer(
       final_irradiance_render_tex});
 
   _post_process_fbo_quad1 = std::make_unique<FrameBufferQuad>(
-    framebuffer_width, framebuffer_height / 2,
+    framebuffer_width / 2, framebuffer_height / 2,
     std::vector<FrameBufferQuad::RenderTexture>{bloom_render_tex});
 
   _final_pass_through_fbo_quad = std::make_unique<FrameBufferQuad>(
@@ -284,6 +284,7 @@ void DeferredShadingRenderer::render(Object3D& scene)
   // Render to highlights buffer
   _post_process_fbo_quad1->bindFBO(); {
     glViewport(0,0, _window_width, _window_height);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     _output_highlights_program->pushUsage();
     glUniform2i(
@@ -293,6 +294,9 @@ void DeferredShadingRenderer::render(Object3D& scene)
     _final_irradiance_fbo_quad->render();
     _output_highlights_program->popUsage();
   }_post_process_fbo_quad1->unbindFBO();
+
+  // Re-generate mip-maps
+  _post_process_fbo_quad1->generateMipMaps();
 
   // Perform post processing, rendering to final buffer
   _final_pass_through_fbo_quad->bindFBO(); {
@@ -304,7 +308,7 @@ void DeferredShadingRenderer::render(Object3D& scene)
       _final_pass_through_fbo_quad->width(), _final_pass_through_fbo_quad->height());
     glUniform2i(
       glGetUniformLocation(ShaderProgram::currentProgramId(), "bloom_buffer_base_size"),
-      _post_process_fbo_quad1->width(), _post_process_fbo_quad1->height() * 2);
+      _post_process_fbo_quad1->width(), _post_process_fbo_quad1->height());
 
     glUniform1f(
       glGetUniformLocation(ShaderProgram::currentProgramId(), "focus"),

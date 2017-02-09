@@ -35,7 +35,7 @@ public:
   DeferredShadingRenderer& renderer() { return _renderer; };
 
   DeferredShadingRenderer _renderer;
-private:
+//private:
   RenderableModel _monkey;
   RenderableModel _earth;
 
@@ -197,6 +197,9 @@ void DebugInputController::step(float dt)
         "../../data/textures/Lycksele3/negy.jpg",
         "../../data/textures/Lycksele3/posz.jpg",
         "../../data/textures/Lycksele3/negz.jpg")));
+    _engine._lamp2.setTransform(glm::rotate(float(M_PI) * 0.45f, glm::vec3(-1.0f, 0.0f, -1.0f)));
+    _engine._lamp2.setColor(glm::vec3(1.0,0.65,0.5));
+    _engine._lamp2.setRadiance(0.05);
   }
   else if (_keys_pressed.count(Key::KEY_2))
   {
@@ -208,6 +211,7 @@ void DebugInputController::step(float dt)
         "../../data/textures/Yokohama2/negy.jpg",
         "../../data/textures/Yokohama2/posz.jpg",
         "../../data/textures/Yokohama2/negz.jpg")));
+    _engine._lamp2.setRadiance(0.00);
   }
   else if (_keys_pressed.count(Key::KEY_3))
   {
@@ -219,6 +223,7 @@ void DebugInputController::step(float dt)
         "../../data/textures/Yokohama3/negy.jpg",
         "../../data/textures/Yokohama3/posz.jpg",
         "../../data/textures/Yokohama3/negz.jpg")));
+    _engine._lamp2.setRadiance(0.00);
   }
   else if (_keys_pressed.count(Key::KEY_4))
   {
@@ -230,8 +235,11 @@ void DebugInputController::step(float dt)
         "../../data/textures/mp_marvelous/bloody-marvelous_dn.tga",
         "../../data/textures/mp_marvelous/bloody-marvelous_bk.tga",
         "../../data/textures/mp_marvelous/bloody-marvelous_ft.tga")));
+    _engine._lamp2.setTransform(glm::rotate(float(M_PI) * 0.4f, glm::vec3(1.0f, 0.0f, -0.65f)));
+    _engine._lamp2.setColor(glm::vec3(1.0,0.7,0.6));
+    _engine._lamp2.setRadiance(0.15);
   }
-  else if (_keys_pressed.count(Key::KEY_6))
+  else if (_keys_pressed.count(Key::KEY_5))
   {
     _engine._renderer.setSkyBox(
       std::make_shared<RenderableCubeMap>(CreateTexture::loadCubeMap(
@@ -241,31 +249,34 @@ void DebugInputController::step(float dt)
         "../../data/textures/mp_alpha/alpha-island_dn.tga",
         "../../data/textures/mp_alpha/alpha-island_bk.tga",
         "../../data/textures/mp_alpha/alpha-island_ft.tga")));
+      _engine._lamp2.setTransform(glm::rotate(float(M_PI) * 0.27f, glm::vec3(1.0f, 0.0f, 0.0f)));
+      _engine._lamp2.setColor(glm::vec3(1.0,0.9,0.8));
+      _engine._lamp2.setRadiance(0.18);
   }
 
   if (_keys_pressed.count(Key::KEY_N))
   {
-    DebugInput::value("aperture") *= 0.99;
+    DebugInput::value("aperture") *= (1.0 - dt * 2);
   }
   if (_keys_pressed.count(Key::KEY_M))
   {
-    DebugInput::value("aperture") *= 1.01;
+    DebugInput::value("aperture") *= (1.0 + dt * 2);
   }
 
 
   if (_keys_pressed.count(Key::KEY_V))
   {
-    DebugInput::value("focus") *= 0.99;
+    DebugInput::value("focus") *= (1.0 - dt * 2);
   }
   if (_keys_pressed.count(Key::KEY_B))
   {
-    DebugInput::value("focus") *= 1.01;
+    DebugInput::value("focus") *= (1.0 + dt * 2);
   }
 }
 
 int main(int argc, char const *argv[])
 {
-  ApplicationWindowGLFW window(720, 480);
+  ApplicationWindowGLFW window("Rendering Example", 720, 480);
   MyEngine e;
   
   // Controllers
