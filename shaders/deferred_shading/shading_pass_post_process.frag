@@ -16,6 +16,7 @@ uniform ivec2 bloom_buffer_base_size;
 
 uniform float aperture;
 uniform float focus;
+uniform float focal_length;
 
 vec3 sampleBloomMipmap(vec2 texture_coordinate, float level)
 {
@@ -46,18 +47,18 @@ void main()
   vec3 position = texelFetch(position_buffer, raster_coord, 0).xyz;
   float alpha = texelFetch(albedo_buffer, raster_coord, 0).a;
 
-  float l = aperture;
-  float d = focus;
-  float theta = atan(l / d);
-  float level_inf = theta / (PI / 2) * 7;
+  float object_dist = abs(position.z);
 
-  float level;
+  float object_focus;
   if (alpha == 0)
-    level = level_inf;
+    object_focus = focal_length; // Infinitely far away
   else
-    level = abs((level_inf * d / position.z) + level_inf);
+    object_focus = 1.0f / (1.0f / focal_length - 1.0f / object_dist);
 
-  level = clamp(level, 0, 7);
+  float max_level = 7; // Corresponds to completely out of focus
+  float level = aperture * 10 * max_level * log2(1.0f + 1.0f / focal_length * abs(object_focus - (focal_length + focus)));
+
+  level = clamp(level, 0, max_level);
   vec3 irradiance;
   irradiance += texture(final_irradiance_buffer, sample_point_texture_space, level).rgb * 2.0f / 10.0f;
 

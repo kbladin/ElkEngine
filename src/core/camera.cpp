@@ -1,5 +1,9 @@
 #include "SGE/core/camera.h"
 
+#include <glm/glm.hpp>
+
+#include <iostream>
+
 namespace sge { namespace core {
 
 AbstractCamera::AbstractCamera()
@@ -79,15 +83,17 @@ std::pair<glm::vec3, glm::vec3> AbstractCamera::unproject(
 }
 
 PerspectiveCamera::PerspectiveCamera(
-  float fov,
   float aspect,
   float near,
-  float far) :
-  _fov(fov),
+  float far,
+  float diagonal,
+  float focal_length) :
   _aspect(aspect),
   _near(near),
-  _far(far)
+  _far(far),
+  _diagonal(diagonal)
 {
+  setFocalLength(focal_length);
   updateProjectionTransform();
 }
 
@@ -97,9 +103,9 @@ void PerspectiveCamera::execute()
   AbstractCamera::updateAllShaderUniforms();
 }
 
-void PerspectiveCamera::setFOV(float fov)
+void PerspectiveCamera::updateFOV()
 {
-  _fov = fov;
+  _fov = (2.0f * glm::atan(_diagonal / (2.0f * _focal_length)));
   updateProjectionTransform();
 }
 
@@ -119,6 +125,40 @@ void PerspectiveCamera::setAspectRatio(float aspect)
 {
   _aspect = aspect;
   updateProjectionTransform();
+}
+
+void PerspectiveCamera::setFocalLength(float focal_length)
+{
+  focal_length = glm::max(focal_length, 1.0f);
+  _focal_length = focal_length;
+  updateFOV();
+}
+
+void PerspectiveCamera::setFocalRatio(float focal_ratio)
+{
+  focal_ratio = glm::max(focal_ratio, 1.0f);
+  _aperture_diameter = _focal_length / focal_ratio;
+}
+
+void PerspectiveCamera::setFocus(float focus)
+{
+  focus = glm::clamp(focus, 0.0f, _focal_length);
+  _focus = focus;
+}
+
+float PerspectiveCamera::apertureDiameter()
+{
+  return _aperture_diameter;
+}
+
+float PerspectiveCamera::focalLength()
+{
+  return _focal_length;
+}
+  
+float PerspectiveCamera::focus()
+{
+  return _focus;
 }
 
 void PerspectiveCamera::updateProjectionTransform()

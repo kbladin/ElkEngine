@@ -183,9 +183,7 @@ private:
 DebugInputController::DebugInputController(MyEngine& engine) :
   _engine(engine)
 {
-  DebugInput::value("focus") = 2;
-  DebugInput::value("aperture") = 1;
-  DebugInput::value("FOV") = M_PI / 4.0f;
+  DebugInput::value("focal_ratio") = 28;
 }
 
 void DebugInputController::step(float dt)
@@ -273,32 +271,33 @@ void DebugInputController::step(float dt)
 
   if (_keys_pressed.count(Key::KEY_D))
   {
-    DebugInput::value("aperture") *= (1.0 - dt * 2);
+    DebugInput::value("focal_ratio") *= (1.0 - dt * 2);
   }
   if (_keys_pressed.count(Key::KEY_E))
   {
-    DebugInput::value("aperture") *= (1.0 + dt * 2);
+    DebugInput::value("focal_ratio") *= (1.0 + dt * 2);
   }
 
-  if (_keys_pressed.count(Key::KEY_S))
-  {
-    DebugInput::value("focus") *= (1.0 - dt * 2);
-  }
+  
   if (_keys_pressed.count(Key::KEY_W))
   {
-    DebugInput::value("focus") *= (1.0 + dt * 2);
+    _engine.camera().setFocus(_engine.camera().focus() - dt);
+  }
+  if (_keys_pressed.count(Key::KEY_S))
+  {
+    _engine.camera().setFocus(_engine.camera().focus() + dt);
   }
 
   if (_keys_pressed.count(Key::KEY_Q))
   {
-    DebugInput::value("FOV") *= (1.0 - dt * 2);
+    _engine.camera().setFocalLength(_engine.camera().focalLength() * (1.0 + dt));
   }
   if (_keys_pressed.count(Key::KEY_A))
   {
-    DebugInput::value("FOV") *= (1.0 + dt * 2);
+    _engine.camera().setFocalLength(_engine.camera().focalLength() * (1.0 - dt));
   }
   
-  _engine.camera().setFOV(DebugInput::value("FOV"));
+  _engine.camera().setFocalRatio(DebugInput::value("focal_ratio"));
 }
 
 int main(int argc, char const *argv[])

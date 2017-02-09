@@ -3,7 +3,7 @@
 namespace sge { namespace core {
 
 SimpleGraphicsEngine::SimpleGraphicsEngine() :
-  perspective_camera(45.0f, 1.0, 0.01, 100),
+  perspective_camera(1.0, 0.01, 100),
   viewspace_ortho_camera(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f)
 {
   if (!_initializeGL())

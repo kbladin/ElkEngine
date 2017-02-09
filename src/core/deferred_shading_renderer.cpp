@@ -366,11 +366,14 @@ void DeferredShadingRenderer::renderPostProcess(FrameBufferQuad& final_buffer)
     glGetUniformLocation(ShaderProgram::currentProgramId(), "P_inv"), 1, GL_FALSE,
     &P_inv[0][0]);
   glUniform1f(
+    glGetUniformLocation(ShaderProgram::currentProgramId(), "focal_length"),
+    _camera.focalLength() / 1000.0f); // Convert from mm to m
+  glUniform1f(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "focus"),
-    DebugInput::value("focus"));
+    _camera.focus() / 1000.0f); // Convert from mm to m
   glUniform1f(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "aperture"),
-    DebugInput::value("aperture"));
+    _camera.apertureDiameter());
 
   _final_irradiance_fbo_quad->bindTextures();
   _post_process_fbo_quad->bindTextures();

@@ -53,10 +53,11 @@ protected:
 class PerspectiveCamera : public AbstractCamera {
 public:
   PerspectiveCamera(
-    float fov,
     float aspect,
     float near,
-    float far);
+    float far,
+    float diagonal = 35,
+    float focal_length = 28);
   
   virtual void execute();
 
@@ -65,7 +66,6 @@ public:
   /*!
     \param fov is a positive value.
   */
-  void setFOV(float fov);
   //! Set the near clipping plane of the camera
   /*!
     \param near is a positive value.
@@ -77,13 +77,27 @@ public:
   */
   void setFarClippingPlane(float far);
   void setAspectRatio(float aspect);
+  void setFocalLength(float focal_length);
+  void setFocalRatio(float focal_ratio);
+  void setFocus(float focus);
+  
+  float apertureDiameter();
+  float focalLength();
+  float focus();
 private:
   void updateProjectionTransform();
+  void updateFOV();
+  
   // Data
   float _fov;
   float _aspect;
   float _near;    // Near plane in camera coordinates (positive value)
   float _far;     // Far plane in camera coordinates (positive value)
+
+  float _diagonal;
+  float _focal_length;
+  float _aperture_diameter;
+  float _focus;
 };
 
 //! An orthographic camera defined in 3D space
