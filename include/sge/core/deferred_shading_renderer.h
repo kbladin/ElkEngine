@@ -27,7 +27,20 @@ public:
   void setSkyBox(std::shared_ptr<RenderableCubeMap> sky_box);
   virtual void render(Object3D& scene) override;
 private:
-  void renderGeometryBuffer(Object3D& scene);
+  // Initialization. Called from constructor
+  void initializeShaders();
+  void initializeFramebuffers(int framebuffer_width, int framebuffer_height);
+
+  // External render functions called from render()
+  // Input is the fbo to render to
+  void renderGeometryBuffer(FrameBufferQuad& geometry_buffer);
+  void renderLightSources(FrameBufferQuad& light_buffer);
+  void renderReflections(FrameBufferQuad& irradiance_buffer);
+  void renderHighlights(FrameBufferQuad& post_process_buffer);
+  void renderPostProcess(FrameBufferQuad& final_buffer);
+  void renderFinalPassthroughToScreen();
+
+  // Internal render functions
   void renderPointLights();
   void renderDirectionalLights();
   void renderDiffuseEnvironmentLights();
@@ -49,20 +62,13 @@ private:
   std::shared_ptr<ShaderProgram> _post_process_program;
   std::shared_ptr<ShaderProgram> _final_pass_through_program;
 
-  std::shared_ptr<RenderableCubeMap> _sky_box;
-
-  // Framebuffer object to where where geometry is rendered
   std::unique_ptr<FrameBufferQuad> _geometry_fbo_quad;
-  // Framebuffer object to where irradiance is rendered
   std::unique_ptr<FrameBufferQuad> _light_fbo_quad;
-
-
   std::unique_ptr<FrameBufferQuad> _final_irradiance_fbo_quad;
-  // Need two due to ping ponging  
-  std::unique_ptr<FrameBufferQuad> _post_process_fbo_quad1;
-  std::unique_ptr<FrameBufferQuad> _post_process_fbo_quad2;
-
+  std::unique_ptr<FrameBufferQuad> _post_process_fbo_quad;
   std::unique_ptr<FrameBufferQuad> _final_pass_through_fbo_quad;
+
+  std::shared_ptr<RenderableCubeMap> _sky_box;
 
   PerspectiveCamera& _camera;
 };

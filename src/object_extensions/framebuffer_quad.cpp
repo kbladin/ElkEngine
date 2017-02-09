@@ -6,11 +6,12 @@
 
 namespace sge { namespace core {
 
-FrameBufferQuad::FrameBufferQuad(int width, int height, std::vector<RenderTexture> render_textures) :
+FrameBufferQuad::FrameBufferQuad(
+  int width, int height, std::vector<RenderTexture> render_textures,
+  UseDepthBuffer depth_buffer) :
   _width(width),
   _height(height),
-  _render_textures(render_textures),
-  _depth_buffer(width, height, GL_DEPTH_COMPONENT)
+  _render_textures(render_textures)
 {
   _quad = CreateMesh::quad();
   
@@ -24,7 +25,12 @@ FrameBufferQuad::FrameBufferQuad(int width, int height, std::vector<RenderTextur
     _fbo.attach2DTexture(texture->id(), attachment, 0);
   }
 
-  _fbo.attachRenderBuffer(_depth_buffer.id(), GL_DEPTH_ATTACHMENT);
+  if (depth_buffer == UseDepthBuffer::YES)
+  {
+    _depth_buffer = std::make_unique<RenderBufferObject>
+      (width, height, GL_DEPTH_COMPONENT);
+    _fbo.attachRenderBuffer(_depth_buffer->id(), GL_DEPTH_ATTACHMENT);
+  }
 }
 
 FrameBufferQuad::~FrameBufferQuad()
@@ -43,7 +49,8 @@ void FrameBufferQuad::bindTextures()
     
     _texture_units_in_use[i].activate();
     texture->bind();
-    glUniform1i(glGetUniformLocation(ShaderProgram::currentProgramId(), &name[0]), _texture_units_in_use[i]);
+    glUniform1i(glGetUniformLocation(ShaderProgram::currentProgramId(),
+      &name[0]), _texture_units_in_use[i]);
   }
 }
 

@@ -6,23 +6,18 @@ namespace sge { namespace core {
 
 RenderableGrid::RenderableGrid()
 {
-  _program = ShaderManager::instance().getShader("simple_white");
   _mesh = CreateMesh::grid(20);
 }
 
 void RenderableGrid::render()
 {
-  _program->pushUsage();
-  
-    glUniformMatrix4fv(
-      glGetUniformLocation(_program->id(), "M"),
+  glUniformMatrix4fv(
+      glGetUniformLocation(ShaderProgram::currentProgramId(), "M"),
       1,
       GL_FALSE,
       &absoluteTransform()[0][0]);
 
   _mesh->render();
-  
-  _program->popUsage();
 }
 
 } }

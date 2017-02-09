@@ -6,9 +6,9 @@ layout(location = 0) out vec4 color;
 in vec3 vertex_position_viewspace_unprojected;
 
 // Uniforms
-uniform sampler2D final_irradiance_buffer; // Irradiance
-uniform sampler2D position_buffer; // Position
-uniform sampler2D albedo_buffer; // Position
+uniform sampler2D final_irradiance_buffer;
+uniform sampler2D position_buffer;
+uniform sampler2D albedo_buffer;
 uniform sampler2D bloom_buffer;
 
 uniform ivec2 window_size;

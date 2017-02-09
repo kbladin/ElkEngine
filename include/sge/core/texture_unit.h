@@ -18,9 +18,7 @@ public:
     GLint unitNumber();
 
     operator GLint();
-
     static void setZeroUnit();
-
     static int numberActiveUnits();
 
 private:
@@ -32,7 +30,7 @@ private:
     bool _assigned;
     static bool _initialized;
     static unsigned int _totalActive;
-    static unsigned int _maxTexUnits;
+    static GLint _maxTexUnits;
     static std::vector<bool> _busyUnits;
 };
 

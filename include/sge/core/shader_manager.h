@@ -17,6 +17,8 @@ namespace sge { namespace core {
   possible to create instances of the class. There is only one instance that
   is reached from the static function instance().
 */
+
+  /*
 class ShaderManager {
 public:
   static ShaderManager& instance();
@@ -35,5 +37,5 @@ private:
   static ShaderManager _instance;
   std::map<std::string, std::shared_ptr<ShaderProgram> > _shader_programs;
 };
-
+*/
 } }

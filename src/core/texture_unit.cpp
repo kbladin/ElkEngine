@@ -4,7 +4,7 @@ namespace sge { namespace core {
 
 bool TextureUnit::_initialized = false;
 unsigned int TextureUnit::_totalActive = 0;
-unsigned int TextureUnit::_maxTexUnits = 0;
+GLint TextureUnit::_maxTexUnits = 0;
 std::vector<bool> TextureUnit::_busyUnits = std::vector<bool>();
 
 TextureUnit::TextureUnit()
@@ -74,8 +74,9 @@ void TextureUnit::assignUnit() {
     }
 }
 
-void TextureUnit::initialize() {
-    _maxTexUnits = 16;
+void TextureUnit::initialize()
+{
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &_maxTexUnits);
     _busyUnits = std::vector<bool>(_maxTexUnits, false);
     _initialized = true;
 }

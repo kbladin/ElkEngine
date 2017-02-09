@@ -9,8 +9,6 @@ uniform sampler2D position_buffer; // Position
 uniform sampler2D normal_buffer; // Normal
 uniform sampler2D material_buffer; // Roughness, Dielectric Fresnel term, metalness
 
-uniform mat4 P_frag;
-
 uniform samplerCube cube_map;
 uniform mat3 V_inv;
 

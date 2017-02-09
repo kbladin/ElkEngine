@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace sge { namespace core {
-
+/*
 ShaderManager ShaderManager::_instance;
 
 ShaderManager::ShaderManager()
@@ -40,5 +40,5 @@ std::shared_ptr<ShaderProgram> ShaderManager::getShader(std::string name)
 {
   return _shader_programs[name];
 }
-
+*/
 } }

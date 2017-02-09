@@ -13,7 +13,6 @@ public:
   ~RenderableGrid(){};
   virtual void render() override;
 private:
-  std::shared_ptr<ShaderProgram>  _program;
   std::shared_ptr<Mesh>        _mesh;
 };
 
