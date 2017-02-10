@@ -64,7 +64,7 @@ if (${PROJECT_NAME}_USE_GLFW)
   find_package(GLFW3 REQUIRED)
   include_directories(${GLFW_INCLUDE_DIRS})
   target_link_libraries(${PROJECT_NAME} ${GLFW_LIBRARIES})
-  target_sources(${PROJECT_NAME} PUBLIC
+  target_sources(${PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/include/sge/window/application_window_glfw.h
     ${PROJECT_SOURCE_DIR}/src/window/application_window_glfw.cpp)
     #target_compile_definitions(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_USE_GLFW = "1")
@@ -74,7 +74,7 @@ if (${PROJECT_NAME}_USE_ASSIMP)
   find_package(ASSIMP REQUIRED)
   include_directories(${ASSIMP_INCLUDE_DIRS})
   target_link_libraries(${PROJECT_NAME} ${ASSIMP_LIBRARIES})
-  target_sources(${PROJECT_NAME} PUBLIC
+  target_sources(${PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/include/sge/asset_loading/asset_loading_assimp.h
     ${PROJECT_SOURCE_DIR}/src/asset_loading/asset_loading_assimp.cpp)
   target_compile_definitions(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_USE_ASSIMP)
@@ -84,7 +84,7 @@ if (${PROJECT_NAME}_USE_DEVIL)
   find_package(DEVIL REQUIRED)
   include_directories(${IL_INCLUDE_DIR})
   target_link_libraries(${PROJECT_NAME} ${IL_LIBRARIES})
-  target_sources(${PROJECT_NAME} PUBLIC
+  target_sources(${PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/include/sge/texture_loading/texture_loading_devil.h
     ${PROJECT_SOURCE_DIR}/src/texture_loading/texture_loading_devil.cpp)
 endif()
@@ -93,7 +93,7 @@ if (${PROJECT_NAME}_USE_FREEIMAGE)
   find_package(FREEIMAGE REQUIRED)
   include_directories(${FREEIMAGE_INCLUDE_DIRS})
   target_link_libraries(${PROJECT_NAME} ${FREEIMAGE_LIBRARIES})
-  target_sources(${PROJECT_NAME} PUBLIC
+  target_sources(${PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/include/sge/texture_loading/texture_loading_freeimage.h
     ${PROJECT_SOURCE_DIR}/src/texture_loading/texture_loading_freeimage.cpp)
   target_compile_definitions(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_USE_FREEIMAGE)
