@@ -72,4 +72,9 @@ void main()
   float fresnel_term = roughSchlick2(R0, cos_theta, remapped_roughness);
 
   material = vec3(remapped_roughness, fresnel_term, metalness);
+
+  // Write to linear depth buffer
+  float max_dist = 1000.0f;
+  float depth = (-position.z / max_dist);
+  gl_FragDepth = depth;
 }

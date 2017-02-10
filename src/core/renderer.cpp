@@ -14,6 +14,11 @@ void Renderer::submitRenderable(Renderable& renderable)
   _renderables_to_render.push_back(&renderable);
 }
 
+void Renderer::submitIndependentRenderable(IndependentRenderable& renderable)
+{
+  _independent_renderables_to_render.push_back(&renderable);
+}
+
 void Renderer::submitPointLightSource(PointLightSource& light_source)
 {
   _point_light_sources_to_render.push_back(&light_source);

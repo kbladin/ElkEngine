@@ -60,4 +60,21 @@ public:
   virtual void render() = 0;
 };
 
+// Data needed when rendering independent renderables
+struct UsefulRenderData
+{
+  const PerspectiveCamera& camera;
+};
+
+// An IndependentRenderable does not rely on outside shaders. It is always
+// rendered using its own shaders
+class IndependentRenderable : public Object3D
+{
+public:
+  IndependentRenderable() : Object3D() {};
+  ~IndependentRenderable() {};
+  virtual void submit(Renderer& renderer) override;
+  virtual void render(const UsefulRenderData& render_data) = 0;
+};
+
 } }

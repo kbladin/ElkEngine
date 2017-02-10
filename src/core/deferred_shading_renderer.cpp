@@ -19,8 +19,6 @@ DeferredShadingRenderer::DeferredShadingRenderer(
 
   // Camera will save uniform locations for the shaders
   _camera.addToShader(_gbuffer_program->id());
-  _camera.addToShader(_shading_program_point_lights->id());
-  _camera.addToShader(_shading_program_directional_lights->id());
   _camera.addToShader(_cube_map_program->id());
 }
 
@@ -43,6 +41,7 @@ void DeferredShadingRenderer::setSkyBox(std::shared_ptr<RenderableCubeMap> sky_b
 
 void DeferredShadingRenderer::render(Object3D& scene)
 {
+  
   // Submit all objects in the scene to the lists of renderable objects
   scene.submit(*this);
   // Update cameras uniforms for all shaders
@@ -66,6 +65,7 @@ void DeferredShadingRenderer::render(Object3D& scene)
   _post_process_fbo_quad->generateMipMaps();
 
   renderPostProcess(*_final_pass_through_fbo_quad);
+  forwardRenderIndependentRenderables(*_final_pass_through_fbo_quad);
 
   // Render the first attachment of the final fbo to screen
   renderToScreen(*_final_pass_through_fbo_quad, 0);
@@ -266,7 +266,8 @@ void DeferredShadingRenderer::initializeFramebuffers(
 
   _final_pass_through_fbo_quad = std::make_unique<FrameBufferQuad>(
     framebuffer_width, framebuffer_height,
-    std::vector<FrameBufferQuad::RenderTexture>{final_render_color_tex});
+    std::vector<FrameBufferQuad::RenderTexture>{final_render_color_tex},
+    FrameBufferQuad::UseDepthBuffer::YES);
 }
 
 void DeferredShadingRenderer::renderGeometryBuffer(FrameBufferQuad& geometry_buffer)
@@ -278,6 +279,7 @@ void DeferredShadingRenderer::renderGeometryBuffer(FrameBufferQuad& geometry_buf
 
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
+  glDepthMask(GL_TRUE);
 
   _gbuffer_program->pushUsage();  
   for (auto renderable : _renderables_to_render)
@@ -353,7 +355,11 @@ void DeferredShadingRenderer::renderPostProcess(FrameBufferQuad& final_buffer)
   glViewport(0,0,
     final_buffer.width(),
     final_buffer.height());
-  
+  glEnable(GL_DEPTH_TEST);
+  glDepthMask(GL_TRUE);
+  glDepthFunc(GL_LEQUAL);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   _post_process_program->pushUsage();
   glUniform2i(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
@@ -373,7 +379,6 @@ void DeferredShadingRenderer::renderPostProcess(FrameBufferQuad& final_buffer)
   glUniform1f(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "focus"),
     _camera.focus() / 1000.0f); // Convert from mm to m
-
 
   float diagonal = _camera.diagonal() / 1000.0f;
   float window_diagonal =
@@ -398,6 +403,8 @@ void DeferredShadingRenderer::renderPostProcess(FrameBufferQuad& final_buffer)
 
   _post_process_program->popUsage();
 
+  // Back to default
+  glDepthFunc(GL_LESS);
   final_buffer.unbindFBO();
 }
 
@@ -406,6 +413,8 @@ void DeferredShadingRenderer::renderToScreen(
 {
   glViewport(0,0, _window_width, _window_height);
   glDisable(GL_BLEND);
+  glDisable(GL_DEPTH_TEST);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   _final_pass_through_program->pushUsage();
   glUniform2i(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
@@ -418,11 +427,27 @@ void DeferredShadingRenderer::renderToScreen(
     "pixel_buffer" // Shader name
   });
   sample_fbo_quad.bindTextures(render_texture_info);
-
-  //sample_fbo_quad.bindTextures();
   sample_fbo_quad.render();
   sample_fbo_quad.freeTextureUnits();
   _final_pass_through_program->popUsage();
+}
+
+void DeferredShadingRenderer::forwardRenderIndependentRenderables(
+  FrameBufferQuad& final_buffer)
+{
+  final_buffer.bindFBO();
+  glViewport(0,0,
+    final_buffer.width(),
+    final_buffer.height());
+  glEnable(GL_DEPTH_TEST);
+  glDepthMask(GL_TRUE);
+  glDisable(GL_BLEND);
+
+  for (auto renderable : _independent_renderables_to_render)
+    renderable->render({ _camera });
+  _independent_renderables_to_render.clear();  
+  
+  final_buffer.unbindFBO();
 }
 
 void DeferredShadingRenderer::renderPointLights()

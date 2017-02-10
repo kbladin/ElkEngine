@@ -56,19 +56,7 @@ void PointLightSource::render(const PerspectiveCamera& camera)
 
 void PointLightSource::renderQuad(const PerspectiveCamera& camera)
 {
-  // This transform is equivalent to inv(V) * inv(P) which means that after
-  // transformation, the result is P * V * inv(V) * inv(P) = I.
-  // This puts the quad in view space
-  const glm::mat4& model_transform =
-    camera.absoluteTransform() * glm::inverse(camera.projectionTransform());
-  glUniformMatrix4fv(
-    glGetUniformLocation(ShaderProgram::currentProgramId(), "M"),
-    1,
-    GL_FALSE,
-    &model_transform[0][0]);
-
   setupLightSourceUniforms(camera);
-
   _quad_mesh->render();
 }
 
@@ -78,11 +66,22 @@ void PointLightSource::renderSphere(const PerspectiveCamera& camera)
   scaled_transform[0][0] *= _sphere_scale;
   scaled_transform[1][1] *= _sphere_scale;
   scaled_transform[2][2] *= _sphere_scale;
+
   glUniformMatrix4fv(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "M"),
     1,
     GL_FALSE,
     &scaled_transform[0][0]);
+  glUniformMatrix4fv(
+      glGetUniformLocation(ShaderProgram::currentProgramId(), "V"),
+      1,
+      GL_FALSE,
+      &camera.viewTransform()[0][0]);
+  glUniformMatrix4fv(
+      glGetUniformLocation(ShaderProgram::currentProgramId(), "P"),
+      1,
+      GL_FALSE,
+      &camera.projectionTransform()[0][0]);
 
   setupLightSourceUniforms(camera);
 
@@ -142,19 +141,7 @@ void DirectionalLightSource::update(double dt)
 
 void DirectionalLightSource::render(const PerspectiveCamera& camera)
 {
-  // This transform is equivalent to inv(V) * inv(P) which means that after
-  // transformation, the result is P * V * inv(V) * inv(P) = I.
-  // This puts the quad in view space
-  const glm::mat4& model_transform =
-    camera.absoluteTransform() * glm::inverse(camera.projectionTransform());
-  glUniformMatrix4fv(
-    glGetUniformLocation(ShaderProgram::currentProgramId(), "M"),
-    1,
-    GL_FALSE,
-    &model_transform[0][0]);
-
   setupLightSourceUniforms(camera);
-
   _quad_mesh->render();
 }
 

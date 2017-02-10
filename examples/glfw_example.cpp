@@ -50,6 +50,7 @@ private:
   RenderableModel _cave_ball;
 
   RenderableModel _plane;
+  RenderableGrid _grid;
   PointLightSource _lamp;
   DirectionalLightSource _lamp2;
 };
@@ -129,9 +130,9 @@ MyEngine::MyEngine() :
   _lamp2.setTransform(glm::rotate(float(M_PI) * 0.4f, glm::vec3(1.0f, 0.0f, -0.65f)));
   _monkey.setTransform(glm::translate(glm::vec3(1.5f, 0.0f, 0.0f)));
   _earth.setTransform(glm::translate(glm::vec3(0.0f, 2.0f, 0.0f)));
-  _plane.setTransform(glm::scale(glm::vec3(4.0f, 4.0f, 4.0f)));
+  _plane.setTransform(glm::scale(glm::vec3(100.0f, 100.0f, 100.0f)));
   _plane.setTransform(glm::rotate(-float(M_PI / 2), glm::vec3(1.0f, 0.0f, 0.0f)) * _plane.relativeTransform());
-  _plane.setTransform(glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * _plane.relativeTransform());
+  _plane.setTransform(glm::translate(glm::vec3(0.0f, -3.0f, 0.0f)) * _plane.relativeTransform());
 
   _gold_ball.setTransform(glm::translate(glm::vec3(-4.0f, 0.0f, 0.0f)));
   _granite_ball.setTransform(glm::translate(glm::vec3(-2.0f, 0.0f, 0.0f)));
@@ -139,6 +140,11 @@ MyEngine::MyEngine() :
   _rusted_iron_ball.setTransform(glm::translate(glm::vec3(2.0f, 0.0f, 0.0f)));
   _worn_painted_ball.setTransform(glm::translate(glm::vec3(4.0f, 0.0f, 0.0f)));
   _cave_ball.setTransform(glm::translate(glm::vec3(6.0f, 0.0f, 0.0f)));
+
+  _grid.setTransform(glm::scale(glm::vec3(10.0f)));
+  _grid.setTransform(
+    _grid.relativeTransform() *
+    glm::rotate(float(M_PI / 2.0), glm::vec3(1.0f, 0.0f, 0.0f)));
 
   //scene.addChild(_monkey);
   scene.addChild(_earth);
@@ -149,8 +155,10 @@ MyEngine::MyEngine() :
   scene.addChild(_rusted_iron_ball);
   scene.addChild(_worn_painted_ball);
   scene.addChild(_cave_ball);
+
+  scene.addChild(_grid);
   
-  //scene.addChild(_plane);
+  scene.addChild(_plane);
   scene.addChild(camera());
   //camera().addChild(_lamp);
   scene.addChild(_lamp2);

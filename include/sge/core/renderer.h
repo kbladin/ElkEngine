@@ -6,6 +6,7 @@
 namespace sge { namespace core {
 
 class Renderable;
+class IndependentRenderable;
 class PointLightSource;
 class DirectionalLightSource;
 
@@ -15,6 +16,7 @@ public:
   ~Renderer();
   
   void submitRenderable(Renderable& renderable);
+  void submitIndependentRenderable(IndependentRenderable& renderable);
   void submitPointLightSource(PointLightSource& light_source);
   void submitDirectionalLightSource(DirectionalLightSource& light_source);
 
@@ -26,7 +28,11 @@ public:
 protected:
   void checkForErrors();
 
+  // The renderer has responsibility of binding shaders to render renderables
   std::vector<Renderable*> _renderables_to_render;
+  // Independent renderebles has their own responsibility of binding their
+  // shaders
+  std::vector<IndependentRenderable*> _independent_renderables_to_render;
   std::vector<PointLightSource*> _point_light_sources_to_render;
   std::vector<DirectionalLightSource*> _directional_light_sources_to_render;
 };

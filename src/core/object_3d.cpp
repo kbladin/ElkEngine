@@ -63,4 +63,10 @@ void Renderable::submit(Renderer& renderer)
   renderer.submitRenderable(*this);
 }
 
+void IndependentRenderable::submit(Renderer& renderer)
+{
+  Object3D::submit(renderer);
+  renderer.submitIndependentRenderable(*this);
+}
+
 } }

@@ -23,12 +23,10 @@ float max_level = 7; // Corresponds to completely out of focus
 
 // Based on the camera parameters and the distance to the object, a mip level
 // for the irradiance buffer can be calculated
-float calculateMipLevel(float object_dist)
+float calculateMipLevel(float object_dist, bool infinite_dist)
 {
-  ivec2 raster_coord = ivec2(gl_FragCoord.xy);
-  float alpha = texelFetch(albedo_buffer, raster_coord, 0).a;
   float object_focus;
-  if (alpha == 0)
+  if (infinite_dist)
     object_focus = focal_length; // Infinitely far away
   else
     object_focus = 1.0f / (1.0f / focal_length - 1.0f / object_dist);
@@ -99,8 +97,10 @@ void main()
 
   // Material properties
   vec3 position = texelFetch(position_buffer, raster_coord, 0).xyz;
+  float alpha = texelFetch(albedo_buffer, raster_coord, 0).a;
+  bool infinite_dist = alpha == 0.0f;
   
-  float level = calculateMipLevel(abs(position.z));
+  float level = calculateMipLevel(abs(position.z), infinite_dist);
   vec3 irradiance = calculateUnfocusedIrradiance(sample_point_texture_space, level);
   vec3 bloom = calculateUnfocusedBloom(sample_point_texture_space, level);
 
@@ -115,4 +115,9 @@ void main()
   float vignetting = dot(-v, vec3(0.0f,0.0f,1.0f));
 
   color = vec4(vignetting * total_irradiance, 1.0f);
+
+  // Write to linear depth buffer
+  float max_dist = 1000.0f;
+  float depth = infinite_dist ? 1.0f : (-position.z / max_dist);
+  gl_FragDepth = depth;
 }

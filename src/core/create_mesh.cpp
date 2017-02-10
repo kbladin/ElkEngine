@@ -361,16 +361,16 @@ std::shared_ptr<Mesh> CreateMesh::line(glm::vec3 start, glm::vec3 end)
 
   int i = 0;
   for (int j=0; i < segments + 1; i++, j++) {
-    (*positions)[i] = glm::vec3(j,0.0f,0.0f) / static_cast<float>(segments) - glm::vec3(0.5f,0.5f,0.0f);
+    (*positions)[i] = glm::vec3(j,0.0f,0.0f) / static_cast<float>(segments * 0.5f) - glm::vec3(1.0f,1.0f,0.0f);
   }
   for (int j=0; i < (segments + 1) * 2; i++, j++) {
-    (*positions)[i] = glm::vec3(0.0f,j,0.0f) / static_cast<float>(segments) - glm::vec3(0.5f,0.5f,0.0f);
+    (*positions)[i] = glm::vec3(0.0f,j,0.0f) / static_cast<float>(segments * 0.5f) - glm::vec3(1.0f,1.0f,0.0f);
   }
   for (int j=0; i < (segments + 1) * 3; i++, j++) {
-    (*positions)[i] = glm::vec3(j,segments,0.0f) / static_cast<float>(segments) - glm::vec3(0.5f,0.5f,0.0f);
+    (*positions)[i] = glm::vec3(j,segments,0.0f) / static_cast<float>(segments * 0.5f) - glm::vec3(1.0f,1.0f,0.0f);
   }
   for (int j=0; i < (segments + 1) * 4; i++, j++) {
-    (*positions)[i] = glm::vec3(segments,j,0.0f) / static_cast<float>(segments) - glm::vec3(0.5f,0.5f,0.0f);
+    (*positions)[i] = glm::vec3(segments,j,0.0f) / static_cast<float>(segments * 0.5f) - glm::vec3(1.0f,1.0f,0.0f);
   }
   
   for (int i = 0; i < elements->size(); i = i+2) {
