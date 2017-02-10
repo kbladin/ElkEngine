@@ -49,7 +49,9 @@ float castShadowRay(vec3 origin, vec3 direction)
     {
       return 0.0f;
     }
-    if (position.z > position_view_space.z && (position.z - position_view_space_prev.z) < 0.2 && alpha != 0.0f)
+    if (position.z > position_view_space.z &&
+        (position.z - position_view_space_prev.z) < 0.2 &&
+        alpha != 0.0f)
     {
       return 1.0f;
     }

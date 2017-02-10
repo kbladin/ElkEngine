@@ -19,9 +19,6 @@ uniform sampler2D R0_texture;
 uniform sampler2D metalness_texture;
 uniform sampler2D normal_texture;
 
-uniform float roughness;
-uniform float R0;
-
 // R0 is calculated from IOR as so:
 // R0 = pow((n1 - n2) / (n1 + n2), 2)
 float schlick(float R0, float cos_theta)
@@ -35,7 +32,8 @@ float roughSchlick2(float R0, float cos_theta, float roughness)
   float area_under_curve = 1.0 / 6.0 * (5.0 * R0 + 1.0);
   float new_area_under_curve = 1.0 / (6.0 * roughness + 6.0) * (5.0 * R0 + 1.0);
 
-  return schlick(R0, cos_theta) / (1 + roughness) + (area_under_curve - new_area_under_curve);
+  return schlick(R0, cos_theta) /
+    (1 + roughness) + (area_under_curve - new_area_under_curve);
 }
 
 float remapRoughness(float x)
@@ -56,18 +54,22 @@ void main()
     sampled_normal = (2.0f * sampled_normal) - vec3(1.0f);
     vec3 bitangent = cross(normal, tangent);
 
-    normal = tangent * sampled_normal.x + bitangent * sampled_normal.y + normal * sampled_normal.z;
+    normal =
+      tangent * sampled_normal.x +
+      bitangent * sampled_normal.y +
+      normal * sampled_normal.z;
   }
 
         albedo =      texture(albedo_texture,     fs_texture_coordinate);
-  float _roughness =  texture(roughness_texture,  fs_texture_coordinate).r;
-  float _R0 =         0.04;//texture(R0_texture,         fs_texture_coordinate).r;
+  float roughness =   texture(roughness_texture,  fs_texture_coordinate).r;
+  float R0 =          0.04;//texture(R0_texture,         fs_texture_coordinate).r;
   float metalness =   texture(metalness_texture,  fs_texture_coordinate).r;
 
   // Calculate dielctric Fresnel term
   vec3 v = normalize(position);
   float cos_theta = max(dot(-v, normal),  0.0f);
-  float fresnel_term = roughSchlick2(_R0, cos_theta, remapRoughness(_roughness));
+  float remapped_roughness = remapRoughness(roughness);
+  float fresnel_term = roughSchlick2(R0, cos_theta, remapped_roughness);
 
-  material = vec3(remapRoughness(_roughness), fresnel_term, metalness);
+  material = vec3(remapped_roughness, fresnel_term, metalness);
 }

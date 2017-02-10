@@ -109,6 +109,7 @@ void main()
 
     // Hack to avoid hard edge
     specular_radiance *= pow(cos_theta, 0.5);
+    
     total_radiance = diffuse_radiance + specular_radiance;
   }
   // Add to final radiance

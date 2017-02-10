@@ -12,14 +12,6 @@ uniform sampler2D material_buffer; // Roughness, Dielectric Fresnel term, metaln
 uniform samplerCube cube_map;
 uniform mat3 V_inv;
 
-#define PI 3.1415
-float gaussian(float x, float sigma, float mu)
-{
-  float a = 1.0f / (sigma * sqrt(2.0f * PI));
-  float x_minus_b = x - mu;
-  return a * exp(-(x_minus_b * x_minus_b) / (2.0f * sigma * sigma));
-}
-
 vec3 environment(vec3 dir_view_space, float roughness)
 {
   vec3 dir_world_space = V_inv * dir_view_space;

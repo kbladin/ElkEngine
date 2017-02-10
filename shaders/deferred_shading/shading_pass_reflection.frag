@@ -36,7 +36,9 @@ float castReflectionRay(vec3 origin, vec3 direction, out vec3 radiance, float ro
     {
       return 0.0f;
     }
-    if (position.z > position_view_space.z && (position.z - position_view_space_prev.z) < 0.2 && alpha >= 0.5f)
+    if (position.z > position_view_space.z &&
+        (position.z - position_view_space_prev.z) < 0.2 &&
+        alpha >= 0.5f)
     {
       float alpha_remapped = (alpha - 0.5f) * 2.0f;
       radiance += textureLod(irradiance_buffer, position_texture_space, 4).rgb;
