@@ -29,17 +29,18 @@ float castReflectionRay(vec3 origin, vec3 direction, out vec3 radiance, float ro
     vec3 position_screen_space = position_clip_space.xyz / position_clip_space.w;
     vec2 position_texture_space = position_screen_space.xy * 0.5f + vec2(0.5f);
     vec3 position = textureLod(position_buffer, position_texture_space, 0).xyz;
-    float alpha = textureLod(albedo_buffer, position_texture_space, 0).a;
+    float alpha = textureLod(albedo_buffer, position_texture_space, 7).a;
 
     if (position_texture_space.x < 0 || position_texture_space.x > 1 ||
         position_texture_space.y < 0 || position_texture_space.y > 1)
     {
       return 0.0f;
     }
-    if (position.z > position_view_space.z && (position.z - position_view_space_prev.z) < 0.2 && alpha != 0.0f)
+    if (position.z > position_view_space.z && (position.z - position_view_space_prev.z) < 0.2 && alpha >= 0.5f)
     {
-      radiance += alpha * textureLod(irradiance_buffer, position_texture_space, pow(roughness, 0.3) * i * 15.0f / 50.0f).rgb;
-      return 1.0f;
+      float alpha_remapped = (alpha - 0.5f) * 2.0f;
+      radiance += textureLod(irradiance_buffer, position_texture_space, 4).rgb;
+      return alpha_remapped;
     }
     t += step;
   }
@@ -88,7 +89,7 @@ void main()
     float irradiance_specular_environment = 1.0f * BRDF_specular_times_cos_theta_at_reflection;
 
     vec3 radiance_reflection = vec3(0);
-    float hit = 0;//castReflectionRay(position + n * 0.01f, r, radiance_reflection, roughness);
+    float hit = 0.0f;//castReflectionRay(position + n * 0.01f, r, radiance_reflection, roughness);
 
 
     // Different Frenel depending on if the material is metal or dielectric

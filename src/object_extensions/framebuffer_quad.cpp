@@ -54,6 +54,24 @@ void FrameBufferQuad::bindTextures()
   }
 }
 
+void FrameBufferQuad::bindTextures(
+  const std::vector<RenderTextureInfo>& render_texture_info)
+{
+  _texture_units_in_use = std::vector<TextureUnit>(render_texture_info.size());
+  
+  for (int i = 0; i < render_texture_info.size(); ++i)
+  {
+    int render_texture_index = std::get<int>(render_texture_info[i]);
+    auto texture = std::get<std::shared_ptr<Texture>>(_render_textures[render_texture_index]);
+    auto name = std::get<std::string>(render_texture_info[i]);
+    
+    _texture_units_in_use[i].activate();
+    texture->bind();
+    glUniform1i(glGetUniformLocation(ShaderProgram::currentProgramId(),
+      &name[0]), _texture_units_in_use[i]);
+  }
+}
+
 void FrameBufferQuad::bindFBO()
 {
   _fbo.bind();

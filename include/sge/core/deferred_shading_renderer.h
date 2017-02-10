@@ -38,7 +38,9 @@ private:
   void renderReflections(FrameBufferQuad& irradiance_buffer);
   void renderHighlights(FrameBufferQuad& post_process_buffer);
   void renderPostProcess(FrameBufferQuad& final_buffer);
-  void renderFinalPassthroughToScreen();
+  
+  // Input is the fbo to sample from, index is the attachment to bind
+  void renderToScreen(FrameBufferQuad& sample_fbo_quad, int attachment);
 
   // Internal render functions
   void renderPointLights();

@@ -53,6 +53,7 @@ void DeferredShadingRenderer::render(Object3D& scene)
 
   // This will allow reflections to have roughness by sampling from mip-map
   _light_fbo_quad->generateMipMaps();
+  _geometry_fbo_quad->generateMipMaps();
 
   renderReflections(*_final_irradiance_fbo_quad);
 
@@ -66,7 +67,8 @@ void DeferredShadingRenderer::render(Object3D& scene)
 
   renderPostProcess(*_final_pass_through_fbo_quad);
 
-  renderFinalPassthroughToScreen();
+  // Render the first attachment of the final fbo to screen
+  renderToScreen(*_final_pass_through_fbo_quad, 0);
 
   checkForErrors();
 }
@@ -154,7 +156,7 @@ void DeferredShadingRenderer::initializeFramebuffers(
     std::make_shared<Texture>(
       glm::uvec3(framebuffer_width, framebuffer_height, 1),
       Texture::Format::RGBA, GL_RGBA, GL_UNSIGNED_BYTE,
-      Texture::FilterMode::Nearest,
+      Texture::FilterMode::LinearMipMap,
       Texture::WrappingMode::ClampToEdge),
       GL_COLOR_ATTACHMENT0,
       "albedo_buffer"
@@ -399,16 +401,27 @@ void DeferredShadingRenderer::renderPostProcess(FrameBufferQuad& final_buffer)
   final_buffer.unbindFBO();
 }
 
-void DeferredShadingRenderer::renderFinalPassthroughToScreen()
+void DeferredShadingRenderer::renderToScreen(
+  FrameBufferQuad& sample_fbo_quad, int attachment)
 {
   glViewport(0,0, _window_width, _window_height);
+  glDisable(GL_BLEND);
   _final_pass_through_program->pushUsage();
   glUniform2i(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "window_size"),
     _window_width, _window_height);
-  _final_pass_through_fbo_quad->bindTextures();
-  _final_pass_through_fbo_quad->render();
-  _final_pass_through_fbo_quad->freeTextureUnits();
+  
+  std::vector<FrameBufferQuad::RenderTextureInfo> render_texture_info;
+  render_texture_info.push_back(
+  {
+    attachment, // Attachment 
+    "pixel_buffer" // Shader name
+  });
+  sample_fbo_quad.bindTextures(render_texture_info);
+
+  //sample_fbo_quad.bindTextures();
+  sample_fbo_quad.render();
+  sample_fbo_quad.freeTextureUnits();
   _final_pass_through_program->popUsage();
 }
 

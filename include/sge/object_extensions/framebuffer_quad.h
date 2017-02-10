@@ -17,6 +17,7 @@ class FrameBufferQuad : public Renderable
 public:
   // Texture, attachment, name
   using RenderTexture = std::tuple<std::shared_ptr<Texture>, GLenum, std::string>;
+  using RenderTextureInfo = std::tuple<int, std::string>;
   
   enum class UseDepthBuffer { YES, NO };
 
@@ -25,6 +26,10 @@ public:
     UseDepthBuffer depth_buffer = UseDepthBuffer::NO);
   ~FrameBufferQuad();
   void bindTextures();
+  // Binds the texture units indexed by render_textures and removes usage of
+  // all other texture units in use. Using the string provided in render_texture_info
+  // as sampler name instead of the one specified for the actual render texture.
+  void bindTextures(const std::vector<RenderTextureInfo>& render_texture_info);
   void generateMipMaps();
   void freeTextureUnits();
   virtual void render() override;
