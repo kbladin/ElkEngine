@@ -14,7 +14,7 @@ uniform sampler2D bloom_buffer;
 uniform ivec2 window_size;
 uniform ivec2 bloom_buffer_base_size;
 
-uniform float aperture;
+uniform float inv_focal_ratio_in_pixels;
 uniform float focus;
 uniform float focal_length;
 
@@ -55,8 +55,10 @@ void main()
   else
     object_focus = 1.0f / (1.0f / focal_length - 1.0f / object_dist);
 
-  float max_level = 7; // Corresponds to completely out of focus
-  float level = aperture * 10 * max_level * log2(1.0f + 1.0f / focal_length * abs(object_focus - (focal_length + focus)));
+  float distance_to_screen = abs(object_focus - (focal_length + focus));
+
+  float max_level = 7; // Corresponds to completely out of focus  
+  float level = log2(inv_focal_ratio_in_pixels * distance_to_screen);
 
   level = clamp(level, 0, max_level);
   vec3 irradiance;
@@ -75,12 +77,12 @@ void main()
 
   vec3 bloom;
 
-  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(0 + level, 0, 7));
-  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(1 + level, 0, 7));
-  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(2 + level, 0, 7));
-  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(3 + level, 0, 7));
-  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(4 + level, 0, 7));
-  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(5 + level, 0, 7));
+  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(0 + level, 0, max_level));
+  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(1 + level, 0, max_level));
+  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(2 + level, 0, max_level));
+  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(3 + level, 0, max_level));
+  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(4 + level, 0, max_level));
+  bloom += sampleBloomMipmap(sample_point_texture_space, clamp(5 + level, 0, max_level));
 
   bloom /= 6.0f * 2; // Cheat because the blooming effect was really big (cant handle HDR)
 
@@ -90,8 +92,6 @@ void main()
   //vec3 mapped = total_irradiance / (total_irradiance + vec3(1.0));
   // Gamma correction 
   //mapped = pow(mapped, vec3(1.0 / 1.1));
-
-
 
   vec3 v = normalize(vertex_position_viewspace_unprojected);
   float vignetting = dot(-v, vec3(0.0f,0.0f,1.0f));

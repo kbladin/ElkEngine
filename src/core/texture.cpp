@@ -13,7 +13,7 @@ Texture::Texture(
   _data_type(dataType),
   _filter(filter),
   _wrapping(wrapping),
-  _mip_map_level(8),
+  _mip_map_level(16),
   _anisotropy_level(-1.f),
   _has_ownership_of_data(false),
   _pixel_data(nullptr)

@@ -371,9 +371,18 @@ void DeferredShadingRenderer::renderPostProcess(FrameBufferQuad& final_buffer)
   glUniform1f(
     glGetUniformLocation(ShaderProgram::currentProgramId(), "focus"),
     _camera.focus() / 1000.0f); // Convert from mm to m
+
+
+  float diagonal = _camera.diagonal() / 1000.0f;
+  float window_diagonal =
+    sqrt(pow(final_buffer.width(), 2) + pow(final_buffer.height(), 2));  
+  float inv_focal_ratio_in_pixels =
+    1.0f / (diagonal * _camera.focalRatio()) * window_diagonal;
+
   glUniform1f(
-    glGetUniformLocation(ShaderProgram::currentProgramId(), "aperture"),
-    _camera.apertureDiameter());
+    glGetUniformLocation(ShaderProgram::currentProgramId(),
+      "inv_focal_ratio_in_pixels"),
+    inv_focal_ratio_in_pixels);
 
   _final_irradiance_fbo_quad->bindTextures();
   _post_process_fbo_quad->bindTextures();

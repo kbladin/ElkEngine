@@ -87,13 +87,15 @@ PerspectiveCamera::PerspectiveCamera(
   float near,
   float far,
   float diagonal,
-  float focal_length) :
+  float focal_length,
+  float focal_ratio) :
   _aspect(aspect),
   _near(near),
   _far(far),
   _diagonal(diagonal)
 {
   setFocalLength(focal_length);
+  setFocalRatio(focal_ratio);
   updateProjectionTransform();
 }
 
@@ -137,7 +139,7 @@ void PerspectiveCamera::setFocalLength(float focal_length)
 void PerspectiveCamera::setFocalRatio(float focal_ratio)
 {
   focal_ratio = glm::max(focal_ratio, 1.0f);
-  _aperture_diameter = _focal_length / focal_ratio;
+  _focal_ratio = focal_ratio;
 }
 
 void PerspectiveCamera::setFocus(float focus)
@@ -148,7 +150,12 @@ void PerspectiveCamera::setFocus(float focus)
 
 float PerspectiveCamera::apertureDiameter()
 {
-  return _aperture_diameter;
+  return _focal_length / _focal_ratio;
+}
+
+float PerspectiveCamera::focalRatio()
+{
+  return _focal_ratio;
 }
 
 float PerspectiveCamera::focalLength()
@@ -159,6 +166,11 @@ float PerspectiveCamera::focalLength()
 float PerspectiveCamera::focus()
 {
   return _focus;
+}
+
+float PerspectiveCamera::diagonal()
+{
+  return _diagonal;
 }
 
 void PerspectiveCamera::updateProjectionTransform()

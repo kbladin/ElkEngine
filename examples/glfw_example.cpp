@@ -183,7 +183,7 @@ private:
 DebugInputController::DebugInputController(MyEngine& engine) :
   _engine(engine)
 {
-  DebugInput::value("focal_ratio") = 28;
+
 }
 
 void DebugInputController::step(float dt)
@@ -271,21 +271,20 @@ void DebugInputController::step(float dt)
 
   if (_keys_pressed.count(Key::KEY_D))
   {
-    DebugInput::value("focal_ratio") *= (1.0 - dt * 2);
+    _engine.camera().setFocalRatio(_engine.camera().focalRatio() * (1.0 - dt * 2));
   }
   if (_keys_pressed.count(Key::KEY_E))
   {
-    DebugInput::value("focal_ratio") *= (1.0 + dt * 2);
+    _engine.camera().setFocalRatio(_engine.camera().focalRatio() * (1.0 + dt * 2));
   }
 
-  
   if (_keys_pressed.count(Key::KEY_W))
   {
-    _engine.camera().setFocus(_engine.camera().focus() - dt);
+    _engine.camera().setFocus(_engine.camera().focus() - dt * 2.0f);
   }
   if (_keys_pressed.count(Key::KEY_S))
   {
-    _engine.camera().setFocus(_engine.camera().focus() + dt);
+    _engine.camera().setFocus(_engine.camera().focus() + dt * 2.0f);
   }
 
   if (_keys_pressed.count(Key::KEY_Q))
@@ -296,8 +295,6 @@ void DebugInputController::step(float dt)
   {
     _engine.camera().setFocalLength(_engine.camera().focalLength() * (1.0 - dt));
   }
-  
-  _engine.camera().setFocalRatio(DebugInput::value("focal_ratio"));
 }
 
 int main(int argc, char const *argv[])

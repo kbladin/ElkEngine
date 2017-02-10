@@ -57,7 +57,8 @@ public:
     float near,
     float far,
     float diagonal = 35,
-    float focal_length = 28);
+    float focal_length = 28,
+    float focal_ratio = 5);
   
   virtual void execute();
 
@@ -82,8 +83,11 @@ public:
   void setFocus(float focus);
   
   float apertureDiameter();
+  // f-number
+  float focalRatio();
   float focalLength();
   float focus();
+  float diagonal();
 private:
   void updateProjectionTransform();
   void updateFOV();
@@ -96,7 +100,7 @@ private:
 
   float _diagonal;
   float _focal_length;
-  float _aperture_diameter;
+  float _focal_ratio;
   float _focus;
 };
 
