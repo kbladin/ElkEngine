@@ -6,23 +6,23 @@
 namespace sge { namespace core {
 
 Material::Material(
-  std::shared_ptr<Texture> albedo,
-  std::shared_ptr<Texture> roughness,
-  std::shared_ptr<Texture> R0,
-  std::shared_ptr<Texture> metalness,
-  std::shared_ptr<Texture> normal)
+  std::shared_ptr<Texture> albedo_texture,
+  std::shared_ptr<Texture> roughness_texture,
+  std::shared_ptr<Texture> R0_texture,
+  std::shared_ptr<Texture> metalness_texture,
+  std::shared_ptr<Texture> normal_texture)
 {
-  _albedo     = albedo    ? albedo    : CreateTexture::white(2,2);
-  _roughness  = roughness ? roughness : CreateTexture::white(2,2);
-  _R0         = R0        ? R0        : CreateTexture::white(2,2);
-  _metalness  = metalness ? metalness : CreateTexture::black(2,2);
-  _normal     = normal    ? normal    : CreateTexture::black(2,2);
+  _albedo_texture     = albedo_texture    ? albedo_texture    : CreateTexture::white(2,2);
+  _roughness_texture  = roughness_texture ? roughness_texture : CreateTexture::white(2,2);
+  _R0_texture         = R0_texture        ? R0_texture        : CreateTexture::white(2,2);
+  _metalness_texture  = metalness_texture ? metalness_texture : CreateTexture::black(2,2);
+  _normal_texture     = normal_texture    ? normal_texture    : CreateTexture::black(2,2);
 
-  _albedo->upload();
-  _roughness->upload();
-  _R0->upload();
-  _metalness->upload();
-  _normal->upload();
+  _albedo_texture->upload();
+  _roughness_texture->upload();
+  _R0_texture->upload();
+  _metalness_texture->upload();
+  _normal_texture->upload();
 }
 
 Material::~Material()
@@ -41,15 +41,15 @@ void Material::use(GLuint programId)
   
   // Activate tex units and bind them to corresponding textures
   tex_unit_albedo.activate();
-  _albedo->bind();
+  _albedo_texture->bind();
   tex_unit_roughness.activate();
-  _roughness->bind();
+  _roughness_texture->bind();
   tex_unit_R0.activate();
-  _R0->bind();
+  _R0_texture->bind();
   tex_unit_metalness.activate();
-  _metalness->bind();
+  _metalness_texture->bind();
   tex_unit_normal.activate();
-  _normal->bind();
+  _normal_texture->bind();
 
   glUniform1i(glGetUniformLocation(programId, "albedo_texture"),    tex_unit_albedo);
   glUniform1i(glGetUniformLocation(programId, "roughness_texture"), tex_unit_roughness);

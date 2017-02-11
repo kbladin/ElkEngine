@@ -492,6 +492,9 @@ void DeferredShadingRenderer::renderDiffuseEnvironmentLights()
     1,
     GL_FALSE,
     &V_inv[0][0]);
+  glUniform1i(
+    glGetUniformLocation(ShaderProgram::currentProgramId(), "cube_map_size"),
+    _sky_box->textureSize());
 
   _geometry_fbo_quad->bindTextures();
   _sky_box->render();
@@ -523,6 +526,9 @@ void DeferredShadingRenderer::renderScreenSpaceReflections()
     1,
     GL_FALSE,
     &V_inv[0][0]);
+  glUniform1i(
+    glGetUniformLocation(ShaderProgram::currentProgramId(), "cube_map_size"),
+    _sky_box->textureSize());
 
   _light_fbo_quad->bindTextures();
   _geometry_fbo_quad->bindTextures();

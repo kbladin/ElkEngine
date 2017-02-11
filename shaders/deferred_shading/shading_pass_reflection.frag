@@ -13,6 +13,7 @@ uniform sampler2D irradiance_buffer; // Irradiance
 uniform mat4 P_frag;
 
 uniform samplerCube cube_map;
+uniform int cube_map_size;
 uniform mat3 V_inv;
 
 float castReflectionRay(vec3 origin, vec3 direction, out vec3 radiance, float roughness)
@@ -51,9 +52,9 @@ float castReflectionRay(vec3 origin, vec3 direction, out vec3 radiance, float ro
 
 vec3 environment(vec3 dir_view_space, float roughness)
 {
-  //vec3 color = texture(cube_map, dir).rgb;
+  float level = clamp(log2(roughness * cube_map_size), 0, 10);
   vec3 dir_world_space = V_inv * dir_view_space;
-  vec3 color = textureLod(cube_map, dir_world_space, pow(roughness, 0.3) * 15).rgb;
+  vec3 color = textureLod(cube_map, dir_world_space, level).rgb;
   return color;
 }
 

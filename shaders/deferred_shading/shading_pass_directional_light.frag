@@ -87,7 +87,16 @@ void main()
 
     // BRDFs
     float BRDF_diffuse = 1.0;
-    float BRDF_specular_times_cos_theta = gaussian(1 - cos_beta, roughness, 0.0f);
+    // Roughness = 1 should correspond to a cone angle of 90 degrees
+    // (PI / 2 radians). Input to gaussian 1, 1 should correspond to 90 / 2 degrees
+    // = PI / 4 radians (half cone). x = PI/4 -> 1 : x = PI/4 / (PI/4)
+    // The area under BRDF_specular_times_cos_theta should be the same as the
+    // area under BRDF_diffuse which is PI from -PI/2 to PI/2. The area under
+    // the gaussian is 1 so we need to divide by (PI / 4.0f) and multiply with PI.
+    // In other words multiply woth 4.
+    // (Some erros will occur for higher roughness since the gaussian bleeds
+    // outside of the defined region, negligable for low roughness).
+    float BRDF_specular_times_cos_theta = gaussian(acos(cos_beta) / (PI / 4.0f), roughness, 0.0f) * 4.0f;
 
     // Irradiance measured in Watts per square meter
     // [M * L^2 * T^-3] * [Sr^-1] * [L^-2] = [M * Sr^-1 * T^-3]
@@ -109,7 +118,7 @@ void main()
 
     // Hack to avoid hard edge
     specular_radiance *= pow(cos_theta, 0.5);
-    
+
     total_radiance = diffuse_radiance + specular_radiance;
   }
   // Add to final radiance

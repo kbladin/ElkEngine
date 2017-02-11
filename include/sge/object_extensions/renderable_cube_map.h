@@ -14,6 +14,7 @@ public:
   
   void bindTexture();
   virtual void render() override;
+  int textureSize();
 private:
   std::shared_ptr<Mesh> _cube;
   std::shared_ptr<CubeMapTexture> _cube_map;

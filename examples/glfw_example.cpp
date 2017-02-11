@@ -130,7 +130,7 @@ MyEngine::MyEngine() :
   _lamp2.setTransform(glm::rotate(float(M_PI) * 0.4f, glm::vec3(1.0f, 0.0f, -0.65f)));
   _monkey.setTransform(glm::translate(glm::vec3(1.5f, 0.0f, 0.0f)));
   _earth.setTransform(glm::translate(glm::vec3(0.0f, 2.0f, 0.0f)));
-  _plane.setTransform(glm::scale(glm::vec3(100.0f, 100.0f, 100.0f)));
+  _plane.setTransform(glm::scale(glm::vec3(1000.0f, 1000.0f, 1000.0f)));
   _plane.setTransform(glm::rotate(-float(M_PI / 2), glm::vec3(1.0f, 0.0f, 0.0f)) * _plane.relativeTransform());
   _plane.setTransform(glm::translate(glm::vec3(0.0f, -3.0f, 0.0f)) * _plane.relativeTransform());
 

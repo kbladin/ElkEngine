@@ -23,6 +23,11 @@ void RenderableCubeMap::bindTexture()
   _cube_map->bind();
 }
 
+int RenderableCubeMap::textureSize()
+{
+	return _cube_map->size();
+}
+
 void RenderableCubeMap::render()
 {
   TextureUnit tex_unit_cube_map;

@@ -52,6 +52,7 @@ public:
   void bind() const;
 
   int numberOfChannels() const;
+  inline int size() { return _side; } const;
   void upload();
 
   inline GLuint id() const {return _id;};

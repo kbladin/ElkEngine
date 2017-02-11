@@ -10,12 +10,14 @@ uniform sampler2D normal_buffer; // Normal
 uniform sampler2D material_buffer; // Roughness, Dielectric Fresnel term, metalness
 
 uniform samplerCube cube_map;
+uniform int cube_map_size;
 uniform mat3 V_inv;
 
 vec3 environment(vec3 dir_view_space, float roughness)
 {
+  float level = clamp(log2(roughness * cube_map_size), 0, 10);
   vec3 dir_world_space = V_inv * dir_view_space;
-  vec3 color = textureLod(cube_map, dir_world_space, pow(roughness, 0.3) * 15).rgb;
+  vec3 color = textureLod(cube_map, dir_world_space, level).rgb;
   return color;
 }
 
@@ -55,7 +57,7 @@ void main()
     float R_diffuse = (1.0f - R) * (1.0f - metalness);
 
     // Filter radiance through colors and material
-    diffuse_radiance_env = albedo.rgb * R_diffuse * environment(n, 0.5) * 1.0f;
+    diffuse_radiance_env = albedo.rgb * R_diffuse * environment(n, 1) * 1.0f;
   }
   // Add to final radiance
   radiance = vec4(diffuse_radiance_env, 1.0f);
