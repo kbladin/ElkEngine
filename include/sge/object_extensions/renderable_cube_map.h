@@ -6,15 +6,15 @@
 
 namespace sge { namespace core {
 
-class RenderableCubeMap : public Renderable
+class RenderableCubeMap
 {
 public:
   RenderableCubeMap(std::shared_ptr<CubeMapTexture> cube_map);
   ~RenderableCubeMap();
   
   void bindTexture();
-  virtual void render() override;
   int textureSize();
+  void render();
 private:
   std::shared_ptr<Mesh> _cube;
   std::shared_ptr<CubeMapTexture> _cube_map;

@@ -12,7 +12,7 @@
 
 namespace sge { namespace core {
 
-class FrameBufferQuad : public Renderable
+class FrameBufferQuad
 {
 public:
   // Texture, attachment, name
@@ -32,7 +32,7 @@ public:
   void bindTextures(const std::vector<RenderTextureInfo>& render_texture_info);
   void generateMipMaps();
   void freeTextureUnits();
-  virtual void render() override;
+  void render();
   void bindFBO();
   inline void unbindFBO() { _fbo.unbind(); };
   inline int width() { return _width; };

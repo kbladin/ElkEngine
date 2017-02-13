@@ -4,6 +4,7 @@
 #include "sge/core/texture_unit.h"
 #include "sge/core/shader_program.h"
 #include "sge/core/debug_input.h"
+#include "sge/core/camera.h"
 
 namespace sge { namespace core {
 
@@ -13,15 +14,25 @@ RenderableModel::RenderableModel(
   _material(material)
 { }
 
-void RenderableModel::render()
+void RenderableModel::render(const UsefulRenderData& render_data)
 {
-  _material->use(ShaderProgram::currentProgramId());
+  _material->use();
 
   glUniformMatrix4fv(
-    glGetUniformLocation(ShaderProgram::currentProgramId(), "M"),
+    glGetUniformLocation(_material->programId(), "M"),
     1,
     GL_FALSE,
     &absoluteTransform()[0][0]);
+  glUniformMatrix4fv(
+      glGetUniformLocation(_material->programId(), "V"),
+      1,
+      GL_FALSE,
+      &render_data.camera.viewTransform()[0][0]);
+  glUniformMatrix4fv(
+      glGetUniformLocation(_material->programId(), "P"),
+      1,
+      GL_FALSE,
+      &render_data.camera.projectionTransform()[0][0]);
 
   _mesh->render();
 }

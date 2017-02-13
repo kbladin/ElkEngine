@@ -9,14 +9,14 @@ Renderer::Renderer()
 Renderer::~Renderer()
 { }
 
-void Renderer::submitRenderable(Renderable& renderable)
+void Renderer::submitRenderableDeferred(RenderableDeferred& renderable)
 {
-  _renderables_to_render.push_back(&renderable);
+  _renderables_deferred_to_render.push_back(&renderable);
 }
 
-void Renderer::submitIndependentRenderable(IndependentRenderable& renderable)
+void Renderer::submitRenderableForward(RenderableForward& renderable)
 {
-  _independent_renderables_to_render.push_back(&renderable);
+  _renderables_forward_to_render.push_back(&renderable);
 }
 
 void Renderer::submitPointLightSource(PointLightSource& light_source)

@@ -28,13 +28,13 @@ void PointLightSource::update(double dt)
   //  relativeTransform() * glm::rotate(float(dt) * 0.1f, glm::vec3(1.0f, 1.0f, 0.0f)) );
 }
 
-void PointLightSource::render(const PerspectiveCamera& camera)
+void PointLightSource::render(const UsefulRenderData& render_data)
 {
   // If we are inside the sphere affected by the light source, render a full
   // quad. Otherwize just render the light sphere
   glm::vec4 position_world_space = glm::vec4(absoluteTransform()[3]);
   glm::vec3 position_view_space =
-    glm::vec3(camera.viewTransform() * position_world_space);
+    glm::vec3(render_data.camera.viewTransform() * position_world_space);
   float distance_to_light_source = glm::length(position_view_space);
   
   // Probably not the best way of handling rescaled light sources,
@@ -49,18 +49,18 @@ void PointLightSource::render(const PerspectiveCamera& camera)
   float transform_scale = scale.x;
 
   if (distance_to_light_source < _sphere_scale * transform_scale)
-    renderQuad(camera);
+    renderQuad(render_data);
   else
-    renderSphere(camera);
+    renderSphere(render_data);
 }
 
-void PointLightSource::renderQuad(const PerspectiveCamera& camera)
+void PointLightSource::renderQuad(const UsefulRenderData& render_data)
 {
-  setupLightSourceUniforms(camera);
+  setupLightSourceUniforms(render_data);
   _quad_mesh->render();
 }
 
-void PointLightSource::renderSphere(const PerspectiveCamera& camera)
+void PointLightSource::renderSphere(const UsefulRenderData& render_data)
 {
   glm::mat4 scaled_transform = absoluteTransform();
   scaled_transform[0][0] *= _sphere_scale;
@@ -76,22 +76,22 @@ void PointLightSource::renderSphere(const PerspectiveCamera& camera)
       glGetUniformLocation(ShaderProgram::currentProgramId(), "V"),
       1,
       GL_FALSE,
-      &camera.viewTransform()[0][0]);
+      &render_data.camera.viewTransform()[0][0]);
   glUniformMatrix4fv(
       glGetUniformLocation(ShaderProgram::currentProgramId(), "P"),
       1,
       GL_FALSE,
-      &camera.projectionTransform()[0][0]);
+      &render_data.camera.projectionTransform()[0][0]);
 
-  setupLightSourceUniforms(camera);
+  setupLightSourceUniforms(render_data);
 
   _sphere_mesh->render();
 }
 
-void PointLightSource::setupLightSourceUniforms(const PerspectiveCamera& camera)
+void PointLightSource::setupLightSourceUniforms(const UsefulRenderData& render_data)
 {
   glm::vec4 position_world_space = glm::vec4(absoluteTransform()[3]);
-  glm::vec4 position_view_space = camera.viewTransform() * position_world_space;
+  glm::vec4 position_view_space = render_data.camera.viewTransform() * position_world_space;
 
   glUniform3f(
     glGetUniformLocation(ShaderProgram::currentProgramId(),
@@ -139,19 +139,19 @@ void DirectionalLightSource::update(double dt)
   //  relativeTransform() * glm::rotate(float(dt) * 0.5f, glm::vec3(1.0f, 1.0f, 0.0f)) );
 }
 
-void DirectionalLightSource::render(const PerspectiveCamera& camera)
+void DirectionalLightSource::render(const UsefulRenderData& render_data)
 {
-  setupLightSourceUniforms(camera);
+  setupLightSourceUniforms(render_data);
   _quad_mesh->render();
 }
 
-void DirectionalLightSource::setupLightSourceUniforms(const PerspectiveCamera& camera)
+void DirectionalLightSource::setupLightSourceUniforms(const UsefulRenderData& render_data)
 {
   glm::vec3 direction_model_space = glm::vec3(0.0f, -1.0f, 0.0f);
   glm::vec3 direction_world_space =
     glm::mat3(absoluteTransform()) * direction_model_space;
   glm::vec3 direction_view_space =
-    glm::mat3(camera.viewTransform()) * direction_world_space;
+    glm::mat3(render_data.camera.viewTransform()) * direction_world_space;
 
   glUniform3f(
     glGetUniformLocation(ShaderProgram::currentProgramId(),

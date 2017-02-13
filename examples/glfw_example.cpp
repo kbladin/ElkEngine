@@ -132,7 +132,7 @@ MyEngine::MyEngine() :
   _earth.setTransform(glm::translate(glm::vec3(0.0f, 2.0f, 0.0f)));
   _plane.setTransform(glm::scale(glm::vec3(1000.0f, 1000.0f, 1000.0f)));
   _plane.setTransform(glm::rotate(-float(M_PI / 2), glm::vec3(1.0f, 0.0f, 0.0f)) * _plane.relativeTransform());
-  _plane.setTransform(glm::translate(glm::vec3(0.0f, -3.0f, 0.0f)) * _plane.relativeTransform());
+  _plane.setTransform(glm::translate(glm::vec3(0.0f, -1.0f, 0.0f)) * _plane.relativeTransform());
 
   _gold_ball.setTransform(glm::translate(glm::vec3(-4.0f, 0.0f, 0.0f)));
   _granite_ball.setTransform(glm::translate(glm::vec3(-2.0f, 0.0f, 0.0f)));
@@ -158,7 +158,7 @@ MyEngine::MyEngine() :
 
   scene.addChild(_grid);
   
-  scene.addChild(_plane);
+  //scene.addChild(_plane);
   scene.addChild(camera());
   //camera().addChild(_lamp);
   scene.addChild(_lamp2);

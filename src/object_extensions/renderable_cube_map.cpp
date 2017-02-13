@@ -3,6 +3,7 @@
 #include "sge/core/create_mesh.h"
 #include "sge/core/texture_unit.h"
 #include "sge/core/shader_program.h"
+#include "sge/core/camera.h"
 
 namespace sge { namespace core {
 

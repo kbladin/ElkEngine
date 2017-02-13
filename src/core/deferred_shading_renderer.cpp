@@ -16,10 +16,6 @@ DeferredShadingRenderer::DeferredShadingRenderer(
 {
   initializeShaders();
   initializeFramebuffers(framebuffer_width, framebuffer_height);
-
-  // Camera will save uniform locations for the shaders
-  _camera.addToShader(_gbuffer_program->id());
-  _camera.addToShader(_cube_map_program->id());
 }
 
 DeferredShadingRenderer::~DeferredShadingRenderer()
@@ -41,11 +37,8 @@ void DeferredShadingRenderer::setSkyBox(std::shared_ptr<RenderableCubeMap> sky_b
 
 void DeferredShadingRenderer::render(Object3D& scene)
 {
-  
   // Submit all objects in the scene to the lists of renderable objects
   scene.submit(*this);
-  // Update cameras uniforms for all shaders
-  _camera.execute();
 
   renderGeometryBuffer(*_geometry_fbo_quad);
   renderLightSources(*_light_fbo_quad);
@@ -75,13 +68,6 @@ void DeferredShadingRenderer::render(Object3D& scene)
 
 void DeferredShadingRenderer::initializeShaders()
 {
-  _gbuffer_program = std::make_shared<ShaderProgram>(
-    "gbuffer_program",
-    "../../shaders/deferred_shading/geometry_pass.vert",
-    nullptr,
-    nullptr,
-    nullptr,
-    "../../shaders/deferred_shading/geometry_pass.frag");
   _shading_program_point_lights = std::make_shared<ShaderProgram>(
     "shading_program_point_lights",
     "../../shaders/deferred_shading/shading_pass.vert",
@@ -281,11 +267,9 @@ void DeferredShadingRenderer::renderGeometryBuffer(FrameBufferQuad& geometry_buf
   glDisable(GL_BLEND);
   glDepthMask(GL_TRUE);
 
-  _gbuffer_program->pushUsage();  
-  for (auto renderable : _renderables_to_render)
-    renderable->render();
-  _renderables_to_render.clear();
-  _gbuffer_program->popUsage();
+  for (auto renderable : _renderables_deferred_to_render)
+    renderable->render({ _camera });
+  _renderables_deferred_to_render.clear();
 
   geometry_buffer.unbindFBO();
 }
@@ -443,9 +427,9 @@ void DeferredShadingRenderer::forwardRenderIndependentRenderables(
   glDepthMask(GL_TRUE);
   glDisable(GL_BLEND);
 
-  for (auto renderable : _independent_renderables_to_render)
+  for (auto renderable : _renderables_forward_to_render)
     renderable->render({ _camera });
-  _independent_renderables_to_render.clear();  
+  _renderables_forward_to_render.clear();  
   
   final_buffer.unbindFBO();
 }
@@ -460,7 +444,7 @@ void DeferredShadingRenderer::renderPointLights()
   _geometry_fbo_quad->bindTextures();
   for (auto it : _point_light_sources_to_render)
   {
-    it->render(_camera);
+    it->render({ _camera });
   }
   _geometry_fbo_quad->freeTextureUnits();
   _point_light_sources_to_render.clear();
@@ -476,7 +460,7 @@ void DeferredShadingRenderer::renderDirectionalLights()
   _geometry_fbo_quad->bindTextures();
   for (auto it : _directional_light_sources_to_render)
   {
-    it->render(_camera);
+    it->render({ _camera });
   }
   _geometry_fbo_quad->freeTextureUnits();
   _directional_light_sources_to_render.clear();
@@ -507,6 +491,18 @@ void DeferredShadingRenderer::renderSkyBox()
   _cube_map_program->pushUsage();
   _geometry_fbo_quad->bindTextures();
     glDisable(GL_CULL_FACE);
+
+  glUniformMatrix4fv(
+      glGetUniformLocation(ShaderProgram::currentProgramId(), "V"),
+      1,
+      GL_FALSE,
+      &_camera.viewTransform()[0][0]);
+  glUniformMatrix4fv(
+      glGetUniformLocation(ShaderProgram::currentProgramId(), "P"),
+      1,
+      GL_FALSE,
+      &_camera.projectionTransform()[0][0]);
+
   _sky_box->render();
   _geometry_fbo_quad->freeTextureUnits();
   glEnable(GL_CULL_FACE);

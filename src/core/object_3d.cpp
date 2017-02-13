@@ -57,16 +57,16 @@ void Object3D::setTransform(const glm::mat4& transform)
   _relative_transform = transform;
 }
 
-void Renderable::submit(Renderer& renderer)
+void RenderableDeferred::submit(Renderer& renderer)
 {
   Object3D::submit(renderer);
-  renderer.submitRenderable(*this);
+  renderer.submitRenderableDeferred(*this);
 }
 
-void IndependentRenderable::submit(Renderer& renderer)
+void RenderableForward::submit(Renderer& renderer)
 {
   Object3D::submit(renderer);
-  renderer.submitIndependentRenderable(*this);
+  renderer.submitRenderableForward(*this);
 }
 
 } }

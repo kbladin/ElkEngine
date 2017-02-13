@@ -21,14 +21,14 @@ public:
   ~PointLightSource() {};
   virtual void submit(Renderer& renderer) override;
   virtual void update(double dt) override;
-  void render(const PerspectiveCamera& camera);
+  void render(const UsefulRenderData& render_data);
 
   void setRadiantFlux(float radiant_flux);
   void setColor(glm::vec3 color);
 private:
-  void renderQuad(const PerspectiveCamera& camera);
-  void renderSphere(const PerspectiveCamera& camera);
-  void setupLightSourceUniforms(const PerspectiveCamera& camera);
+  void renderQuad(const UsefulRenderData& render_data);
+  void renderSphere(const UsefulRenderData& render_data);
+  void setupLightSourceUniforms(const UsefulRenderData& render_data);
 
   std::shared_ptr<Mesh> _quad_mesh;
   std::shared_ptr<Mesh> _sphere_mesh;
@@ -46,12 +46,12 @@ public:
   ~DirectionalLightSource() {};
   virtual void submit(Renderer& renderer) override;
   virtual void update(double dt) override;
-  void render(const PerspectiveCamera& camera);
+  void render(const UsefulRenderData& render_data);
 
   void setRadiance(float radiance);
   void setColor(glm::vec3 color);
 private:
-  void setupLightSourceUniforms(const PerspectiveCamera& camera);
+  void setupLightSourceUniforms(const UsefulRenderData& render_data);
 
   std::shared_ptr<Mesh> _quad_mesh;
   

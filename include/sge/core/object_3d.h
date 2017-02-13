@@ -51,28 +51,26 @@ private:
   glm::mat4 _absolute_transform;
 };
 
-class Renderable : public Object3D
-{
-public:
-  Renderable() : Object3D() {};
-  ~Renderable() {};
-  virtual void submit(Renderer& renderer) override;
-  virtual void render() = 0;
-};
-
-// Data needed when rendering independent renderables
+// Data needed when rendering
 struct UsefulRenderData
 {
   const PerspectiveCamera& camera;
 };
 
-// An IndependentRenderable does not rely on outside shaders. It is always
-// rendered using its own shaders
-class IndependentRenderable : public Object3D
+class RenderableDeferred : public Object3D
 {
 public:
-  IndependentRenderable() : Object3D() {};
-  ~IndependentRenderable() {};
+  RenderableDeferred() : Object3D() {};
+  ~RenderableDeferred() {};
+  virtual void submit(Renderer& renderer) override;
+  virtual void render(const UsefulRenderData& render_data) = 0;
+};
+
+class RenderableForward : public Object3D
+{
+public:
+  RenderableForward() : Object3D() {};
+  ~RenderableForward() {};
   virtual void submit(Renderer& renderer) override;
   virtual void render(const UsefulRenderData& render_data) = 0;
 };

@@ -6,7 +6,7 @@
 
 namespace sge { namespace core {
 
-class RenderableGrid : public IndependentRenderable
+class RenderableGrid : public RenderableForward
 {
 public:
   RenderableGrid();

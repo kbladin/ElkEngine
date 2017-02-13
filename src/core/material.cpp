@@ -5,6 +5,8 @@
 
 namespace sge { namespace core {
 
+std::shared_ptr<ShaderProgram> Material::_gbuffer_program = nullptr;
+
 Material::Material(
   std::shared_ptr<Texture> albedo_texture,
   std::shared_ptr<Texture> roughness_texture,
@@ -23,6 +25,17 @@ Material::Material(
   _R0_texture->upload();
   _metalness_texture->upload();
   _normal_texture->upload();
+
+  if (!_gbuffer_program)
+  {
+    _gbuffer_program = std::make_shared<ShaderProgram>(
+      "gbuffer_program",
+      "../../shaders/deferred_shading/geometry_pass.vert",
+      nullptr,
+      nullptr,
+      nullptr,
+      "../../shaders/deferred_shading/geometry_pass.frag");
+  }
 }
 
 Material::~Material()
@@ -30,8 +43,10 @@ Material::~Material()
   
 }
 
-void Material::use(GLuint programId)
+void Material::use()
 {
+  glUseProgram(_gbuffer_program->id());
+
   TextureUnit
     tex_unit_albedo,
     tex_unit_roughness,
@@ -51,11 +66,11 @@ void Material::use(GLuint programId)
   tex_unit_normal.activate();
   _normal_texture->bind();
 
-  glUniform1i(glGetUniformLocation(programId, "albedo_texture"),    tex_unit_albedo);
-  glUniform1i(glGetUniformLocation(programId, "roughness_texture"), tex_unit_roughness);
-  glUniform1i(glGetUniformLocation(programId, "R0_texture"),        tex_unit_R0);
-  glUniform1i(glGetUniformLocation(programId, "metalness_texture"), tex_unit_metalness);
-  glUniform1i(glGetUniformLocation(programId, "normal_texture"),    tex_unit_normal);
+  glUniform1i(glGetUniformLocation(_gbuffer_program->id(), "albedo_texture"),    tex_unit_albedo);
+  glUniform1i(glGetUniformLocation(_gbuffer_program->id(), "roughness_texture"), tex_unit_roughness);
+  glUniform1i(glGetUniformLocation(_gbuffer_program->id(), "R0_texture"),        tex_unit_R0);
+  glUniform1i(glGetUniformLocation(_gbuffer_program->id(), "metalness_texture"), tex_unit_metalness);
+  glUniform1i(glGetUniformLocation(_gbuffer_program->id(), "normal_texture"),    tex_unit_normal);
 }
 
 } }

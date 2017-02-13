@@ -24,27 +24,13 @@ public:
   AbstractCamera();
   ~AbstractCamera();
 
-  virtual void execute() = 0;
-  void addToShader(GLuint program_ID);
-  void removeFromShader(GLuint program_ID);
-
   // Getters
   glm::mat4 projectionTransform() const;
   glm::mat4 viewTransform() const;
   // Origin and direction
   std::pair<glm::vec3, glm::vec3> unproject(const glm::vec2& position_ndc) const;
 protected:
-  //!
-  /*!
-    Sets the view and projection matrices of the cameras shader to the
-    corresponding transforms for the camera. Updates the uniforms "V" and "P"
-    for all shaders
-  */
-  void updateAllShaderUniforms();
-  // Data
-  std::map<GLuint, CameraShaderHandle> shader_handles_;
   glm::mat4 _projection_transform;
-
   // Cached view matrix
   glm::mat4 _view_transform;
 };
@@ -60,8 +46,6 @@ public:
     float focal_length = 28,
     float focal_ratio = 5);
   
-  virtual void execute();
-
   // Setters
   //! Set the field of view of the camera in angles
   /*!
@@ -115,7 +99,6 @@ public:
     float near,
     float far);
 
-  virtual void execute();
 private:
   float _left;
   float _right;

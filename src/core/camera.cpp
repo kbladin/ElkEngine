@@ -16,44 +16,6 @@ AbstractCamera::~AbstractCamera()
   
 }
 
-void AbstractCamera::addToShader(GLuint program_ID)
-{
-  glUseProgram(program_ID);
-  CameraShaderHandle handle;
-  // Update values
-  handle.view_matrix_ID =  glGetUniformLocation(program_ID, "V");
-  handle.projection_matrix_ID = glGetUniformLocation(program_ID, "P");
-
-  // Add to the map
-  shader_handles_.insert(
-    std::pair<GLuint, CameraShaderHandle>(program_ID, handle));
-}
-
-void AbstractCamera::removeFromShader(GLuint program_ID)
-{
-  shader_handles_.erase(program_ID);
-}
-
-void AbstractCamera::updateAllShaderUniforms()
-{
-  glm::mat4 V = glm::inverse(absoluteTransform());
-  // For all shaders, push data as uniforms
-  for(auto it = shader_handles_.begin(); it != shader_handles_.end(); ++it)
-  {
-    glUseProgram(it->first);
-    glUniformMatrix4fv(
-      it->second.view_matrix_ID,
-      1,
-      GL_FALSE,
-      &V[0][0]);
-    glUniformMatrix4fv(
-      it->second.projection_matrix_ID,
-      1,
-      GL_FALSE,
-      &_projection_transform[0][0]);
-  }
-}
-
 glm::mat4 AbstractCamera::projectionTransform() const
 {
   return _projection_transform;
@@ -97,12 +59,6 @@ PerspectiveCamera::PerspectiveCamera(
   setFocalLength(focal_length);
   setFocalRatio(focal_ratio);
   updateProjectionTransform();
-}
-
-void PerspectiveCamera::execute()
-{
-  updateProjectionTransform();
-  AbstractCamera::updateAllShaderUniforms();
 }
 
 void PerspectiveCamera::updateFOV()
@@ -193,12 +149,6 @@ OrthoCamera::OrthoCamera(
   _far(far)
 {
   _projection_transform = glm::ortho(_left, _right, _bottom, _top, _near, _far);
-}
-
-void OrthoCamera::execute()
-{
-  _projection_transform = glm::ortho(_left, _right, _bottom, _top, _near, _far);
-  AbstractCamera::updateAllShaderUniforms();
 }
 
 } }

@@ -53,7 +53,6 @@ private:
 
   int _window_width, _window_height;
 
-  std::shared_ptr<ShaderProgram> _gbuffer_program;
   std::shared_ptr<ShaderProgram> _shading_program_point_lights;
   std::shared_ptr<ShaderProgram> _shading_program_directional_lights;
   std::shared_ptr<ShaderProgram> _shading_program_environment_diffuse;

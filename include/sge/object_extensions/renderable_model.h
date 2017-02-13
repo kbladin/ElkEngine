@@ -7,13 +7,13 @@
 
 namespace sge { namespace core {
 
-class RenderableModel : public Renderable
+class RenderableModel : public RenderableDeferred
 {
 public:
     RenderableModel(
     	std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material);
     ~RenderableModel(){};
-    virtual void render() override;
+    virtual void render(const UsefulRenderData& render_data) override;
     virtual void update(double dt) override;
 private:
     std::shared_ptr<Mesh> _mesh;
