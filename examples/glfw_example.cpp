@@ -3,7 +3,6 @@
 
 #include <elk/core/elk_engine.h>
 #include <elk/window/application_window_glfw.h>
-#include <elk/core/shader_manager.h>
 #include <elk/core/mesh.h>
 #include "elk/core/create_mesh.h"
 #include "elk/core/create_texture.h"

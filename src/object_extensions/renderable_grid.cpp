@@ -1,6 +1,5 @@
 #include "elk/object_extensions/renderable_grid.h"
 #include "elk/core/create_mesh.h"
-#include "elk/core/shader_manager.h"
 #include "elk/core/camera.h"
 
 namespace elk { namespace core {

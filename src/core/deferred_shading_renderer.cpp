@@ -1,6 +1,5 @@
 #include "elk/core/deferred_shading_renderer.h"
 
-#include "elk/core/shader_manager.h"
 #include "elk/core/texture_unit.h"
 #include "elk/core/create_texture.h"
 #include "elk/object_extensions/light_source.h"

@@ -47,10 +47,6 @@ public:
     float focal_ratio = 5);
   
   // Setters
-  //! Set the field of view of the camera in angles
-  /*!
-    \param fov is a positive value.
-  */
   //! Set the near clipping plane of the camera
   /*!
     \param near is a positive value.
