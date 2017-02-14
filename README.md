@@ -16,3 +16,11 @@ Run CMake in the ElkEngine directory and build in ElkEngine/build.
 
 ### Dependencies
 GLEW is required. Currently GLFW is the only supported window manager. To be able to load meshes, assimp needs to be linked and to be able to load textures, freeimage is required.
+
+##Screenshots
+
+Some screenshots of the PBR renderer.
+
+![](screenshots/screen1.png "Screenshot")
+![](screenshots/screen2.png "Screenshot")
+![](screenshots/screen3.png "Screenshot")
