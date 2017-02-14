@@ -50,6 +50,8 @@ set_target_properties(${PROJECT_NAME}
                       PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-std=c++14")
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_DIR="${PROJECT_SOURCE_DIR}")
+
 # Compile options
 option(${PROJECT_NAME}_BUILD_EXAMPLES "Build all examples." OFF)
 option(${PROJECT_NAME}_USE_GLFW "Use GLFW." OFF)
