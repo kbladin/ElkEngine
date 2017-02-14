@@ -1,10 +1,10 @@
-#include "SGE/core/controller.h"
+#include "elk/core/controller.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 Controller::Controller() :
 	_mouse_x(0),

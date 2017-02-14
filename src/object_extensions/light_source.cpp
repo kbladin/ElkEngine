@@ -1,10 +1,10 @@
-#include "sge/object_extensions/light_source.h"
+#include "elk/object_extensions/light_source.h"
 
-#include "sge/core/renderer.h"
-#include "sge/core/create_mesh.h"
+#include "elk/core/renderer.h"
+#include "elk/core/create_mesh.h"
 #include <glm/gtx/matrix_decompose.hpp>
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 PointLightSource::PointLightSource(glm::vec3 color, float radiant_flux) :
   Object3D(),

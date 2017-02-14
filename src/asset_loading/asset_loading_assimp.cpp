@@ -1,4 +1,4 @@
-#include "sge/asset_loading/asset_loading_assimp.h"
+#include "elk/asset_loading/asset_loading_assimp.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -7,7 +7,7 @@
 #include <iostream>
 #include <cassert>
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 bool loadMesh_assimp(
   const char*                   path,

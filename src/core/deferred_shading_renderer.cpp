@@ -1,12 +1,12 @@
-#include "sge/core/deferred_shading_renderer.h"
+#include "elk/core/deferred_shading_renderer.h"
 
-#include "sge/core/shader_manager.h"
-#include "sge/core/texture_unit.h"
-#include "sge/core/create_texture.h"
-#include "sge/object_extensions/light_source.h"
-#include "sge/core/debug_input.h"
+#include "elk/core/shader_manager.h"
+#include "elk/core/texture_unit.h"
+#include "elk/core/create_texture.h"
+#include "elk/object_extensions/light_source.h"
+#include "elk/core/debug_input.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 DeferredShadingRenderer::DeferredShadingRenderer(
   PerspectiveCamera& camera, int framebuffer_width, int framebuffer_height) :
@@ -61,67 +61,67 @@ void DeferredShadingRenderer::initializeShaders()
 {
   _shading_program_point_lights = std::make_shared<ShaderProgram>(
     "shading_program_point_lights",
-    "../../shaders/deferred_shading/shading_pass.vert",
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass.vert").c_str(),
     nullptr,
     nullptr,
     nullptr,
-    "../../shaders/deferred_shading/shading_pass_point_light.frag");
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass_point_light.frag").c_str());
   _shading_program_directional_lights = std::make_shared<ShaderProgram>(
     "shading_program_directional_lights",
-    "../../shaders/deferred_shading/shading_pass.vert",
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass.vert").c_str(),
     nullptr,
     nullptr,
     nullptr,
-    "../../shaders/deferred_shading/shading_pass_directional_light.frag");
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass_directional_light.frag").c_str());
   _shading_program_environment_diffuse = std::make_shared<ShaderProgram>(
     "shading_program_environment_diffuse",
-    "../../shaders/deferred_shading/shading_pass.vert",
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass.vert").c_str(),
     nullptr,
     nullptr,
     nullptr,
-    "../../shaders/deferred_shading/shading_pass_environment_diffuse.frag");
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass_environment_diffuse.frag").c_str());
   _shading_program_reflections = std::make_shared<ShaderProgram>(
     "shading_program_reflection",
-    "../../shaders/deferred_shading/shading_pass.vert",
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass.vert").c_str(),
     nullptr,
     nullptr,
     nullptr,
-    "../../shaders/deferred_shading/shading_pass_reflection.frag");
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass_reflection.frag").c_str());
   _shading_program_irradiance = std::make_shared<ShaderProgram>(
     "shading_program_irradiance",
-    "../../shaders/deferred_shading/shading_pass.vert",
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass.vert").c_str(),
     nullptr,
     nullptr,
     nullptr,
-    "../../shaders/deferred_shading/shading_pass_irradiance.frag");
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass_irradiance.frag").c_str());
   _cube_map_program = std::make_shared<ShaderProgram>(
     "cube_map_program",
-    "../../shaders/deferred_shading/cube_map.vert",
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/cube_map.vert").c_str(),
     nullptr,
     nullptr,
     nullptr,
-    "../../shaders/deferred_shading/cube_map.frag");
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/cube_map.frag").c_str());
   _output_highlights_program = std::make_shared<ShaderProgram>(
     "output_highlights_program",
-    "../../shaders/deferred_shading/shading_pass.vert",
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass.vert").c_str(),
     nullptr,
     nullptr,
     nullptr,
-    "../../shaders/deferred_shading/shading_pass_output_highlights.frag");
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass_output_highlights.frag").c_str());
   _post_process_program = std::make_shared<ShaderProgram>(
     "post_process_program",
-    "../../shaders/deferred_shading/shading_pass.vert",
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass.vert").c_str(),
     nullptr,
     nullptr,
     nullptr,
-    "../../shaders/deferred_shading/shading_pass_post_process.frag");
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass_post_process.frag").c_str());
   _final_pass_through_program = std::make_shared<ShaderProgram>(
     "final_pass_through_program",
-    "../../shaders/deferred_shading/shading_pass.vert",
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/shading_pass.vert").c_str(),
     nullptr,
     nullptr,
     nullptr,
-    "../../shaders/deferred_shading/final_pass_through.frag");
+    (std::string(ELK_DIR) + "/shaders/deferred_shading/final_pass_through.frag").c_str());
 }
 
 void DeferredShadingRenderer::initializeFramebuffers(

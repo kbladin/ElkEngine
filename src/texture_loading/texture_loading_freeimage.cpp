@@ -1,4 +1,4 @@
-#include "sge/texture_loading/texture_loading_freeimage.h"
+#include "elk/texture_loading/texture_loading_freeimage.h"
 
 #include <FreeImage.h>
 
@@ -10,7 +10,7 @@
 #include <iostream>
 #include <cassert>
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 std::pair<void*, glm::uvec2> loadTexture_freeimage(const char* path)
 {

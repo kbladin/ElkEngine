@@ -1,11 +1,11 @@
-#include "sge/core/shader_manager.h"
-#include "sge/core/file_utils.h"
+#include "elk/core/shader_manager.h"
+#include "elk/core/file_utils.h"
 
 
 #include <array>
 #include <vector>
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 /*
 ShaderManager ShaderManager::_instance;
 

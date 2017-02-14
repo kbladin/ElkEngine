@@ -1,6 +1,6 @@
-#include "sge/core/texture_unit.h"
+#include "elk/core/texture_unit.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 bool TextureUnit::_initialized = false;
 unsigned int TextureUnit::_totalActive = 0;

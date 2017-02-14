@@ -1,10 +1,10 @@
-#include "SGE/core/camera.h"
+#include "elk/core/camera.h"
 
 #include <glm/glm.hpp>
 
 #include <iostream>
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 AbstractCamera::AbstractCamera()
 {

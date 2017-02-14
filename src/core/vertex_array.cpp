@@ -1,6 +1,6 @@
-#include "sge/core/vertex_array.h"
+#include "elk/core/vertex_array.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 VertexArray::VertexArray()
 {

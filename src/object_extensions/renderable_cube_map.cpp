@@ -1,11 +1,11 @@
-#include "sge/object_extensions/renderable_cube_map.h"
+#include "elk/object_extensions/renderable_cube_map.h"
 
-#include "sge/core/create_mesh.h"
-#include "sge/core/texture_unit.h"
-#include "sge/core/shader_program.h"
-#include "sge/core/camera.h"
+#include "elk/core/create_mesh.h"
+#include "elk/core/texture_unit.h"
+#include "elk/core/shader_program.h"
+#include "elk/core/camera.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 RenderableCubeMap::RenderableCubeMap(std::shared_ptr<CubeMapTexture> cube_map) :
   _cube_map(cube_map)

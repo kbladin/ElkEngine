@@ -1,19 +1,19 @@
-#include "sge/object_extensions/renderable_grid.h"
-#include "sge/core/create_mesh.h"
-#include "sge/core/shader_manager.h"
-#include "sge/core/camera.h"
+#include "elk/object_extensions/renderable_grid.h"
+#include "elk/core/create_mesh.h"
+#include "elk/core/shader_manager.h"
+#include "elk/core/camera.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 RenderableGrid::RenderableGrid()
 {
   _program = std::make_shared<ShaderProgram>(
     "grid_program",
-    "../../shaders/simple_white.vert",
+    (std::string(ELK_DIR) + "/shaders/simple_white.vert").c_str(),
     nullptr,
     nullptr,
     nullptr,
-    "../../shaders/simple_white.frag");
+    (std::string(ELK_DIR) + "/shaders/simple_white.frag").c_str());
   _mesh = CreateMesh::grid(20);
 }
 

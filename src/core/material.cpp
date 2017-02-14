@@ -1,9 +1,9 @@
-#include "sge/core/material.h"
+#include "elk/core/material.h"
 
-#include "sge/core/create_texture.h"
-#include "sge/core/texture_unit.h"
+#include "elk/core/create_texture.h"
+#include "elk/core/texture_unit.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 std::shared_ptr<ShaderProgram> Material::_gbuffer_program = nullptr;
 
@@ -30,11 +30,11 @@ Material::Material(
   {
     _gbuffer_program = std::make_shared<ShaderProgram>(
       "gbuffer_program",
-      "../../shaders/deferred_shading/geometry_pass.vert",
+      (std::string(ELK_DIR) + "/shaders/deferred_shading/geometry_pass.vert").c_str(),
       nullptr,
       nullptr,
       nullptr,
-      "../../shaders/deferred_shading/geometry_pass.frag");
+      (std::string(ELK_DIR) + "/shaders/deferred_shading/geometry_pass.frag").c_str());
   }
 }
 

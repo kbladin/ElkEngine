@@ -1,16 +1,16 @@
-#include "sge/core/create_mesh.h"
+#include "elk/core/create_mesh.h"
 
-#ifdef SGE_USE_ASSIMP
-  #include "sge/asset_loading/asset_loading_assimp.h"
+#ifdef ELK_USE_ASSIMP
+  #include "elk/asset_loading/asset_loading_assimp.h"
 #endif
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 std::shared_ptr<Mesh> CreateMesh::load(const char* path)
 {
   std::shared_ptr<Mesh> result;
 
-#ifdef SGE_USE_ASSIMP
+#ifdef ELK_USE_ASSIMP
   std::vector<unsigned short>* elements = new std::vector<unsigned short>;
   std::vector<glm::vec3>* positions = new std::vector<glm::vec3>;
   std::vector<glm::vec2>* texture_coordinates = new std::vector<glm::vec2>;

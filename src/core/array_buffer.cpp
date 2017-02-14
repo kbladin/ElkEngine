@@ -1,6 +1,6 @@
-#include "sge/core/array_buffer.h"
+#include "elk/core/array_buffer.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 ArrayBuffer::ArrayBuffer(InitData init_data) :
   _init_data(init_data)
@@ -36,7 +36,7 @@ void ArrayBuffer::upload()
 }
 
 ElementArrayBuffer::ElementArrayBuffer(InitData init_data) :
-  sge::core::ArrayBuffer(init_data)
+  ArrayBuffer(init_data)
 {
 
 }

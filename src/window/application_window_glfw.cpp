@@ -1,9 +1,9 @@
-#include "SGE/window/application_window_glfw.h"
+#include "elk/window/application_window_glfw.h"
 
 #include <sstream>
 #include <iostream>
 
-namespace sge { namespace window {
+namespace elk { namespace window {
 
 std::vector<Controller*> ApplicationWindowGLFW::_controllers;
 

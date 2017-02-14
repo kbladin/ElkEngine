@@ -1,8 +1,8 @@
-#include "sge/core/texture.h"
+#include "elk/core/texture.h"
 #include <cassert>
 #include <cstring>
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 Texture::Texture(
   glm::uvec3 dimensions, Format format, GLint internalFormat, GLenum dataType,

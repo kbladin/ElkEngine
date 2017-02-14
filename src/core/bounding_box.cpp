@@ -1,6 +1,6 @@
-#include "SGE/core/bounding_box.h"
+#include "elk/core/bounding_box.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 BoundingBox::BoundingBox(glm::vec3 min, glm::vec3 max) :
   _min(min),

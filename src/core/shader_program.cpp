@@ -1,11 +1,11 @@
-#include "SGE/core/shader_program.h"
+#include "elk/core/shader_program.h"
 
-#include "sge/core/file_utils.h"
+#include "elk/core/file_utils.h"
 
 #include <array>
 #include <vector>
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 std::stack<GLuint> ShaderProgram::_shader_stack;
 

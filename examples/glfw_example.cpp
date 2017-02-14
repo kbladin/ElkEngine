@@ -1,33 +1,33 @@
 #include <gl/glew.h>
 #include <gl/glfw3.h>
 
-#include <SGE/core/simple_graphics_engine.h>
-#include <SGE/window/application_window_glfw.h>
-#include <SGE/core/shader_manager.h>
-#include <SGE/core/mesh.h>
-#include "sge/core/create_mesh.h"
-#include "sge/core/create_texture.h"
-#include "sge/core/texture_unit.h"
-#include "sge/core/frame_buffer_object.h"
-#include "sge/core/render_buffer_object.h"
-#include "sge/core/renderer.h"
-#include "sge/object_extensions/renderable_cube_map.h"
-#include "sge/core/deferred_shading_renderer.h"
-#include "sge/object_extensions/renderable_model.h"
-#include "sge/object_extensions/framebuffer_quad.h"
-#include "sge/object_extensions/renderable_grid.h"
-#include "sge/object_extensions/light_source.h"
-#include "sge/core/debug_input.h"
+#include <elk/core/elk_engine.h>
+#include <elk/window/application_window_glfw.h>
+#include <elk/core/shader_manager.h>
+#include <elk/core/mesh.h>
+#include "elk/core/create_mesh.h"
+#include "elk/core/create_texture.h"
+#include "elk/core/texture_unit.h"
+#include "elk/core/frame_buffer_object.h"
+#include "elk/core/render_buffer_object.h"
+#include "elk/core/renderer.h"
+#include "elk/object_extensions/renderable_cube_map.h"
+#include "elk/core/deferred_shading_renderer.h"
+#include "elk/object_extensions/renderable_model.h"
+#include "elk/object_extensions/framebuffer_quad.h"
+#include "elk/object_extensions/renderable_grid.h"
+#include "elk/object_extensions/light_source.h"
+#include "elk/core/debug_input.h"
 
 #include <functional>
 #include <memory>
 
-using namespace sge::core;
-using namespace sge::window;
+using namespace elk::core;
+using namespace elk::window;
 
 class DebugInputController;
 
-class MyEngine : public SimpleGraphicsEngine
+class MyEngine : public ElkEngine
 {
   friend class DebugInputController;
 public:
@@ -37,8 +37,9 @@ public:
   void update(double dt);
   DeferredShadingRenderer& renderer() { return _renderer; };
 
-  DeferredShadingRenderer _renderer;
 private:
+  DeferredShadingRenderer _renderer;
+
   RenderableModel _monkey;
   RenderableModel _earth;
 
@@ -56,7 +57,7 @@ private:
 };
 
 MyEngine::MyEngine() :
-  SimpleGraphicsEngine(),
+  ElkEngine(),
   _renderer(perspective_camera, 720 * 2, 480 * 2),
   _monkey(CreateMesh::load("../../data/meshes/suzanne_highres.obj"),
     std::make_shared<Material>(
@@ -171,7 +172,7 @@ MyEngine::~MyEngine()
 
 void MyEngine::update(double dt)
 {
-  SimpleGraphicsEngine::update(dt);
+  ElkEngine::update(dt);
 
   _renderer.render(scene);
 }

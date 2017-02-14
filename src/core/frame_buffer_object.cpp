@@ -1,10 +1,10 @@
-#include "sge/core/frame_buffer_object.h"
+#include "elk/core/frame_buffer_object.h"
 
 #include <gl/glew.h>
 
 #include <iostream>
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 FrameBufferObject::FrameBufferObject()
 {

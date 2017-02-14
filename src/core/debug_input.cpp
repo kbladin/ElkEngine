@@ -1,6 +1,6 @@
-#include "sge/core/debug_input.h"
+#include "elk/core/debug_input.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 std::map<std::string, float> DebugInput::_values;
 

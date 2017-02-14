@@ -1,10 +1,10 @@
-#include "sge/core/render_buffer_object.h"
+#include "elk/core/render_buffer_object.h"
 
 #include <gl/glew.h>
 
 #include <iostream>
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 RenderBufferObject::RenderBufferObject(
 	GLsizei width, GLsizei height, GLenum internalformat) :

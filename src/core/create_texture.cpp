@@ -1,18 +1,18 @@
-#include "sge/core/create_texture.h"
+#include "elk/core/create_texture.h"
 
 #include <glm/glm.hpp>
 #include <vector>
 
-#if SGE_USE_FREEIMAGE
-#include "sge/texture_loading/texture_loading_freeimage.h"
+#if ELK_USE_FREEIMAGE
+#include "elk/texture_loading/texture_loading_freeimage.h"
 #endif
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 std::shared_ptr<Texture> CreateTexture::load(const char* path)
 {
 
-#if SGE_USE_FREEIMAGE
+#if ELK_USE_FREEIMAGE
 
 auto texture_data = loadTexture_freeimage(path);
 
@@ -33,7 +33,7 @@ std::shared_ptr<CubeMapTexture> CreateTexture::loadCubeMap(
   const char* path_positive_y, const char* path_negative_y,
   const char* path_positive_z, const char* path_negative_z)
 {
-#if SGE_USE_FREEIMAGE
+#if ELK_USE_FREEIMAGE
 auto texture_data_positive_x = loadTexture_freeimage(path_positive_x);
 auto texture_data_negative_x = loadTexture_freeimage(path_negative_x);
 auto texture_data_positive_y = loadTexture_freeimage(path_positive_y);

@@ -1,6 +1,6 @@
-#include "SGE/core/renderer.h"
+#include "elk/core/renderer.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 
 Renderer::Renderer(PerspectiveCamera& camera, int window_width, int window_height) :

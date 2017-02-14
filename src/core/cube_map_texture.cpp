@@ -1,8 +1,8 @@
-#include "sge/core/cube_map_texture.h"
+#include "elk/core/cube_map_texture.h"
 #include <cassert>
 #include <cstring>
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 CubeMapTexture::CubeMapTexture(
   int side, Format format, GLint internalFormat, GLenum dataType,

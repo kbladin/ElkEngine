@@ -1,6 +1,6 @@
-#include "sge/core/mesh.h"
+#include "elk/core/mesh.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 Mesh::Mesh(
   std::vector<unsigned short>* elements,

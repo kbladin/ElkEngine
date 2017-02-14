@@ -1,10 +1,10 @@
-#include "sge/object_extensions/framebuffer_quad.h"
-#include "sge/core/create_mesh.h"
-#include "sge/core/create_texture.h"
-#include "sge/core/texture_unit.h"
-#include "sge/core/shader_program.h"
+#include "elk/object_extensions/framebuffer_quad.h"
+#include "elk/core/create_mesh.h"
+#include "elk/core/create_texture.h"
+#include "elk/core/texture_unit.h"
+#include "elk/core/shader_program.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 FrameBufferQuad::FrameBufferQuad(
   int width, int height, std::vector<RenderTexture> render_textures,

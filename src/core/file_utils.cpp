@@ -1,6 +1,6 @@
-#include "sge/core/file_utils.h"
+#include "elk/core/file_utils.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 std::string read_file(const char* file_path)
 {

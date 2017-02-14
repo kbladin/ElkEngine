@@ -1,12 +1,12 @@
-#include "sge/object_extensions/renderable_model.h"
-#include "sge/core/create_mesh.h"
-#include "sge/core/create_texture.h"
-#include "sge/core/texture_unit.h"
-#include "sge/core/shader_program.h"
-#include "sge/core/debug_input.h"
-#include "sge/core/camera.h"
+#include "elk/object_extensions/renderable_model.h"
+#include "elk/core/create_mesh.h"
+#include "elk/core/create_texture.h"
+#include "elk/core/texture_unit.h"
+#include "elk/core/shader_program.h"
+#include "elk/core/debug_input.h"
+#include "elk/core/camera.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 RenderableModel::RenderableModel(
       std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material) :

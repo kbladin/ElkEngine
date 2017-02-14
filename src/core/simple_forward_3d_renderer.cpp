@@ -1,6 +1,6 @@
-#include "sge/core/simple_forward_3d_renderer.h"
+#include "elk/core/simple_forward_3d_renderer.h"
 
-namespace sge { namespace core {
+namespace elk { namespace core {
 
 SimpleForward3DRenderer::SimpleForward3DRenderer(
   PerspectiveCamera& camera, int window_width, int window_height) :
