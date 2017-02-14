@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SGE/core/object_3d.h"
+#include "SGE/core/camera.h"
 #include "SGE/core/shader_program.h"
 
 namespace sge { namespace core {
@@ -12,7 +13,7 @@ class DirectionalLightSource;
 
 class Renderer {
 public:
-  Renderer();
+  Renderer(PerspectiveCamera& camera, int window_width, int window_height);
   ~Renderer();
   
   void submitRenderableDeferred(RenderableDeferred& renderable);
@@ -20,6 +21,8 @@ public:
   void submitPointLightSource(PointLightSource& light_source);
   void submitDirectionalLightSource(DirectionalLightSource& light_source);
 
+  void setWindowResolution(int width, int height);
+  
   /**
 	Should render all objects in the lists of renderables and light sources.
 	When rendering is done, all lists need to be empty.
@@ -28,10 +31,10 @@ public:
 protected:
   void checkForErrors();
 
-  // The renderer has responsibility of binding shaders to render renderables
+  PerspectiveCamera& _camera;
+  int _window_width, _window_height;
+
   std::vector<RenderableDeferred*> _renderables_deferred_to_render;
-  // Independent renderebles has their own responsibility of binding their
-  // shaders
   std::vector<RenderableForward*> _renderables_forward_to_render;
   std::vector<PointLightSource*> _point_light_sources_to_render;
   std::vector<DirectionalLightSource*> _directional_light_sources_to_render;

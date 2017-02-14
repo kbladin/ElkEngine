@@ -23,7 +23,6 @@ public:
     PerspectiveCamera& camera, int framebuffer_width, int framebuffer_height);
   ~DeferredShadingRenderer();
   
-  void setWindowResolution(int width, int height);
   void setSkyBox(std::shared_ptr<RenderableCubeMap> sky_box);
   virtual void render(Object3D& scene) override;
 private:
@@ -51,8 +50,6 @@ private:
   void renderScreenSpaceReflections();
   void renderIrradiance();
 
-  int _window_width, _window_height;
-
   std::shared_ptr<ShaderProgram> _shading_program_point_lights;
   std::shared_ptr<ShaderProgram> _shading_program_directional_lights;
   std::shared_ptr<ShaderProgram> _shading_program_environment_diffuse;
@@ -71,8 +68,6 @@ private:
   std::unique_ptr<FrameBufferQuad> _final_pass_through_fbo_quad;
 
   std::shared_ptr<RenderableCubeMap> _sky_box;
-
-  PerspectiveCamera& _camera;
 };
 
 } }

@@ -10,9 +10,7 @@ namespace sge { namespace core {
 
 DeferredShadingRenderer::DeferredShadingRenderer(
   PerspectiveCamera& camera, int framebuffer_width, int framebuffer_height) :
-  _window_width(framebuffer_width),
-  _window_height(framebuffer_height),
-  _camera(camera)
+  Renderer(camera, framebuffer_width, framebuffer_height)
 {
   initializeShaders();
   initializeFramebuffers(framebuffer_width, framebuffer_height);
@@ -21,13 +19,6 @@ DeferredShadingRenderer::DeferredShadingRenderer(
 DeferredShadingRenderer::~DeferredShadingRenderer()
 {
 
-}
-
-void DeferredShadingRenderer::setWindowResolution(int width, int height)
-{
-  _window_width = width;
-  _window_height = height;
-  _camera.setAspectRatio( static_cast<float>(width) / height);
 }
 
 void DeferredShadingRenderer::setSkyBox(std::shared_ptr<RenderableCubeMap> sky_box)

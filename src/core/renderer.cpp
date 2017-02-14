@@ -3,11 +3,21 @@
 namespace sge { namespace core {
 
 
-Renderer::Renderer()
+Renderer::Renderer(PerspectiveCamera& camera, int window_width, int window_height) :
+	_camera(camera),
+	_window_width(window_width),
+	_window_height(window_height)
 { }
 
 Renderer::~Renderer()
 { }
+
+void Renderer::setWindowResolution(int width, int height)
+{
+  _window_width = width;
+  _window_height = height;
+  _camera.setAspectRatio( static_cast<float>(width) / height);
+}
 
 void Renderer::submitRenderableDeferred(RenderableDeferred& renderable)
 {

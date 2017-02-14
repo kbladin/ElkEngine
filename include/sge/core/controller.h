@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SGE/core/object_3d.h"
-#include "SGE/core/deferred_shading_renderer.h"
+#include "SGE/core/renderer.h"
 
 #include <set>
 
@@ -170,7 +170,7 @@ public:
   virtual void mouseButtonCallback(MouseButton button, KeyAction action);
   virtual void mouseScrollCallback(double dx, double dy);
   virtual void keyCallback(Key key, KeyAction action);
-    virtual void windowSizeCallback(int width, int height);
+  virtual void windowSizeCallback(int width, int height);
 
   virtual void step(float dt) = 0;
 protected:
@@ -202,7 +202,7 @@ private:
 class WindowSizeController : public Controller
 {
 public:
-  WindowSizeController(DeferredShadingRenderer& renderer) : _renderer(renderer) {};
+  WindowSizeController(Renderer& renderer) : _renderer(renderer) {};
   ~WindowSizeController() {};
   
   virtual void step(float dt) {};
@@ -212,7 +212,7 @@ public:
   };
 
 private:
-  DeferredShadingRenderer& _renderer;
+  Renderer& _renderer;
 };
 
 } }
