@@ -24,3 +24,7 @@ Some screenshots of the PBR renderer.
 ![](screenshots/screen1.png "Screenshot")
 ![](screenshots/screen2.png "Screenshot")
 ![](screenshots/screen3.png "Screenshot")
+
+PBR Materials from: http://freepbr.com
+Cube maps from: http://www.humus.name/index.php?page=Textures
+and: http://www.custommapmakers.org/skyboxes.php
