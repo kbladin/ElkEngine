@@ -1,5 +1,6 @@
 #Elk Engine
 ![](images/elk_small.png "Elk")
+
 Graphics engine to control low level OpenGL interfacing used many of my OpenGL projects.
 
 ##Features
