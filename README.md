@@ -1,4 +1,5 @@
 #Elk Engine
+![](images/elk_small.png "Elk")
 Graphics engine to control low level OpenGL interfacing used many of my OpenGL projects.
 
 ##Features
@@ -21,9 +22,9 @@ GLEW is required. Currently GLFW is the only supported window manager. To be abl
 
 Some screenshots of the PBR renderer.
 
-![](screenshots/screen1.png "Screenshot")
-![](screenshots/screen2.png "Screenshot")
-![](screenshots/screen3.png "Screenshot")
+![](images/screen1.png "Screenshot")
+![](images/screen2.png "Screenshot")
+![](images/screen3.png "Screenshot")
 
 PBR Materials from: http://freepbr.com
 Cube maps from: http://www.humus.name/index.php?page=Textures
