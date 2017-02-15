@@ -23,7 +23,7 @@ include_directories(${GLEW_INCLUDE_DIR})
 include_directories(${GLM_INCLUDE_DIR})
 
 # Our own include directory
-set(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include)
+set(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/include CACHE PATH "${PROJECT_NAME} include directories")
 include_directories(${${PROJECT_NAME}_INCLUDE_DIRS})
 
 set(CMAKE_CXX_FLAGS "-g")
@@ -37,6 +37,7 @@ file(GLOB ${PROJECT_NAME}_HEADERS
   ${PROJECT_SOURCE_DIR}/include/elk/object_extensions/*.h)
 
 add_library(${PROJECT_NAME} SHARED ${${PROJECT_NAME}_SOURCES} ${${PROJECT_NAME}_HEADERS})
+set(${PROJECT_NAME}_LIBRARIES ${PROJECT_NAME} CACHE FILEPATH "${PROJECT_NAME} libraries")
 
 # Link other libraries
 target_link_libraries(
