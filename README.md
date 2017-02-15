@@ -1,5 +1,5 @@
 #Elk Engine
-![](images/elk_small.png =128x "Elk")
+![](images/elk_small.png=128x)
 
 Graphics engine to control low level OpenGL interfacing used many of my OpenGL projects.
 
