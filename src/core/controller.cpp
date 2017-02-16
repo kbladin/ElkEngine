@@ -43,8 +43,8 @@ void Controller::mouseButtonCallback(MouseButton button, KeyAction action)
 
 void Controller::mouseScrollCallback(double dx, double dy)
 {
-	_scroll_dx = dx;
-	_scroll_dy = dy;
+	_scroll_dx_goal = dx;
+	_scroll_dy_goal = dy;
 }
 
 void Controller::keyCallback(Key key, KeyAction action)
@@ -97,6 +97,12 @@ void Controller::windowSizeCallback(int width, int height)
 
 }
 
+void Controller::step(float dt)
+{
+	_scroll_dx += (_scroll_dx_goal - _scroll_dx) * glm::min(dt * 60.0f * 0.3f, 1.0f);
+	_scroll_dy += (_scroll_dy_goal - _scroll_dy) * glm::min(dt * 60.0f * 0.3f, 1.0f);
+}
+
 SphericalController::SphericalController(Object3D& object) :
 	Controller(),
 	_object(object)
@@ -115,6 +121,8 @@ SphericalController::~SphericalController()
 
 void SphericalController::step(float dt)
 {
+	Controller::step(dt);
+
 	handleInput(dt);
 	transformObject();
 }
@@ -148,8 +156,8 @@ void SphericalController::handleInput(float dt)
 	// Reset
 	_mouse_dx = 0;
 	_mouse_dy = 0;
-	_scroll_dx = 0;
-	_scroll_dy = 0;
+	_scroll_dx_goal = 0;
+	_scroll_dy_goal = 0;
 }
 
 void SphericalController::transformObject()

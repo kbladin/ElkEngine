@@ -34,9 +34,16 @@ private:
   // Input is the fbo to render to
   void renderGeometryBuffer(FrameBufferQuad& geometry_buffer);
   void renderLightSources(FrameBufferQuad& light_buffer);
-  void renderReflections(FrameBufferQuad& irradiance_buffer);
-  void renderHighlights(FrameBufferQuad& post_process_buffer);
-  void renderPostProcess(FrameBufferQuad& final_buffer);
+  
+  // ping pong rendering if irradiance buffers
+  void renderReflections(
+    FrameBufferQuad& sample_buffer, FrameBufferQuad& output_buffer);
+  void renderHighlights(
+    FrameBufferQuad& sample_buffer, FrameBufferQuad& output_buffer);
+  void renderPostProcess(
+    FrameBufferQuad& sample_buffer, FrameBufferQuad& output_buffer);
+  void renderPostProcessMotionBlur(
+    FrameBufferQuad& sample_buffer, FrameBufferQuad& output_buffer);
   void forwardRenderIndependentRenderables(FrameBufferQuad& final_buffer);
   
   // Input is the fbo to sample from, index is the attachment to bind
@@ -47,8 +54,7 @@ private:
   void renderDirectionalLights();
   void renderDiffuseEnvironmentLights();
   void renderSkyBox();
-  void renderScreenSpaceReflections();
-  void renderIrradiance();
+  void renderScreenSpaceReflections(FrameBufferQuad& sample_buffer);
 
   std::shared_ptr<ShaderProgram> _shading_program_point_lights;
   std::shared_ptr<ShaderProgram> _shading_program_directional_lights;
@@ -59,15 +65,19 @@ private:
   
   std::shared_ptr<ShaderProgram> _output_highlights_program;
   std::shared_ptr<ShaderProgram> _post_process_program;
+  std::shared_ptr<ShaderProgram> _motion_blur_program;
   std::shared_ptr<ShaderProgram> _final_pass_through_program;
 
   std::unique_ptr<FrameBufferQuad> _geometry_fbo_quad;
-  std::unique_ptr<FrameBufferQuad> _light_fbo_quad;
-  std::unique_ptr<FrameBufferQuad> _final_irradiance_fbo_quad;
+  // Two irradiance FBOs to be able to perform ping ponging
+  std::unique_ptr<FrameBufferQuad> _irradiance_fbo_quad1;
+  std::unique_ptr<FrameBufferQuad> _irradiance_fbo_quad2;
   std::unique_ptr<FrameBufferQuad> _post_process_fbo_quad;
-  std::unique_ptr<FrameBufferQuad> _final_pass_through_fbo_quad;
 
   std::shared_ptr<RenderableCubeMap> _sky_box;
+
+  // Cached
+  glm::mat4 _camera_previous_view_transform;
 };
 
 } }

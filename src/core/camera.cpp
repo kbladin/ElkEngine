@@ -54,7 +54,8 @@ PerspectiveCamera::PerspectiveCamera(
   _aspect(aspect),
   _near(near),
   _far(far),
-  _diagonal(diagonal)
+  _diagonal(diagonal),
+  _focus(0.0f)
 {
   setFocalLength(focal_length);
   setFocalRatio(focal_ratio);

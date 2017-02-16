@@ -172,12 +172,13 @@ public:
   virtual void keyCallback(Key key, KeyAction action);
   virtual void windowSizeCallback(int width, int height);
 
-  virtual void step(float dt) = 0;
+  virtual void step(float dt);
 protected:
   std::set<MouseButton> _mouse_buttons_pressed;
   std::set<Key> _keys_pressed;
   std::set<KeyModifier> _modifiers_pressed;
-  float _mouse_x, _mouse_y, _mouse_dx, _mouse_dy, _scroll_dx, _scroll_dy;
+  float _mouse_x, _mouse_y, _mouse_dx, _mouse_dy;
+  float _scroll_dx, _scroll_dy, _scroll_dx_goal, _scroll_dy_goal;
 };
 
 class SphericalController : public Controller

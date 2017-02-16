@@ -6,7 +6,7 @@ layout(location = 0) out vec4 color;
 in vec3 vertex_position_viewspace_unprojected;
 
 // Uniforms
-uniform sampler2D final_irradiance_buffer;
+uniform sampler2D irradiance_buffer;
 uniform sampler2D position_buffer;
 uniform sampler2D albedo_buffer;
 uniform sampler2D bloom_buffer;
@@ -41,17 +41,17 @@ float calculateMipLevel(float object_dist, bool infinite_dist)
 vec3 calculateUnfocusedIrradiance(vec2 sample_point_texture_space, float level)
 {
   vec3 irradiance;
-  irradiance += texture(final_irradiance_buffer, sample_point_texture_space, level).rgb * 2.0f / 10.0f;
+  irradiance += texture(irradiance_buffer, sample_point_texture_space, level).rgb * 2.0f / 10.0f;
 
-  irradiance += textureLod(final_irradiance_buffer, sample_point_texture_space + pow(2,level) * vec2(0,1) / (window_size), level).rgb / 10.0f;
-  irradiance += textureLod(final_irradiance_buffer, sample_point_texture_space - pow(2,level) * vec2(0,1) / (window_size), level).rgb / 10.0f;
-  irradiance += textureLod(final_irradiance_buffer, sample_point_texture_space + pow(2,level) * vec2(1,0) / (window_size), level).rgb / 10.0f;
-  irradiance += textureLod(final_irradiance_buffer, sample_point_texture_space - pow(2,level) * vec2(1,0) / (window_size), level).rgb / 10.0f;
+  irradiance += textureLod(irradiance_buffer, sample_point_texture_space + pow(2,level) * vec2(0,1) / (window_size), level).rgb / 10.0f;
+  irradiance += textureLod(irradiance_buffer, sample_point_texture_space - pow(2,level) * vec2(0,1) / (window_size), level).rgb / 10.0f;
+  irradiance += textureLod(irradiance_buffer, sample_point_texture_space + pow(2,level) * vec2(1,0) / (window_size), level).rgb / 10.0f;
+  irradiance += textureLod(irradiance_buffer, sample_point_texture_space - pow(2,level) * vec2(1,0) / (window_size), level).rgb / 10.0f;
 
-  irradiance += textureLod(final_irradiance_buffer, sample_point_texture_space + pow(2,level) * vec2(0.7,0.7) / (window_size), level).rgb / 10.0f;
-  irradiance += textureLod(final_irradiance_buffer, sample_point_texture_space - pow(2,level) * vec2(0.7,0.7) / (window_size), level).rgb / 10.0f;
-  irradiance += textureLod(final_irradiance_buffer, sample_point_texture_space + pow(2,level) * vec2(-0.7,0.7) / (window_size), level).rgb / 10.0f;
-  irradiance += textureLod(final_irradiance_buffer, sample_point_texture_space - pow(2,level) * vec2(-0.7,0.7) / (window_size), level).rgb / 10.0f;
+  irradiance += textureLod(irradiance_buffer, sample_point_texture_space + pow(2,level) * vec2(0.7,0.7) / (window_size), level).rgb / 10.0f;
+  irradiance += textureLod(irradiance_buffer, sample_point_texture_space - pow(2,level) * vec2(0.7,0.7) / (window_size), level).rgb / 10.0f;
+  irradiance += textureLod(irradiance_buffer, sample_point_texture_space + pow(2,level) * vec2(-0.7,0.7) / (window_size), level).rgb / 10.0f;
+  irradiance += textureLod(irradiance_buffer, sample_point_texture_space - pow(2,level) * vec2(-0.7,0.7) / (window_size), level).rgb / 10.0f;
 
   return irradiance;
 }
@@ -111,13 +111,5 @@ void main()
   // Gamma correction 
   //mapped = pow(mapped, vec3(1.0 / 1.1));
 
-  vec3 v = normalize(vertex_position_viewspace_unprojected);
-  float vignetting = dot(-v, vec3(0.0f,0.0f,1.0f));
-
-  color = vec4(vignetting * total_irradiance, 1.0f);
-
-  // Write to linear depth buffer
-  float max_dist = 1000.0f;
-  float depth = infinite_dist ? 1.0f : (-position.z / max_dist);
-  gl_FragDepth = depth;
+  color = vec4(total_irradiance, 1.0f);
 }
